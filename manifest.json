@@ -1,0 +1,32 @@
+{
+  "name": "有声书馆 · 知晓 & 那年高中",
+  "short_name": "有声书馆",
+  "description": "免费有声书收听平台，支持文本同步高亮、倍速播放、定时关闭。",
+  "lang": "zh-CN",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f5efe6",
+  "theme_color": "#b66b3f",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "知晓",
+      "short_name": "知晓",
+      "url": "./zhixiao/index.html"
+    },
+    {
+      "name": "那年高中",
+      "short_name": "那年高中",
+      "url": "./nanian/index.html"
+    }
+  ]
+}
