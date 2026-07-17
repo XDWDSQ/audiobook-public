@@ -3,8 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#f7f1e8">
+<meta name="theme-color" content="#f7f1e8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#211b18" media="(prefers-color-scheme: dark)">
 <meta name="description" content="《那年高中》完整有声书，40章，7小时21分。免费收听，支持文本同步高亮、倍速播放、定时关闭。">
+<meta name="format-detection" content="telephone=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="那年高中">
+<link rel="manifest" href="../manifest.json">
+<link rel="apple-touch-icon" href="../icon.svg">
 <meta property="og:title" content="那年高中 - 有声书 | 免费收听">
 <meta property="og:description" content="《那年高中》完整有声书，40章，7小时21分，支持文本同步高亮">
 <meta property="og:image" content="../preview-desktop.png">
@@ -130,7 +138,7 @@ button:focus-visible, input:focus-visible, .segment:focus-visible {
 .menu-toggle { display: none; }
 .drawer-overlay { display: none; }
 .drawer-close { display: none; }
-.chapter-item { margin: 2px 0; }
+.chapter-item { margin: 2px 0; content-visibility: auto; contain-intrinsic-size: auto 46px; }
 .chapter-button { width: 100%; display: flex; align-items: center; gap: 11px; padding: 11px 12px; border: 0; border-radius: 12px; cursor: pointer; text-align: left; background: transparent; transition: background .18s ease, color .18s ease; }
 .chapter-button:hover { background: var(--accent-soft); }
 .chapter-button.active { background: var(--accent); color: #fff9f2; }
@@ -238,9 +246,9 @@ button:focus-visible, input:focus-visible, .segment:focus-visible {
   .player-chapter { align-self: center; }
   .seek-line { grid-column: 1 / -1; grid-row: 2; }
   .seek { height: 12px; }
-  .player-actions { grid-column: 1 / -1; grid-row: 3; justify-content: center; gap: 10px; margin: 0; }
-  .player-actions button { min-width: 42px; height: 42px; }
-  .app { padding-bottom: 175px; }
+  .player-actions { grid-column: 1 / -1; grid-row: 3; justify-content: center; flex-wrap: wrap; gap: 10px; margin: 0; }
+  .player-actions button, .player-actions .icon-text-button { min-width: 44px; height: 44px; }
+  .app { padding-bottom: 208px; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; } }
 
@@ -260,6 +268,11 @@ button:focus-visible, input:focus-visible, .segment:focus-visible {
   .topbar { padding-top: env(safe-area-inset-top); }
   .bottom-player { padding-bottom: calc(12px + env(safe-area-inset-bottom)); }
   .app { padding-bottom: calc(175px + env(safe-area-inset-bottom)); }
+}
+@media (max-width: 700px) {
+  @supports (padding-bottom: env(safe-area-inset-bottom)) {
+    .app { padding-bottom: calc(208px + env(safe-area-inset-bottom)); }
+  }
 }
 
 /* ===== 入场动画 ===== */
@@ -596,6 +609,9 @@ button:focus-visible, input:focus-visible, .segment:focus-visible {
   let restoreListener = null;
   let seekToken = 0;
   let lastActiveSegment = -1;
+  let prefetchAudio = null;
+  let prefetchedFile = '';
+  let prefetchTimer = 0;
 
   const $ = (id) => document.getElementById(id);
   // fmtTime 已从 ABCommon 解构
@@ -725,6 +741,24 @@ button:focus-visible, input:focus-visible, .segment:focus-visible {
     }
     // 屏幕阅读器播报
     announce('已加载第 ' + (index + 1) + ' 章：' + chapter.title);
+
+    // 预加载下一章音频元数据（空闲时进行，切章等待更短）
+    clearTimeout(prefetchTimer);
+    prefetchTimer = setTimeout(() => prefetchNextChapter(index), 1500);
+  }
+
+  // 预加载下一章：仅拉取 metadata，使切章等待显著缩短
+  function prefetchNextChapter(index) {
+    const nextIndex = index + 1;
+    if (nextIndex >= chapters.length) return;
+    const nextFile = chapters[nextIndex] && chapters[nextIndex].file;
+    if (!nextFile || nextFile === prefetchedFile) return;
+    try {
+      if (!prefetchAudio) { prefetchAudio = new Audio(); prefetchAudio.preload = 'metadata'; }
+      prefetchAudio.src = nextFile;
+      prefetchAudio.load();
+      prefetchedFile = nextFile;
+    } catch (_) {}
   }
 
   function loadChapter(index, autoplay = false) {
@@ -772,6 +806,27 @@ button:focus-visible, input:focus-visible, .segment:focus-visible {
   let scrollResumeTimer = null;
   readingBody.addEventListener('touchmove', () => { userScrolling = true; clearTimeout(scrollResumeTimer); scrollResumeTimer = setTimeout(() => { userScrolling = false; }, 3000); }, { passive: true });
   readingBody.addEventListener('wheel', () => { userScrolling = true; clearTimeout(scrollResumeTimer); scrollResumeTimer = setTimeout(() => { userScrolling = false; }, 3000); }, { passive: true });
+
+  // 阅读区左右滑动切章（区分于竖向滚动）
+  (function() {
+    let sx = 0, sy = 0, stime = 0, tracking = false;
+    readingBody.addEventListener('touchstart', (e) => {
+      if (e.touches.length !== 1) { tracking = false; return; }
+      sx = e.touches[0].clientX; sy = e.touches[0].clientY; stime = Date.now(); tracking = true;
+    }, { passive: true });
+    readingBody.addEventListener('touchend', (e) => {
+      if (!tracking) return;
+      tracking = false;
+      const t = e.changedTouches[0];
+      const dx = t.clientX - sx, dy = t.clientY - sy, dt = Date.now() - stime;
+      if (dt > 600 || Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+      if (dx < 0) {
+        if (currentIndex < chapters.length - 1) { loadChapter(currentIndex + 1, !audio.paused); showToast('下一章'); }
+      } else {
+        if (currentIndex > 0) { loadChapter(currentIndex - 1, !audio.paused); showToast('上一章'); }
+      }
+    }, { passive: true });
+  })();
 
   function updateSegment(index) {
     segmentNodes.forEach((node, nodeIndex) => {
@@ -1110,6 +1165,15 @@ button:focus-visible, input:focus-visible, .segment:focus-visible {
     const savedTheme = localStorage.getItem('nagao_theme'); if (savedTheme === 'dark' || savedTheme === 'light') document.documentElement.dataset.theme = savedTheme;
   currentIndex = Math.min(Math.max(Number(localStorage.getItem(chapterKey) || 0), 0), Math.max(0, chapters.length - 1));
   if (chapters.length) { initializeStats(); renderChapterList(''); renderChapter(currentIndex); formatResumeNote(); applyHashRoute(); updateMediaSession(); updateHash(); } else { $('readerTitle').textContent = '章节数据未找到'; readingBody.innerHTML = '<p class="empty">请确认 chapters.js 与本页面位于同一目录。</p>'; }
+
+  // Service Worker 注册（PWA / 离线缓存）
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('../sw.js', { scope: '../' }).catch((err) => {
+        console.error('SW registration failed:', err);
+      });
+    });
+  }
 })();
 </script>
 </body>
