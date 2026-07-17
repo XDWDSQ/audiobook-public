@@ -6,7 +6,17 @@
 <meta name="description" content="有声书馆 - 免费收听优质有声书，支持文本同步高亮、定时关闭、倍速播放。包含《知晓》177章、《那年高中》40章完整有声书。">
 <meta name="keywords" content="有声书,有声小说,校园文学,原创长篇,知晓,那年高中">
 <meta name="author" content="有声书馆">
-<meta name="theme-color" content="#b66b3f">
+<meta name="theme-color" content="#b66b3f" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1a1715" media="(prefers-color-scheme: dark)">
+
+<!-- 移动端 / PWA -->
+<meta name="format-detection" content="telephone=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="有声书馆">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon.svg">
 
 <!-- Open Graph / Facebook -->
 <meta property="og:type" content="website">
@@ -647,6 +657,15 @@ body {
   window.addEventListener('unhandledrejection', (e) => {
     console.error('Unhandled promise rejection:', e.reason);
   });
+
+  // Service Worker 注册（PWA / 离线缓存）
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch((err) => {
+        console.error('SW registration failed:', err);
+      });
+    });
+  }
 })();
 </script>
 </body>
