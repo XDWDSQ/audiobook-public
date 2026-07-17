@@ -4,6 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="《知晓》完整有声书，177章，15小时51分。免费收听，支持文本同步高亮、倍速播放。">
+<meta name="theme-color" content="#1a1715" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f5f0e8" media="(prefers-color-scheme: light)">
+<meta name="format-detection" content="telephone=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="知晓">
+<link rel="manifest" href="../manifest.json">
+<link rel="apple-touch-icon" href="../icon.svg">
 <meta property="og:title" content="知晓 - 有声书 | 免费收听">
 <meta property="og:description" content="《知晓》完整有声书，177章，15小时51分，支持文本同步高亮">
 <meta property="og:image" content="../preview-desktop.png">
@@ -100,10 +109,12 @@ header p {
   height: 100vh;
   background: var(--surface);
   border-right: 1px solid var(--border);
-  overflow-y: auto;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
   transition: left 0.3s ease;
   z-index: 200;
-  padding: 20px 0;
+  padding: 20px 0 0;
 }
 .sidebar.open { left: 0; }
 .sidebar-overlay {
@@ -121,6 +132,7 @@ header p {
   padding: 0 20px 16px;
   border-bottom: 1px solid var(--border);
   margin-bottom: 8px;
+  flex-shrink: 0;
 }
 .sidebar a {
   display: flex;
@@ -323,10 +335,10 @@ header p {
   .chapter-content { font-size: 0.95rem; line-height: 1.9; }
   .player-bar { padding: 8px 12px; gap: 8px; }
   .play-btn { width: 44px; height: 44px; font-size: 1rem; }
-  .speed-btn { padding: 4px 8px; font-size: 0.72rem; }
-  .nav-btn { width: 38px; height: 38px; font-size: 0.8rem; }
+  .speed-btn { padding: 4px 10px; min-height: 44px; font-size: 0.72rem; }
+  .nav-btn { width: 44px; height: 44px; font-size: 0.8rem; }
   .player-title { font-size: 0.75rem; }
-  .font-size-btn { padding: 4px 8px; font-size: 0.72rem; }
+  .font-size-btn { padding: 4px 10px; min-height: 44px; font-size: 0.72rem; }
   .sidebar { width: 85vw; max-width: 320px; left: -85vw; }
   .sidebar.open { left: 0; }
   .sidebar a { padding: 12px 20px; font-size: 0.9rem; }
@@ -381,6 +393,7 @@ header { animation-delay: .05s; }
   padding: 12px 20px 8px;
   border-bottom: 1px solid var(--border);
   position: relative;
+  flex-shrink: 0;
 }
 .sidebar-search input {
   width: 100%;
@@ -459,6 +472,13 @@ header { animation-delay: .05s; }
 /* ===== 加载骨架 ===== */
 @keyframes pulse { 0%, 100% { opacity: .5; } 50% { opacity: 1; } }
 .loading p { animation: pulse 1.4s ease infinite; }
+
+/* ===== 目录虚拟滚动 ===== */
+#toc { position: relative; flex: 1 1 auto; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+#toc .toc-spacer { position: relative; width: 100%; }
+#toc a { position: absolute; left: 0; right: 0; box-sizing: border-box; }
+#toc a > span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#toc > p.loading { position: static; padding: 40px 20px; }
 </style>
 </head>
 <body>
@@ -535,6 +555,9 @@ let isFirstLoad = true;
 let userScrolling = false;
 let scrollResumeTimer = null;
 let lastActiveSegIdx = -1;
+let prefetchAudio = null;
+let prefetchedFile = '';
+let prefetchTimer = 0;
 
 const audio = document.getElementById('audio');
 const playBtn = document.getElementById('playBtn');
@@ -618,20 +641,59 @@ async function loadData() {
   }
 }
 
-// ===== 目录 (带搜索) =====
+// ===== 目录 (带搜索 + 虚拟滚动) =====
+// 仅渲染可视区内的章节按钮，177 章不再全量入 DOM
+let tocFiltered = [];   // 当前过滤后可见的章节原始索引
+let tocRowH = 40;       // 单行高度(px)，随视口调整
+
+function computeTocRowH() {
+  tocRowH = window.matchMedia('(max-width: 768px)').matches ? 48 : 40;
+}
+
 function buildTOC(keyword) {
   const toc = document.getElementById('toc');
-  toc.innerHTML = '';
   const kw = String(keyword || '').trim().toLowerCase();
-  let count = 0;
+  tocFiltered = [];
   CHAPTERS.forEach((ch, i) => {
     if (kw && !(ch.title || '').toLowerCase().includes(kw)) return;
-    count++;
+    tocFiltered.push(i);
+  });
+  computeTocRowH();
+  toc.innerHTML = '';
+  if (!tocFiltered.length) {
+    toc.innerHTML = '<p class="loading">没有找到匹配章节</p>';
+    return;
+  }
+  const spacer = document.createElement('div');
+  spacer.className = 'toc-spacer';
+  spacer.style.height = (tocFiltered.length * tocRowH) + 'px';
+  toc.appendChild(spacer);
+  renderTOCWindow();
+}
+
+function renderTOCWindow() {
+  const toc = document.getElementById('toc');
+  const spacer = toc.querySelector('.toc-spacer');
+  if (!spacer) return;
+  const scrollTop = toc.scrollTop;
+  const viewport = toc.clientHeight || 400;
+  const buffer = 4;
+  const start = Math.max(0, Math.floor(scrollTop / tocRowH) - buffer);
+  const end = Math.min(tocFiltered.length - 1, Math.ceil((scrollTop + viewport) / tocRowH) + buffer);
+  // 清掉旧的可视节点，只保留 spacer
+  const old = spacer.querySelectorAll('a');
+  for (let k = 0; k < old.length; k++) old[k].remove();
+  const frag = document.createDocumentFragment();
+  for (let pos = start; pos <= end; pos++) {
+    const i = tocFiltered[pos];
+    const ch = CHAPTERS[i];
     const a = document.createElement('a');
     a.href = 'javascript:void(0)';
     a.dataset.idx = i;
     a.setAttribute('role', 'button');
-    if (i === currentIdx) a.setAttribute('aria-current', 'true');
+    a.style.top = (pos * tocRowH) + 'px';
+    a.style.height = tocRowH + 'px';
+    if (i === currentIdx) { a.classList.add('active'); a.setAttribute('aria-current', 'true'); }
     const span = document.createElement('span');
     span.textContent = ch.title;
     const dur = document.createElement('span');
@@ -647,19 +709,45 @@ function buildTOC(keyword) {
     a.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); a.click(); }
     });
-    toc.appendChild(a);
-  });
-  if (!count) { toc.innerHTML = '<p class="loading">没有找到匹配章节</p>'; }
-  updateTOCActive();
+    frag.appendChild(a);
+  }
+  spacer.appendChild(frag);
 }
 
 function updateTOCActive() {
-  document.querySelectorAll('.sidebar a').forEach((a, i) => {
-    const active = i === currentIdx;
-    a.classList.toggle('active', active);
-    if (active) a.setAttribute('aria-current', 'true'); else a.removeAttribute('aria-current');
-  });
+  const toc = document.getElementById('toc');
+  if (!toc || !tocFiltered.length) return;
+  // 让当前章节滚动进可视区
+  const pos = tocFiltered.indexOf(currentIdx);
+  if (pos >= 0) {
+    const top = pos * tocRowH;
+    const viewport = toc.clientHeight || 400;
+    if (top < toc.scrollTop || top + tocRowH > toc.scrollTop + viewport) {
+      toc.scrollTop = Math.max(0, top - viewport / 2 + tocRowH / 2);
+    }
+  }
+  renderTOCWindow();
 }
+
+// 虚拟滚动：监听目录滚动与视口变化
+(function initTOCVirtual() {
+  const toc = document.getElementById('toc');
+  if (!toc) return;
+  let raf = null;
+  toc.addEventListener('scroll', () => {
+    if (raf) return;
+    raf = requestAnimationFrame(() => { raf = null; renderTOCWindow(); });
+  }, { passive: true });
+  window.addEventListener('resize', () => {
+    const prev = tocRowH;
+    computeTocRowH();
+    if (prev !== tocRowH) {
+      const sp = toc.querySelector('.toc-spacer');
+      if (sp) sp.style.height = (tocFiltered.length * tocRowH) + 'px';
+    }
+    renderTOCWindow();
+  });
+})();
 
 document.getElementById('tocSearch').addEventListener('input', (e) => {
   buildTOC(e.target.value);
@@ -756,6 +844,24 @@ function loadChapter(idx, autoplay) {
   if (autoplay) {
     audio.play().catch(() => {});
   }
+
+  // 预加载下一章音频元数据（空闲时进行，切章等待更短）
+  clearTimeout(prefetchTimer);
+  prefetchTimer = setTimeout(() => prefetchNextChapter(idx), 1500);
+}
+
+// 预加载下一章：仅拉取 metadata（几 KB），使切章等待从 ~2s 降至 <200ms
+function prefetchNextChapter(idx) {
+  const nextIdx = idx + 1;
+  if (nextIdx >= CHAPTERS.length) return;
+  const nextFile = CHAPTERS[nextIdx] && CHAPTERS[nextIdx].file;
+  if (!nextFile || nextFile === prefetchedFile) return;
+  try {
+    if (!prefetchAudio) { prefetchAudio = new Audio(); prefetchAudio.preload = 'metadata'; }
+    prefetchAudio.src = nextFile;
+    prefetchAudio.load();
+    prefetchedFile = nextFile;
+  } catch (_) {}
 }
 
 // ===== 播放控制 =====
@@ -894,6 +1000,29 @@ function highlightSeg(idx) {
   }, { passive: true });
 })();
 
+// 阅读区左右滑动切章（区分于竖向滚动）
+(function() {
+  const readerEl = document.getElementById('reader');
+  if (!readerEl) return;
+  let sx = 0, sy = 0, st = 0, tracking = false;
+  readerEl.addEventListener('touchstart', (e) => {
+    if (e.touches.length !== 1) { tracking = false; return; }
+    sx = e.touches[0].clientX; sy = e.touches[0].clientY; st = Date.now(); tracking = true;
+  }, { passive: true });
+  readerEl.addEventListener('touchend', (e) => {
+    if (!tracking) return;
+    tracking = false;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - sx, dy = t.clientY - sy, dt = Date.now() - st;
+    if (dt > 600 || Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+    if (dx < 0) {
+      if (currentIdx < CHAPTERS.length - 1) { loadChapter(currentIdx + 1, isPlaying); showToast && showToast('下一章'); }
+    } else {
+      if (currentIdx > 0) { loadChapter(currentIdx - 1, isPlaying); showToast && showToast('上一章'); }
+    }
+  }, { passive: true });
+})();
+
 // 上一章/下一章
 prevBtn.addEventListener('click', () => {
   if (currentIdx > 0) loadChapter(currentIdx - 1, isPlaying);
@@ -982,6 +1111,15 @@ window.addEventListener('hashchange', () => { applyHashRoute(); });
 // 初始化
 initTheme();
 loadData();
+
+// Service Worker 注册（PWA / 离线缓存）
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('../sw.js', { scope: '../' }).catch((err) => {
+      console.error('SW registration failed:', err);
+    });
+  });
+}
 </script>
 </body>
 </html>
