@@ -1,0 +1,105 @@
+/* performance-optimized.css
+ * 性能优化样式表
+ * 包含常用的性能优化技巧
+ */
+
+/* ===== GPU加速 ===== */
+.gpu-accelerated {
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+/* ===== 布局优化 ===== */
+.layout-contained {
+  contain: layout style paint;
+}
+
+/* ===== 内容可见性优化 ===== */
+.content-visibility-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 500px;
+}
+
+/* ===== 图片优化 ===== */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+img[loading="lazy"] {
+  content-visibility: auto;
+}
+
+/* ===== 字体优化 ===== */
+.font-display-swap {
+  font-display: swap;
+}
+
+/* ===== 焦点优化 ===== */
+.focus-visible-only:focus:not(:focus-visible) {
+  outline: none;
+}
+
+.focus-visible-only:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+/* ===== 选择文本优化 ===== */
+::selection {
+  background: rgba(182, 107, 63, 0.3);
+  color: inherit;
+}
+
+/* ===== 滚动条优化 ===== */
+.smooth-scroll {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .smooth-scroll {
+    scroll-behavior: auto;
+  }
+}
+
+/* ===== 触摸优化 ===== */
+.touch-optimized {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ===== 打印优化 ===== */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  * {
+    background: transparent !important;
+    color: #000 !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+}
+
+/* ===== 暗色模式优化 ===== */
+@media (prefers-color-scheme: dark) {
+  .auto-dark-mode {
+    color-scheme: dark;
+  }
+}
+
+/* ===== 高对比度模式 ===== */
+@media (prefers-contrast: high) {
+  .high-contrast-support {
+    border-width: 2px;
+  }
+}
+
+/* ===== 减少数据使用 ===== */
+@media (prefers-reduced-data: reduce) {
+  .reduced-data-support {
+    background-image: none !important;
+  }
+}
