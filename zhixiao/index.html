@@ -1092,8 +1092,24 @@ loadData();
 // Service Worker 注册（PWA / 离线缓存）
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('../sw.js', { scope: '../' }).catch((err) => {
-      console.error('SW registration failed:', err);
+    navigator.serviceWorker.register('../sw.js', { scope: '../' }).then((reg) => {
+      if (reg.waiting) { reg.waiting.postMessage('SKIP_WAITING'); }
+      reg.addEventListener('updatefound', () => {
+        const newWorker = reg.installing;
+        if (newWorker) {
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              newWorker.postMessage('SKIP_WAITING');
+            }
+          });
+        }
+      });
+    }).catch((err) => { console.error('SW registration failed:', err); });
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (refreshing) return;
+      refreshing = true;
+      window.location.reload();
     });
   });
 }

@@ -1,10 +1,11 @@
 /* sw.js — 有声书馆 Service Worker
  * 策略：
- *   - 应用外壳（HTML/CSS/JS/图标）：stale-while-revalidate，离线可用
+ *   - HTML 页面：network-first，保证结构最新（仅在断网时回退缓存）
  *   - 章节数据（data.json / chapters.js）：network-first，保证内容最新
- *   - 音频（.mp3）：不缓存，交给浏览器/HTTP 缓存直连（文件体积大，避免占满配额）
+ *   - CSS/JS/图标：stale-while-revalidate，离线可用
+ *   - 音频（.mp3）：不缓存，交给浏览器/HTTP 缓存直连
  */
-const VERSION = 'audiobook-hub-v5';
+const VERSION = 'audiobook-hub-v6';
 const SHELL_CACHE = 'shell-' + VERSION;
 
 // 预缓存的应用外壳资源（相对 SW 作用域，即站点根）
@@ -37,6 +38,13 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+// 新 SW 接管后通知所有页面刷新
+self.addEventListener('message', (event) => {
+  if (event.data === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
+
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
@@ -48,19 +56,21 @@ self.addEventListener('fetch', (event) => {
   // 音频：直连网络，不走 SW 缓存（避免大文件撑爆缓存）
   if (/\.(mp3|m4a|ogg|wav)$/i.test(url.pathname)) return;
 
-  // 章节数据：network-first，失败回退缓存
-  if (/(data\.json|chapters\.js)$/i.test(url.pathname)) {
+  // HTML 页面 + 章节数据：network-first，保证内容最新
+  if (/(\.html$|\/$|data\.json$|chapters\.js$)/i.test(url.pathname)) {
     event.respondWith(
       fetch(req).then((resp) => {
-        const copy = resp.clone();
-        caches.open(SHELL_CACHE).then((c) => c.put(req, copy)).catch(() => {});
+        if (resp && resp.status === 200) {
+          const copy = resp.clone();
+          caches.open(SHELL_CACHE).then((c) => c.put(req, copy)).catch(() => {});
+        }
         return resp;
-      }).catch(() => caches.match(req))
+      }).catch(() => caches.match(req).then((c) => c || Response.error()))
     );
     return;
   }
 
-  // 其余应用外壳：stale-while-revalidate
+  // 其余外壳资源（CSS/JS/图标）：stale-while-revalidate
   event.respondWith(
     caches.match(req).then((cached) => {
       const network = fetch(req).then((resp) => {
