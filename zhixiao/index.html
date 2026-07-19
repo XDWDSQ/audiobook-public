@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="description" content="《知晓》完整有声书，177章，15小时51分。免费收听，支持文本同步高亮、倍速播放。">
 <meta name="theme-color" content="#1a1715" media="(prefers-color-scheme: dark)">
 <meta name="theme-color" content="#f5f0e8" media="(prefers-color-scheme: light)">
@@ -347,13 +347,28 @@ header p {
 @media (max-width: 480px) {
   header h1 { font-size: 1.2rem; letter-spacing: 0.3em; }
   header p { font-size: 0.7rem; }
-  .icon-btn { width: 34px; height: 34px; font-size: 0.9rem; }
+  .icon-btn { width: 40px; height: 40px; font-size: 0.95rem; }
   .reader { padding: 16px 14px 24px; }
   .chapter-content { font-size: 0.9rem; }
-  .player-bar { padding: 6px 10px; gap: 6px; flex-wrap: wrap; }
-  .player-bar .nav-btns { order: 10; width: 100%; justify-content: center; }
-  .player-bar .speed-btn, .player-bar .font-size-btn { font-size: 0.68rem; }
+  .player-bar { padding: 8px 12px; gap: 6px 10px; flex-wrap: wrap; }
+  /* 第一行：播放按钮 + 标题/进度条 */
+  .player-bar .play-btn { order: 1; flex-shrink: 0; }
+  .player-bar .player-info { order: 2; flex: 1 1 calc(100% - 54px); min-width: 0; }
+  /* 第二行：速度 + 字号 + 前后章 均匀分布 */
+  .player-bar .speed-btn { order: 3; }
+  .player-bar .font-size-btn { order: 4; }
+  .player-bar .nav-btns { order: 5; flex: 1 1 auto; justify-content: flex-end; }
+  .player-bar .speed-btn, .player-bar .font-size-btn { font-size: 0.72rem; min-height: 40px; }
   .time-label { font-size: 0.65rem; min-width: 32px; }
+  /* 进度条触控区域扩大（视觉不变，触控友好） */
+  .progress-track { position: relative; }
+  .progress-track::before { content: ''; position: absolute; left: 0; right: 0; top: -10px; bottom: -10px; }
+}
+@media (max-width: 360px) {
+  header h1 { font-size: 1.05rem; letter-spacing: 0.2em; }
+  .player-bar { padding: 6px 10px; }
+  .player-bar .nav-btns { justify-content: center; }
+  .chapter-content { font-size: 0.85rem; line-height: 1.85; }
 }
 
 /* ── 触摸设备优化 ── */
@@ -370,6 +385,16 @@ header p {
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
   header { padding-top: calc(16px + env(safe-area-inset-top)); }
   .player-bar { padding-bottom: calc(10px + env(safe-area-inset-bottom)); }
+}
+
+/* ── 动画无障碍：尊重用户偏好 ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* ===== 入场动画 ===== */

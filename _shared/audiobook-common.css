@@ -1,9 +1,36 @@
 /* audiobook-common.css
- * 有声书播放器共用样式(无障碍 + Toast)
+ * 有声书播放器共用样式(无障碍 + Toast + 移动端优化)
  * 两个播放器(nanian / zhixiao)都通过 <link> 引入
  */
 
-/* ===== Screen reader only ===== */
+/* ===== 全局移动端优化 ===== */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  scroll-behavior: smooth;
+}
+body {
+  touch-action: manipulation;
+  overscroll-behavior-y: none;
+  -webkit-overflow-scrolling: touch;
+}
+/* 模态/抽屉打开时锁定背景滚动 */
+body.no-scroll {
+  overflow: hidden;
+  overscroll-behavior: contain;
+}
+/* 所有可交互元素：消除双击缩放延迟 + 移除灰色高亮 */
+button, a, [role="button"], input, select, textarea, label, .seg, .segment {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+/* 固定容器（drawer/sidebar/modal）内防止滚动穿透 */
+.sidebar, .library, .drawer, .modal, [class*="drawer"], [class*="sidebar"] {
+  overscroll-behavior: contain;
+}
+
+/* ===== screen reader only ===== */
 .sr-only {
   position: absolute !important;
   width: 1px; height: 1px;

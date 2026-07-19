@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="description" content="有声书馆 - 免费收听优质有声书，支持文本同步高亮、定时关闭、倍速播放。包含《知晓》177章、《那年高中》40章完整有声书。">
 <meta name="keywords" content="有声书,有声小说,校园文学,原创长篇,知晓,那年高中">
 <meta name="author" content="有声书馆">
@@ -361,6 +361,36 @@ body {
   .card-glyph { font-size: 44px; }
   .card-body { padding: 18px 18px 22px; }
   .card-stats { gap: 14px; }
+}
+
+/* ── 超小屏适配（≤360px） ── */
+@media (max-width: 360px) {
+  .topbar { padding: 12px 12px; }
+  .brand-mark { width: 32px; height: 32px; font-size: 16px; }
+  .brand-title { font-size: 15px; }
+  .theme-btn { width: 36px; height: 36px; }
+  .hero { padding: 24px 12px 10px; }
+  .hero p { font-size: 13px; }
+  .cards { padding: 12px 12px 40px; gap: 16px; }
+  .card-banner { height: 88px; }
+  .card-glyph { font-size: 38px; }
+  .card-body { padding: 16px 14px 20px; }
+  .card-title { font-size: 19px; }
+  .card-desc { font-size: 12px; margin-bottom: 14px; }
+  .card-stats { gap: 10px; padding-top: 12px; margin-bottom: 16px; }
+  .stat-value { font-size: 17px; }
+  .stat-label { font-size: 10px; }
+  .card-cta { padding: 11px 16px; font-size: 13px; }
+}
+
+/* ── 动画无障碍：尊重用户偏好 ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* ── 触摸设备优化 ── */

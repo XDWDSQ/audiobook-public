@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#f7f1e8" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#211b18" media="(prefers-color-scheme: dark)">
 <meta name="description" content="《那年高中》完整有声书，40章，2小时45分。免费收听，支持文本同步高亮、倍速播放、定时关闭。">
@@ -251,6 +251,20 @@ button:focus-visible, input:focus-visible, .segment:focus-visible {
   .app { padding-bottom: 208px; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; } }
+
+/* ── 超小屏适配（≤360px） ── */
+@media (max-width: 360px) {
+  .hero h1 { font-size: 36px; }
+  .stat-value { font-size: 16px; }
+  .stat { padding: 11px 6px; }
+  .reading-body { padding: 20px 16px 40px; }
+  .reader-head { padding: 18px 16px 14px; }
+  .chapter-button { padding: 14px 16px; gap: 10px; }
+  .chapter-button .chapter-index { width: 36px; height: 36px; font-size: 13px; }
+  .chapter-button .chapter-name { font-size: 15px; }
+  .player-actions { gap: 6px; }
+  .player-actions button, .player-actions .icon-text-button { min-width: 40px; height: 40px; }
+}
 
 /* ── 触摸设备优化 ── */
 @media (hover: none) and (pointer: coarse) {
