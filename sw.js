@@ -4,7 +4,7 @@
  *   - 章节数据（data.json / chapters.js）：network-first，保证内容最新
  *   - 音频（.mp3）：不缓存，交给浏览器/HTTP 缓存直连（文件体积大，避免占满配额）
  */
-const VERSION = 'audiobook-hub-v1';
+const VERSION = 'audiobook-hub-v2';
 const SHELL_CACHE = 'shell-' + VERSION;
 
 // 预缓存的应用外壳资源（相对 SW 作用域，即站点根）
