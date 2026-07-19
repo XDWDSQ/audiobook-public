@@ -13,7 +13,6 @@
  *   ABCommon.readJSON(key, fallback)
  *   ABCommon.showToast(message, host?)
  *   ABCommon.announce(message, host?)
- *   ABCommon.copyShareLink(url)
  */
 (function (global) {
   'use strict';
@@ -154,26 +153,6 @@
     window.setTimeout(() => { el.textContent = String(message || ''); }, 30);
   }
 
-  /* ---------- 复制分享链接 ---------- */
-  function copyShareLink(url) {
-    const text = String(url || location.href);
-    const fallback = () => {
-      const ta = document.createElement('textarea');
-      ta.value = text;
-      ta.style.position = 'fixed';
-      ta.style.opacity = '0';
-      document.body.appendChild(ta);
-      ta.select();
-      try { document.execCommand('copy'); } catch (_) {}
-      document.body.removeChild(ta);
-    };
-    if (navigator.clipboard && window.isSecureContext) {
-      navigator.clipboard.writeText(text).catch(fallback);
-    } else {
-      fallback();
-    }
-  }
-
   /* ---------- 暴露 API ---------- */
   global.ABCommon = {
     fmtTime: fmtTime,
@@ -185,7 +164,6 @@
     readJSON: readJSON,
     saveThrottled: saveThrottled,
     showToast: showToast,
-    announce: announce,
-    copyShareLink: copyShareLink
+    announce: announce
   };
 })(window);

@@ -338,7 +338,6 @@ header p {
   .speed-btn { padding: 4px 10px; min-height: 44px; font-size: 0.72rem; }
   .nav-btn { width: 44px; height: 44px; font-size: 0.8rem; }
   .player-title { font-size: 0.75rem; }
-  .font-size-btn { padding: 4px 10px; min-height: 44px; font-size: 0.72rem; }
   .sidebar { width: 85vw; max-width: 320px; left: -85vw; }
   .sidebar.open { left: 0; }
   .sidebar a { padding: 12px 20px; font-size: 0.9rem; }
@@ -354,11 +353,10 @@ header p {
   /* 第一行：播放按钮 + 标题/进度条 */
   .player-bar .play-btn { order: 1; flex-shrink: 0; }
   .player-bar .player-info { order: 2; flex: 1 1 calc(100% - 54px); min-width: 0; }
-  /* 第二行：速度 + 字号 + 前后章 均匀分布 */
+  /* 第二行：速度 + 前后章 均匀分布 */
   .player-bar .speed-btn { order: 3; }
-  .player-bar .font-size-btn { order: 4; }
   .player-bar .nav-btns { order: 5; flex: 1 1 auto; justify-content: flex-end; }
-  .player-bar .speed-btn, .player-bar .font-size-btn { font-size: 0.72rem; min-height: 40px; }
+  .player-bar .speed-btn { font-size: 0.72rem; min-height: 40px; }
   .time-label { font-size: 0.65rem; min-width: 32px; }
   /* 进度条触控区域扩大（视觉不变，触控友好） */
   .progress-track { position: relative; }
@@ -373,7 +371,7 @@ header p {
 
 /* ── 触摸设备优化 ── */
 @media (hover: none) and (pointer: coarse) {
-  .icon-btn:hover, .nav-btn:hover, .speed-btn:hover, .font-size-btn:hover {
+  .icon-btn:hover, .nav-btn:hover, .speed-btn:hover {
     background: var(--surface-light); border-color: var(--border);
   }
   .icon-btn:active, .nav-btn:active { transform: scale(0.92); }
@@ -443,26 +441,6 @@ header { animation-delay: .05s; }
   font-size: 0.95rem;
   pointer-events: none;
 }
-
-/* ===== 阅读字号按钮 ===== */
-.font-size-btn {
-  background: var(--surface-light);
-  border: 1px solid var(--border);
-  color: var(--text);
-  padding: 4px 10px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.75rem;
-  font-family: inherit;
-  flex-shrink: 0;
-  transition: all .2s;
-}
-.font-size-btn:hover { border-color: var(--accent); color: var(--accent); }
-.font-size-btn.active { color: var(--accent); border-color: var(--accent); background: var(--accent-glow); }
-
-/* ===== 阅读字号变量 ===== */
-.reader { font-size: calc(1rem * var(--reading-size, 1)); }
-.reader .chapter-content { font-size: calc(1.05rem * var(--reading-size, 1)); }
 
 /* ===== 跳过链接 ===== */
 .skip-link:focus { outline: none; }
@@ -546,7 +524,6 @@ header { animation-delay: .05s; }
     </div>
   </div>
   <button class="speed-btn" id="speedBtn" aria-label="播放速度">1.0x</button>
-  <button class="font-size-btn" id="fontSizeBtn" aria-label="阅读字号">Aa</button>
   <div class="nav-btns">
     <button class="nav-btn" id="prevBtn" title="上一章" aria-label="上一章">⏮</button>
     <button class="nav-btn" id="nextBtn" title="下一章" aria-label="下一章">⏭</button>
@@ -567,7 +544,7 @@ function safeSetStorage(key, value) {
 }
 const AB = window.ABCommon;
 if (!AB) { document.body.insertAdjacentHTML('beforeend', '<p style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;color:#000;padding:16px;border-radius:8px;z-index:99999">共享脚本未加载</p>'); }
-const { fmtTime, findActiveSeg, applyHashRoute: ABHashRoute, updateHash: ABUpdateHash, updateMediaSession: ABUpdateMediaSession, saveThrottled, readJSON, showToast, announce, copyShareLink } = AB || {};
+const { fmtTime, findActiveSeg, applyHashRoute: ABHashRoute, updateHash: ABUpdateHash, updateMediaSession: ABUpdateMediaSession, saveThrottled, readJSON, showToast, announce } = AB || {};
 
 let CHAPTERS = [];
 let currentIdx = 0;
@@ -590,7 +567,6 @@ const prevBtn = document.getElementById('prevBtn');
 const nextBtn = document.getElementById('nextBtn');
 const speedBtn = document.getElementById('speedBtn');
 const themeBtn = document.getElementById('themeBtn');
-const fontSizeBtn = document.getElementById('fontSizeBtn');
 const progressTrack = document.getElementById('progressTrack');
 const progressFill = document.getElementById('progressFill');
 const progressTooltip = document.getElementById('progressTooltip');
@@ -631,24 +607,6 @@ function toggleTheme() {
   }
   announce(isLight ? '已切换到深色主题' : '已切换到浅色主题');
 }
-
-// ===== 阅读字号 =====
-const readingSizeKey = 'zhixiao_reading_size';
-const sizes = [1, 1.15, 1.3];
-let sizeIdx = Math.max(0, sizes.indexOf(Number(safeGetStorage(readingSizeKey)) || 1));
-function applyReadingSize() {
-  document.documentElement.style.setProperty('--reading-size', String(sizes[sizeIdx]));
-  fontSizeBtn.classList.toggle('active', sizeIdx !== 0);
-  fontSizeBtn.setAttribute('aria-label', '阅读字号：' + Math.round(sizes[sizeIdx] * 100) + '%');
-  fontSizeBtn.textContent = sizes[sizeIdx] === 1 ? 'Aa' : (sizes[sizeIdx] >= 1.3 ? 'Aa++' : 'Aa+');
-  announce('字号已调为 ' + Math.round(sizes[sizeIdx] * 100) + '%');
-}
-fontSizeBtn.addEventListener('click', () => {
-  sizeIdx = (sizeIdx + 1) % sizes.length;
-  safeSetStorage(readingSizeKey, String(sizes[sizeIdx]));
-  applyReadingSize();
-});
-applyReadingSize();
 
 // ===== 加载数据 =====
 async function loadData() {
@@ -1095,12 +1053,6 @@ document.addEventListener('keydown', (e) => {
       audio.muted = !audio.muted;
       showToast && showToast(audio.muted ? '已静音' : '已取消静音');
       announce(audio.muted ? '已静音' : '已取消静音');
-      break;
-    case 'f': case 'F':
-      e.preventDefault();
-      if (e.shiftKey) { sizeIdx = Math.max(0, sizeIdx - 1); } else { sizeIdx = Math.min(sizes.length - 1, sizeIdx + 1); }
-      safeSetStorage(readingSizeKey, String(sizes[sizeIdx]));
-      applyReadingSize();
       break;
   }
 });

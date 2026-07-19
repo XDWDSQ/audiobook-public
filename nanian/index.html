@@ -247,7 +247,7 @@ button:focus-visible, input:focus-visible, .segment:focus-visible {
   .seek-line { grid-column: 1 / -1; grid-row: 2; }
   .seek { height: 12px; }
   .player-actions { grid-column: 1 / -1; grid-row: 3; justify-content: center; flex-wrap: wrap; gap: 10px; margin: 0; }
-  .player-actions button, .player-actions .icon-text-button { min-width: 44px; height: 44px; }
+  .player-actions button { min-width: 44px; height: 44px; }
   .app { padding-bottom: 208px; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; } }
@@ -263,7 +263,7 @@ button:focus-visible, input:focus-visible, .segment:focus-visible {
   .chapter-button .chapter-index { width: 36px; height: 36px; font-size: 13px; }
   .chapter-button .chapter-name { font-size: 15px; }
   .player-actions { gap: 6px; }
-  .player-actions button, .player-actions .icon-text-button { min-width: 40px; height: 40px; }
+  .player-actions button { min-width: 40px; height: 40px; }
 }
 
 /* ── 触摸设备优化 ── */
@@ -343,84 +343,6 @@ button:focus-visible, input:focus-visible, .segment:focus-visible {
   transition: opacity .15s ease;
 }
 .seek-tooltip.show { opacity: 1; }
-
-/* ===== 快捷键面板 ===== */
-.shortcuts-panel {
-  position: fixed;
-  z-index: 100;
-  right: 20px;
-  bottom: 100px;
-  width: min(280px, calc(100vw - 32px));
-  padding: 16px 18px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-md);
-  background: var(--panel-solid);
-  box-shadow: var(--shadow);
-  font-size: 12px;
-  display: none;
-}
-.shortcuts-panel.open { display: block; animation: ab-fade-up .25s ease both; }
-.shortcuts-panel h3 { margin: 0 0 10px; font-family: var(--font-serif); font-size: 14px; letter-spacing: .12em; }
-.shortcuts-panel dl { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; margin: 0; }
-.shortcuts-panel dt { font-family: ui-monospace, monospace; padding: 1px 7px; border-radius: 5px; background: var(--bg-deep); color: var(--accent); font-size: 11px; white-space: nowrap; }
-.shortcuts-panel dd { margin: 0; color: var(--muted); align-self: center; }
-
-/* ===== 书签列表弹层 ===== */
-.bookmarks-popover {
-  position: fixed;
-  z-index: 90;
-  right: 20px;
-  bottom: 100px;
-  width: min(320px, calc(100vw - 32px));
-  max-height: 360px;
-  overflow-y: auto;
-  padding: 14px 16px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-md);
-  background: var(--panel-solid);
-  box-shadow: var(--shadow);
-  font-size: 12px;
-  display: none;
-}
-.bookmarks-popover.open { display: block; animation: ab-fade-up .25s ease both; }
-.bookmarks-popover h3 { margin: 0 0 10px; font-family: var(--font-serif); font-size: 14px; letter-spacing: .12em; }
-.bookmark-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 10px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background .15s ease;
-}
-.bookmark-item:hover { background: var(--accent-soft); }
-.bookmark-item .bm-title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-serif); }
-.bookmark-item .bm-time { font-family: ui-monospace, monospace; font-size: 10px; color: var(--muted); }
-.bookmark-item .bm-del { background: transparent; border: 0; cursor: pointer; color: var(--muted); font-size: 14px; padding: 0 4px; }
-.bookmark-item .bm-del:hover { color: var(--accent-deep); }
-.bookmarks-empty { color: var(--muted); text-align: center; padding: 18px 0; font-size: 11px; }
-
-/* ===== Aa 按钮 ===== */
-.icon-text-button {
-  min-width: 40px;
-  height: 40px;
-  padding: 0 8px;
-  border: 1px solid var(--line);
-  border-radius: 11px;
-  cursor: pointer;
-  background: var(--panel);
-  font-family: var(--font-serif);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: .05em;
-  color: inherit;
-  display: inline-grid;
-  place-items: center;
-  transition: all .18s ease;
-}
-.icon-text-button:hover { color: var(--accent); border-color: var(--accent); }
-.icon-text-button.active { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
 
 /* ===== Theme 图标动效 ===== */
 .theme-btn { transition: transform .35s cubic-bezier(.22,.61,.36,1), border-color .2s, background .2s; }
@@ -521,9 +443,6 @@ button:focus-visible, input:focus-visible, .segment:focus-visible {
     <div class="player-actions">
       <button id="rewindButton" type="button" title="快退 15 秒" aria-label="快退 15 秒">−15s</button>
       <button id="forwardButton" type="button" title="快进 15 秒" aria-label="快进 15 秒">+15s</button>
-      <button class="icon-text-button" id="fontSizeButton" type="button" title="阅读字号" aria-label="阅读字号" aria-haspopup="false">Aa</button>
-      <button id="bookmarkButton" type="button" title="添加书签" aria-label="添加书签" aria-haspopup="true" aria-expanded="false">☆</button>
-      <button id="shareButton" type="button" title="分享本章链接" aria-label="分享本章链接">↗</button>
       <div class="timer-wrap">
         <button id="timerButton" type="button" title="定时关闭" aria-haspopup="true" aria-expanded="false">定时</button>
         <div class="timer-menu" id="timerMenu" role="menu" aria-label="定时关闭选项">
@@ -551,29 +470,10 @@ button:focus-visible, input:focus-visible, .segment:focus-visible {
         </div>
       </div>
       <button id="speedButton" type="button" title="播放速度">1.0x</button>
-      <button id="helpButton" type="button" title="快捷键" aria-label="快捷键" aria-haspopup="true" aria-expanded="false">?</button>
     </div>
   </div>
 </div>
 
-<aside class="shortcuts-panel" id="shortcutsPanel" aria-label="快捷键说明">
-  <h3>键盘快捷键</h3>
-  <dl>
-    <dt>Space</dt><dd>播放 / 暂停</dd>
-    <dt>← / →</dt><dd>快退 / 快进 15 秒</dd>
-    <dt>Shift + ← / →</dt><dd>上一章 / 下一章</dd>
-    <dt>M</dt><dd>静音切换</dd>
-    <dt>B</dt><dd>添加 / 打开书签</dd>
-    <dt>F</dt><dd>字号加大</dd>
-    <dt>Shift + F</dt><dd>字号减小</dd>
-    <dt>Esc</dt><dd>关闭面板 / 抽屉</dd>
-  </dl>
-</aside>
-
-<aside class="bookmarks-popover" id="bookmarksPopover" aria-label="书签列表">
-  <h3>书签</h3>
-  <div id="bookmarksList"></div>
-</aside>
 <div class="toast" id="toast" role="status"></div>
 <audio id="audio" preload="metadata"></audio>
 <script src="../_shared/audiobook-common.js"></script>
@@ -583,7 +483,7 @@ button:focus-visible, input:focus-visible, .segment:focus-visible {
   'use strict';
   const AB = window.ABCommon;
   if (!AB) { document.body.insertAdjacentHTML('beforeend', '<p style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;color:#000;padding:16px;border-radius:8px;z-index:99999">共享脚本未加载，请检查 /_shared/audiobook-common.js</p>'); return; }
-  const { fmtTime, findActiveSeg, applyHashRoute: ABHashRoute, updateHash: ABUpdateHash, updateMediaSession: ABUpdateMediaSession, saveThrottled, readJSON, showToast, announce, copyShareLink } = AB;
+  const { fmtTime, findActiveSeg, applyHashRoute: ABHashRoute, updateHash: ABUpdateHash, updateMediaSession: ABUpdateMediaSession, saveThrottled, readJSON, showToast, announce } = AB;
   const chapters = Array.isArray(window.CHAPTERS) ? window.CHAPTERS : [];
   const audio = document.getElementById('audio');
   const chapterList = document.getElementById('chapterList');
@@ -997,103 +897,6 @@ button:focus-visible, input:focus-visible, .segment:focus-visible {
   function updateHash() { ABUpdateHash(currentIndex); }
   window.addEventListener('hashchange', () => { applyHashRoute(); });
 
-  // ===== 阅读字号 =====
-    const fontSizeButton = $('fontSizeButton');
-    const readingSizeKey = 'nagao_reading_size';
-    const sizes = [1, 1.15, 1.3];
-    let sizeIndex = Math.max(0, sizes.indexOf(Number(localStorage.getItem(readingSizeKey)) || 1));
-    function applyReadingSize() {
-      document.documentElement.style.setProperty('--reading-size', String(sizes[sizeIndex]));
-      fontSizeButton.textContent = sizeIndex === 0 ? 'Aa' : (sizeIndex === 1 ? 'Aa+' : 'Aa++');
-      fontSizeButton.classList.toggle('active', sizeIndex !== 0);
-      fontSizeButton.setAttribute('aria-label', '阅读字号：' + Math.round(sizes[sizeIndex] * 100) + '%');
-      announce('字号已调为 ' + Math.round(sizes[sizeIndex] * 100) + '%');
-    }
-    fontSizeButton.addEventListener('click', () => {
-      sizeIndex = (sizeIndex + 1) % sizes.length;
-      localStorage.setItem(readingSizeKey, String(sizes[sizeIndex]));
-      applyReadingSize();
-    });
-    applyReadingSize();
-  
-    // ===== 书签 =====
-    const bookmarkButton = $('bookmarkButton');
-    const bookmarksPopover = $('bookmarksPopover');
-    const bookmarksList = $('bookmarksList');
-    const bookmarksKey = 'nagao_bookmarks';
-    function getBookmarks() { return readJSON(bookmarksKey, []); }
-    function saveBookmarks(list) { try { localStorage.setItem(bookmarksKey, JSON.stringify(list)); } catch (_) {} }
-    function renderBookmarks() {
-      const list = getBookmarks();
-      if (!list.length) { bookmarksList.innerHTML = '<p class="bookmarks-empty">暂无书签。点击 ★ 按钮在当前段落添加书签。</p>'; return; }
-      const frag = document.createDocumentFragment();
-      list.slice().sort((a, b) => b.ts - a.ts).forEach((bm) => {
-        const row = document.createElement('div');
-        row.className = 'bookmark-item';
-        const title = document.createElement('span'); title.className = 'bm-title'; title.textContent = bm.label || bm.title || '书签';
-        const time = document.createElement('span'); time.className = 'bm-time'; time.textContent = fmtTime(bm.time || 0);
-        const del = document.createElement('button'); del.className = 'bm-del'; del.type = 'button'; del.setAttribute('aria-label', '删除书签'); del.textContent = '×';
-        del.addEventListener('click', (e) => {
-          e.stopPropagation();
-          saveBookmarks(getBookmarks().filter((x) => x.id !== bm.id));
-          renderBookmarks();
-          showToast('书签已删除');
-        });
-        row.appendChild(title); row.appendChild(time); row.appendChild(del);
-        row.addEventListener('click', () => {
-          loadChapter(bm.chapter, !audio.paused);
-          seekToSegment(bm.segment, !audio.paused);
-          bookmarksPopover.classList.remove('open');
-          bookmarkButton.setAttribute('aria-expanded', 'false');
-        });
-        frag.appendChild(row);
-      });
-      bookmarksList.innerHTML = ''; bookmarksList.appendChild(frag);
-    }
-    function addBookmark() {
-      const segs = chapters[currentIndex]?.segs || [];
-      const idx = findActiveSeg(segs, audio.currentTime || 0);
-      const list = getBookmarks();
-      const id = String(Date.now());
-      const segText = segs[idx]?.t || '';
-      list.push({
-        id: id,
-        ts: Date.now(),
-        chapter: currentIndex,
-        segment: Math.max(0, idx),
-        time: audio.currentTime || 0,
-        title: chapters[currentIndex]?.title || '',
-        label: segText.slice(0, 18)
-      });
-      saveBookmarks(list);
-      renderBookmarks();
-      showToast('已添加书签');
-      announce('已添加书签：' + segText.slice(0, 12));
-      bookmarkButton.classList.add('active');
-      setTimeout(() => bookmarkButton.classList.remove('active'), 600);
-    }
-    bookmarkButton.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const open = bookmarksPopover.classList.toggle('open');
-      bookmarkButton.setAttribute('aria-expanded', String(open));
-      if (open) {
-        // 关闭其他面板
-        shortcutsPanel.classList.remove('open');
-        helpButton.setAttribute('aria-expanded', 'false');
-        renderBookmarks();
-      }
-    });
-    renderBookmarks();
-  
-    // ===== 分享当前章节 =====
-    const shareButton = $('shareButton');
-    shareButton.addEventListener('click', () => {
-      const url = location.origin + location.pathname + '#chapter=' + (currentIndex + 1);
-      copyShareLink(url);
-      showToast('章节链接已复制');
-      announce('章节链接已复制到剪贴板');
-    });
-  
     // ===== 进度条悬停气泡 =====
     const seekTooltip = $('seekTooltip');
     seekBar.addEventListener('mousemove', (event) => {
@@ -1118,30 +921,6 @@ button:focus-visible, input:focus-visible, .segment:focus-visible {
     }, { passive: true });
     seekBar.addEventListener('touchend', () => { seekTooltip.classList.remove('show'); });
   
-    // ===== 快捷键面板 =====
-    const helpButton = $('helpButton');
-    const shortcutsPanel = $('shortcutsPanel');
-    helpButton.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const open = shortcutsPanel.classList.toggle('open');
-      helpButton.setAttribute('aria-expanded', String(open));
-      if (open) {
-        bookmarksPopover.classList.remove('open');
-        bookmarkButton.setAttribute('aria-expanded', 'false');
-      }
-    });
-    // 点击页面其他位置关闭面板
-    document.addEventListener('click', (event) => {
-      if (shortcutsPanel.classList.contains('open') && !event.target.closest('.shortcuts-panel') && event.target !== helpButton) {
-        shortcutsPanel.classList.remove('open');
-        helpButton.setAttribute('aria-expanded', 'false');
-      }
-      if (bookmarksPopover.classList.contains('open') && !event.target.closest('.bookmarks-popover') && event.target !== bookmarkButton && !event.target.closest('#bookmarkButton')) {
-        bookmarksPopover.classList.remove('open');
-        bookmarkButton.setAttribute('aria-expanded', 'false');
-      }
-    });
-  
     // ===== Theme 动效 =====
     const themeBtn = $('themeButton');
     themeBtn.addEventListener('click', () => {
@@ -1165,15 +944,6 @@ button:focus-visible, input:focus-visible, .segment:focus-visible {
       if (event.shiftKey && event.key === 'ArrowLeft') { event.preventDefault(); if (currentIndex > 0) loadChapter(currentIndex - 1, !audio.paused); return; }
       if (event.shiftKey && event.key === 'ArrowRight') { event.preventDefault(); if (currentIndex < chapters.length - 1) loadChapter(currentIndex + 1, !audio.paused); return; }
       if (event.key.toLowerCase() === 'm') { event.preventDefault(); audio.muted = !audio.muted; showToast(audio.muted ? '已静音' : '已取消静音'); announce(audio.muted ? '已静音' : '已取消静音'); return; }
-      if (event.key.toLowerCase() === 'b') { event.preventDefault(); addBookmark(); return; }
-      if (event.key.toLowerCase() === 'f' && !event.shiftKey) { event.preventDefault(); sizeIndex = Math.min(sizes.length - 1, sizeIndex + 1); localStorage.setItem(readingSizeKey, String(sizes[sizeIndex])); applyReadingSize(); return; }
-      if (event.shiftKey && event.key.toLowerCase() === 'f') { event.preventDefault(); sizeIndex = Math.max(0, sizeIndex - 1); localStorage.setItem(readingSizeKey, String(sizes[sizeIndex])); applyReadingSize(); return; }
-      if (event.key === 'Escape') {
-        shortcutsPanel.classList.remove('open');
-        helpButton.setAttribute('aria-expanded', 'false');
-        bookmarksPopover.classList.remove('open');
-        bookmarkButton.setAttribute('aria-expanded', 'false');
-      }
     });
   
     const savedTheme = localStorage.getItem('nagao_theme'); if (savedTheme === 'dark' || savedTheme === 'light') document.documentElement.dataset.theme = savedTheme;
