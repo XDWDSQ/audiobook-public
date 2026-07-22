@@ -2,24 +2,8 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#f7f1e8" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#211b18" media="(prefers-color-scheme: dark)">
-<meta name="description" content="《那年高中》完整有声书，40章，2小时45分。免费收听，支持文本同步高亮、倍速播放、定时关闭。">
-<meta name="format-detection" content="telephone=no">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="那年高中">
-<link rel="manifest" href="../manifest.json">
-<link rel="apple-touch-icon" href="../icon.svg">
-<meta property="og:title" content="那年高中 - 有声书 | 免费收听">
-<meta property="og:description" content="《那年高中》完整有声书，40章，2小时45分，支持文本同步高亮">
-<meta property="og:image" content="../preview-desktop.png">
-<meta property="og:url" content="https://audiobook-hub.site/nanian/">
-<meta property="og:type" content="website">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📖</text></svg>">
-<link rel="stylesheet" href="../_shared/audiobook-common.css">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#f7f1e8">
 <title>那年高中 · 有声书</title>
 <style>
 :root {
@@ -138,7 +122,7 @@ button:focus-visible, input:focus-visible, .segment:focus-visible {
 .menu-toggle { display: none; }
 .drawer-overlay { display: none; }
 .drawer-close { display: none; }
-.chapter-item { margin: 2px 0; content-visibility: auto; contain-intrinsic-size: auto 46px; }
+.chapter-item { margin: 2px 0; }
 .chapter-button { width: 100%; display: flex; align-items: center; gap: 11px; padding: 11px 12px; border: 0; border-radius: 12px; cursor: pointer; text-align: left; background: transparent; transition: background .18s ease, color .18s ease; }
 .chapter-button:hover { background: var(--accent-soft); }
 .chapter-button.active { background: var(--accent); color: #fff9f2; }
@@ -245,131 +229,14 @@ button:focus-visible, input:focus-visible, .segment:focus-visible {
   .player-grid { grid-template-columns: auto minmax(0, 1fr); gap: 8px 12px; }
   .player-chapter { align-self: center; }
   .seek-line { grid-column: 1 / -1; grid-row: 2; }
-  .seek { height: 12px; }
-  .player-actions { grid-column: 1 / -1; grid-row: 3; justify-content: center; flex-wrap: wrap; gap: 10px; margin: 0; }
-  .player-actions button { min-width: 44px; height: 44px; }
-  .app { padding-bottom: 208px; }
+  .player-actions { grid-column: 1 / -1; grid-row: 3; justify-content: center; gap: 10px; margin: 0; }
+  .player-actions button { min-width: 42px; height: 42px; }
+  .app { padding-bottom: 175px; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; } }
-
-/* ── 超小屏适配（≤360px） ── */
-@media (max-width: 360px) {
-  .hero h1 { font-size: 36px; }
-  .stat-value { font-size: 16px; }
-  .stat { padding: 11px 6px; }
-  .reading-body { padding: 20px 16px 40px; }
-  .reader-head { padding: 18px 16px 14px; }
-  .chapter-button { padding: 14px 16px; gap: 10px; }
-  .chapter-button .chapter-index { width: 36px; height: 36px; font-size: 13px; }
-  .chapter-button .chapter-name { font-size: 15px; }
-  .player-actions { gap: 6px; }
-  .player-actions button { min-width: 40px; height: 40px; }
-}
-
-/* ── 触摸设备优化 ── */
-@media (hover: none) and (pointer: coarse) {
-  .card:hover, .icon-button:hover, .outline-button:hover { transform: none; }
-  .icon-button:active, .outline-button:active { transform: scale(0.92); }
-  .main-play:hover { transform: none; }
-  .main-play:active { transform: scale(0.94); }
-  .chapter-button:hover { background: transparent; }
-  .chapter-button:active { background: var(--accent-soft); }
-  .segment:hover { background: transparent; }
-}
-
-/* ── 安全区域适配（刘海屏/底部横条） ── */
-@supports (padding-bottom: env(safe-area-inset-bottom)) {
-  .topbar { padding-top: env(safe-area-inset-top); }
-  .bottom-player { padding-bottom: calc(12px + env(safe-area-inset-bottom)); }
-  .app { padding-bottom: calc(175px + env(safe-area-inset-bottom)); }
-}
-@media (max-width: 700px) {
-  @supports (padding-bottom: env(safe-area-inset-bottom)) {
-    .app { padding-bottom: calc(208px + env(safe-area-inset-bottom)); }
-  }
-}
-
-/* ===== 入场动画 ===== */
-@keyframes ab-fade-up { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
-.hero-kicker, .hero h1, .hero p, .progress-card, .reader-head, .bottom-player { animation: ab-fade-up .6s ease both; }
-.hero-kicker { animation-delay: .05s; }
-.hero h1 { animation-delay: .15s; }
-.hero p { animation-delay: .25s; }
-.progress-card { animation-delay: .35s; }
-.reader-head { animation-delay: .45s; }
-.bottom-player { animation-delay: .55s; }
-
-/* ===== 章节顶部进度条 ===== */
-.chapter-progress-strip {
-  position: absolute;
-  left: 0; top: 0;
-  height: 4px;
-  width: 0;
-  background: linear-gradient(90deg, var(--accent), var(--gold));
-  transform-origin: left center;
-  transition: width .45s cubic-bezier(.22,.61,.36,1);
-  border-radius: 0 4px 4px 0;
-}
-
-/* ===== 段落光晕增强 ===== */
-.segment.active {
-  color: var(--accent-deep);
-  background: color-mix(in srgb, var(--accent-soft) 76%, transparent);
-  text-decoration-color: var(--accent);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
-  transition: background .16s ease, color .16s ease, box-shadow .25s ease;
-}
-
-/* ===== 阅读字号变量 ===== */
-.reading-body { font-size: var(--reading-size, 100%); }
-.reading-body .segment { font-size: calc(clamp(17px, 1.8vw, 20px) * var(--reading-size, 1)); }
-
-/* ===== 进度条悬停气泡 ===== */
-.seek { position: relative; }
-.seek-tooltip {
-  position: absolute;
-  bottom: calc(100% + 8px);
-  left: 0;
-  transform: translateX(-50%);
-  padding: 3px 7px;
-  border-radius: 6px;
-  background: rgba(45, 36, 28, .95);
-  color: #fff9f2;
-  font-size: 10px;
-  font-family: ui-monospace, monospace;
-  white-space: nowrap;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity .15s ease;
-}
-.seek-tooltip.show { opacity: 1; }
-
-/* ===== Theme 图标动效 ===== */
-.theme-btn { transition: transform .35s cubic-bezier(.22,.61,.36,1), border-color .2s, background .2s; }
-.theme-btn.spinning { transform: rotate(180deg); }
-
-/* ===== 继续收听徽章 ===== */
-.resume-badge {
-  display: inline-block;
-  margin-left: 8px;
-  padding: 2px 9px;
-  border-radius: 999px;
-  background: color-mix(in srgb, #2f7d4a 18%, transparent);
-  color: #2f7d4a;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: .08em;
-  vertical-align: middle;
-  animation: ab-fade-up .4s ease both;
-}
-[data-theme="dark"] .resume-badge {
-  background: color-mix(in srgb, #6ed194 22%, transparent);
-  color: #6ed194;
-}
 </style>
 </head>
 <body>
-<a class="skip-link" href="#readingBody">跳转到正文</a>
 <div class="app">
   <header class="topbar container">
     <a class="brand" href="../index.html" aria-label="返回有声书首页">
@@ -391,8 +258,8 @@ button:focus-visible, input:focus-visible, .segment:focus-visible {
       </div>
       <div class="hero-stats" aria-label="有声书统计">
         <div class="stat"><span class="stat-value" id="chapterCount">40</span><span class="stat-label">章节</span></div>
-        <div class="stat"><span class="stat-value" id="durationStat">2h 45m</span><span class="stat-label">总时长</span></div>
-        <div class="stat"><span class="stat-value" id="segmentCount">2923</span><span class="stat-label">段落</span></div>
+        <div class="stat"><span class="stat-value" id="durationStat">7h 21m</span><span class="stat-label">总时长</span></div>
+        <div class="stat"><span class="stat-value" id="segmentCount">1793</span><span class="stat-label">段落</span></div>
       </div>
     </section>
 
@@ -415,8 +282,7 @@ button:focus-visible, input:focus-visible, .segment:focus-visible {
       </aside>
 
       <article class="panel reader-panel" aria-live="polite">
-        <header class="reader-head" style="position: relative;">
-          <span class="chapter-progress-strip" id="chapterProgressStrip"></span>
+        <header class="reader-head">
           <div class="reader-eyebrow"><span id="readerIndex">CHAPTER 01</span><span id="readerDuration">—</span></div>
           <h2 class="reader-title" id="readerTitle">正在加载章节…</h2>
           <p class="reader-subtitle">点击任意段落，可从该处开始听</p>
@@ -433,11 +299,7 @@ button:focus-visible, input:focus-visible, .segment:focus-visible {
     <div class="player-chapter"><span class="player-label">正在收听</span><span class="player-name" id="playerTitle">—</span></div>
     <div class="seek-line">
       <span class="time" id="currentTime">0:00</span>
-      <div class="seek" id="seekBar" role="slider" aria-label="播放进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" tabindex="0">
-        <span class="seek-tooltip" id="seekTooltip">0:00</span>
-        <span class="seek-fill" id="seekFill"></span>
-        <span class="seek-dot" id="seekDot"></span>
-      </div>
+      <div class="seek" id="seekBar" role="slider" aria-label="播放进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" tabindex="0"><span class="seek-fill" id="seekFill"></span><span class="seek-dot" id="seekDot"></span></div>
       <span class="time" id="durationTime">0:00</span>
     </div>
     <div class="player-actions">
@@ -473,17 +335,80 @@ button:focus-visible, input:focus-visible, .segment:focus-visible {
     </div>
   </div>
 </div>
-
 <div class="toast" id="toast" role="status"></div>
 <audio id="audio" preload="metadata"></audio>
-<script src="../_shared/audiobook-common.js"></script>
+
+<!-- 离线缓存面板 -->
+<div class="cache-panel" id="cachePanel">
+  <button class="cache-toggle" id="cacheToggle" type="button" title="离线缓存" aria-label="离线缓存">
+    <span class="cache-icon" id="cacheIcon">⬇</span>
+    <span class="cache-badge" id="cacheBadge" hidden>0</span>
+  </button>
+  <div class="cache-popup" id="cachePopup">
+    <div class="cache-head">
+      <span class="cache-title">离线缓存</span>
+      <span class="cache-status" id="cacheStatusText">检测中…</span>
+    </div>
+    <div class="cache-progress-wrap">
+      <div class="cache-progress"><span id="cacheProgressBar"></span></div>
+      <span class="cache-count" id="cacheCountText">0 / 0 章</span>
+    </div>
+    <p class="cache-hint" id="cacheHint">有网络时自动缓存后续章节，断网也能听</p>
+    <div class="cache-actions">
+      <button class="cache-btn primary" id="cacheStartBtn" type="button">开始缓存</button>
+      <button class="cache-btn" id="cacheStopBtn" type="button" hidden>暂停</button>
+      <button class="cache-btn" id="cacheClearBtn" type="button">清除缓存</button>
+    </div>
+  </div>
+</div>
+<style>
+.cache-panel { position: fixed; z-index: 25; right: 16px; bottom: 140px; }
+.cache-toggle {
+  width: 42px; height: 42px; border-radius: 50%; border: 1px solid var(--line);
+  background: var(--panel-solid); color: var(--muted); cursor: pointer;
+  display: grid; place-items: center; font-size: 18px; position: relative;
+  box-shadow: 0 4px 14px rgba(0,0,0,.12); transition: all .2s;
+}
+.cache-toggle:hover { border-color: var(--accent); color: var(--accent); }
+.cache-toggle.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.cache-badge {
+  position: absolute; top: -4px; right: -4px; min-width: 18px; height: 18px;
+  border-radius: 9px; background: var(--accent); color: #fff; font-size: 10px;
+  font-weight: 700; display: grid; place-items: center; padding: 0 4px;
+}
+.cache-popup {
+  display: none; position: absolute; right: 0; bottom: 52px;
+  width: 280px; padding: 16px; border-radius: 16px;
+  border: 1px solid var(--line); background: var(--panel-solid);
+  box-shadow: 0 12px 40px rgba(0,0,0,.18);
+}
+.cache-popup.open { display: block; }
+.cache-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.cache-title { font-family: var(--font-serif); font-size: 14px; font-weight: 700; }
+.cache-status { font-size: 11px; color: var(--muted); }
+.cache-status.online { color: #2f7d4a; }
+.cache-status.offline { color: var(--accent); }
+.cache-progress-wrap { margin-bottom: 8px; }
+.cache-progress { height: 6px; border-radius: 3px; background: var(--bg-deep); overflow: hidden; }
+.cache-progress > span { display: block; height: 100%; width: 0; border-radius: inherit; background: linear-gradient(90deg, var(--accent), var(--gold)); transition: width .3s; }
+.cache-count { display: block; margin-top: 5px; font-size: 11px; color: var(--muted); text-align: right; }
+.cache-hint { margin: 0 0 12px; font-size: 11px; color: var(--muted); line-height: 1.5; }
+.cache-actions { display: flex; gap: 8px; }
+.cache-btn {
+  flex: 1; padding: 8px 0; border: 1px solid var(--line); border-radius: 10px;
+  background: var(--panel); color: var(--ink); cursor: pointer; font-size: 12px;
+  transition: all .15s;
+}
+.cache-btn:hover { border-color: var(--accent); }
+.cache-btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.cache-btn.primary:hover { background: var(--accent-deep); }
+.cache-btn:disabled { opacity: .5; cursor: not-allowed; }
+@media (max-width: 700px) { .cache-panel { right: 12px; bottom: 185px; } }
+</style>
 <script src="chapters.js"></script>
 <script>
 (() => {
   'use strict';
-  const AB = window.ABCommon;
-  if (!AB) { document.body.insertAdjacentHTML('beforeend', '<p style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;color:#000;padding:16px;border-radius:8px;z-index:99999">共享脚本未加载，请检查 /_shared/audiobook-common.js</p>'); return; }
-  const { fmtTime, findActiveSeg, applyHashRoute: ABHashRoute, updateHash: ABUpdateHash, updateMediaSession: ABUpdateMediaSession, saveThrottled, readJSON, showToast, announce } = AB;
   const chapters = Array.isArray(window.CHAPTERS) ? window.CHAPTERS : [];
   const audio = document.getElementById('audio');
   const chapterList = document.getElementById('chapterList');
@@ -523,12 +448,16 @@ button:focus-visible, input:focus-visible, .segment:focus-visible {
   let restoreListener = null;
   let seekToken = 0;
   let lastActiveSegment = -1;
-  let prefetchAudio = null;
-  let prefetchedFile = '';
-  let prefetchTimer = 0;
 
   const $ = (id) => document.getElementById(id);
-  // fmtTime 已从 ABCommon 解构
+  const fmtTime = (value) => {
+    const seconds = Math.max(0, Math.floor(Number(value) || 0));
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const rest = seconds % 60;
+    if (hours) return hours + ':' + String(minutes).padStart(2, '0') + ':' + String(rest).padStart(2, '0');
+    return minutes + ':' + String(rest).padStart(2, '0');
+  };
   const fmtTotal = (value) => {
     const hours = Math.floor(value / 3600);
     const minutes = Math.round((value % 3600) / 60);
@@ -536,7 +465,7 @@ button:focus-visible, input:focus-visible, .segment:focus-visible {
   };
   function readJson(key, fallback) { try { return JSON.parse(localStorage.getItem(key) || '') || fallback; } catch (_) { return fallback; } }
   function saveProgress() { try { localStorage.setItem(chapterKey, String(currentIndex)); localStorage.setItem(timeKey, JSON.stringify(times)); } catch (_) {} }
-  // showToast 已从 ABCommon 解构
+  function showToast(message) { const toast = $('toast'); toast.textContent = message; toast.classList.add('show'); window.clearTimeout(showToast.timer); showToast.timer = window.setTimeout(() => toast.classList.remove('show'), 2200); }
 
   function formatResumeNote() {
     const savedChapter = Number(localStorage.getItem(chapterKey));
@@ -639,40 +568,6 @@ button:focus-visible, input:focus-visible, .segment:focus-visible {
     clearTimeout(scrollResumeTimer);
     readingBody.scrollTop = 0;
     updateSegment(-1);
-    updateMediaSession();
-    updateHash();
-    // 章节顶部进度条动画
-    const strip = $('chapterProgressStrip');
-    if (strip) {
-      strip.style.width = '0';
-      // 下一帧触发展开动画
-      requestAnimationFrame(() => requestAnimationFrame(() => {
-        const dur = Number(chapter.dur) || 0;
-        const pos = Number(times[index] || 0);
-        const pct = dur > 0 ? Math.min(100, (pos / dur) * 100) : 0;
-        strip.style.width = pct.toFixed(2) + '%';
-      }));
-    }
-    // 屏幕阅读器播报
-    announce('已加载第 ' + (index + 1) + ' 章：' + chapter.title);
-
-    // 预加载下一章音频元数据（空闲时进行，切章等待更短）
-    clearTimeout(prefetchTimer);
-    prefetchTimer = setTimeout(() => prefetchNextChapter(index), 1500);
-  }
-
-  // 预加载下一章：仅拉取 metadata，使切章等待显著缩短
-  function prefetchNextChapter(index) {
-    const nextIndex = index + 1;
-    if (nextIndex >= chapters.length) return;
-    const nextFile = chapters[nextIndex] && chapters[nextIndex].file;
-    if (!nextFile || nextFile === prefetchedFile) return;
-    try {
-      if (!prefetchAudio) { prefetchAudio = new Audio(); prefetchAudio.preload = 'metadata'; }
-      prefetchAudio.src = nextFile;
-      prefetchAudio.load();
-      prefetchedFile = nextFile;
-    } catch (_) {}
   }
 
   function loadChapter(index, autoplay = false) {
@@ -711,9 +606,7 @@ button:focus-visible, input:focus-visible, .segment:focus-visible {
   }
   function updateChapterListActive() {
     chapterList.querySelectorAll('.chapter-button').forEach((btn) => {
-      const active = Number(btn.dataset.index) === currentIndex;
-      btn.classList.toggle('active', active);
-      if (active) btn.setAttribute('aria-current', 'true'); else btn.removeAttribute('aria-current');
+      btn.classList.toggle('active', Number(btn.dataset.index) === currentIndex);
     });
   }
   let userScrolling = false;
@@ -721,38 +614,9 @@ button:focus-visible, input:focus-visible, .segment:focus-visible {
   readingBody.addEventListener('touchmove', () => { userScrolling = true; clearTimeout(scrollResumeTimer); scrollResumeTimer = setTimeout(() => { userScrolling = false; }, 3000); }, { passive: true });
   readingBody.addEventListener('wheel', () => { userScrolling = true; clearTimeout(scrollResumeTimer); scrollResumeTimer = setTimeout(() => { userScrolling = false; }, 3000); }, { passive: true });
 
-  // 阅读区左右滑动切章（区分于竖向滚动）
-  (function() {
-    let sx = 0, sy = 0, stime = 0, tracking = false;
-    readingBody.addEventListener('touchstart', (e) => {
-      if (e.touches.length !== 1) { tracking = false; return; }
-      sx = e.touches[0].clientX; sy = e.touches[0].clientY; stime = Date.now(); tracking = true;
-    }, { passive: true });
-    readingBody.addEventListener('touchend', (e) => {
-      if (!tracking) return;
-      tracking = false;
-      const t = e.changedTouches[0];
-      const dx = t.clientX - sx, dy = t.clientY - sy, dt = Date.now() - stime;
-      if (dt > 600 || Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
-      if (dx < 0) {
-        if (currentIndex < chapters.length - 1) { loadChapter(currentIndex + 1, !audio.paused); showToast('下一章'); }
-      } else {
-        if (currentIndex > 0) { loadChapter(currentIndex - 1, !audio.paused); showToast('上一章'); }
-      }
-    }, { passive: true });
-  })();
-
   function updateSegment(index) {
-    segmentNodes.forEach((node, nodeIndex) => {
-      const isActive = nodeIndex === index;
-      node.classList.toggle('active', isActive);
-      if (isActive) node.setAttribute('aria-current', 'true'); else node.removeAttribute('aria-current');
-    });
+    segmentNodes.forEach((node, nodeIndex) => node.classList.toggle('active', nodeIndex === index));
     if (index >= 0) localStorage.setItem(activeSegmentKey, currentIndex + ':' + index);
-    if (index >= 0 && lastActiveSegment !== index) {
-      lastActiveSegment = index;
-      announce(chapters[currentIndex]?.segs?.[index]?.t?.slice(0, 24) || '');
-    }
     if (index >= 0 && !userScrolling && segmentNodes[index]) {
       const node = segmentNodes[index];
       const rect = node.getBoundingClientRect();
@@ -768,11 +632,9 @@ button:focus-visible, input:focus-visible, .segment:focus-visible {
     const ratio = duration > 0 ? Math.min(1, Math.max(0, position / duration)) : 0;
     seekFill.style.width = (ratio * 100) + '%'; seekDot.style.left = (ratio * 100) + '%';
     seekBar.setAttribute('aria-valuenow', String(Math.round(ratio * 100))); currentTime.textContent = fmtTime(position); durationTime.textContent = fmtTime(duration);
-    // 同步章节顶部进度条
-    const strip = $('chapterProgressStrip');
-    if (strip) strip.style.width = (ratio * 100).toFixed(2) + '%';
     times[currentIndex] = position;
-    const segments = chapters[currentIndex]?.segs || []; let active = findActiveSeg(segments, position);
+    const segments = chapters[currentIndex]?.segs || []; let active = -1;
+    for (let i = 0; i < segments.length; i += 1) if (position >= segments[i].s && position < segments[i].e) { active = i; break; }
     if (active >= 0) updateSegment(active);
     if (Date.now() - saveTimer > 4000) { saveTimer = Date.now(); saveProgress(); }
   }
@@ -858,7 +720,7 @@ button:focus-visible, input:focus-visible, .segment:focus-visible {
   });
   audio.addEventListener('play', setPlayingUI); audio.addEventListener('pause', setPlayingUI); audio.addEventListener('timeupdate', updateTime); audio.addEventListener('loadedmetadata', updateTime);
   audio.addEventListener('error', () => { $('chapterStatus').textContent = '音频加载失败'; showToast('当前音频加载失败，请确认章节文件仍在 chapters 文件夹'); });
-  // themeButton 的切换逻辑已在下方「Theme 动效」中统一处理
+  $('themeButton').addEventListener('click', () => { const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'; document.documentElement.dataset.theme = next; localStorage.setItem('nagao_theme', next); });
 
   // ===== 移动端章节抽屉 =====
   const menuToggle = $('menuToggle');
@@ -881,99 +743,193 @@ button:focus-visible, input:focus-visible, .segment:focus-visible {
     else { $('chapterStatus').textContent = '全书播放完成'; showToast('全书播放完成'); }
   });
 
-
-  // ===== Media Session API (包装 ABCommon) =====
-  function updateMediaSession() {
-    ABUpdateMediaSession(audio, chapters[currentIndex], {
-      artist: '那年高中',
-      album: '有声书馆',
-      onPrev: () => { if (currentIndex > 0) loadChapter(currentIndex - 1, !audio.paused); },
-      onNext: () => { if (currentIndex < chapters.length - 1) loadChapter(currentIndex + 1, !audio.paused); }
-    });
-  }
-
-  // ===== URL hash 路由 (包装 ABCommon) =====
-  function applyHashRoute() { ABHashRoute(chapters, (idx) => { if (idx !== currentIndex) loadChapter(idx, false); }); }
-  function updateHash() { ABUpdateHash(currentIndex); }
-  window.addEventListener('hashchange', () => { applyHashRoute(); });
-
-    // ===== 进度条悬停气泡 =====
-    const seekTooltip = $('seekTooltip');
-    seekBar.addEventListener('mousemove', (event) => {
-      const rect = seekBar.getBoundingClientRect();
-      const duration = audio.duration || Number(chapters[currentIndex]?.dur || 0);
-      if (!duration) { seekTooltip.classList.remove('show'); return; }
-      const ratio = Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width));
-      seekTooltip.style.left = (ratio * 100) + '%';
-      seekTooltip.textContent = fmtTime(ratio * duration);
-      seekTooltip.classList.add('show');
-    });
-    seekBar.addEventListener('mouseleave', () => { seekTooltip.classList.remove('show'); });
-    // 移动端 touch 事件同样支持
-    seekBar.addEventListener('touchmove', (event) => {
-      const rect = seekBar.getBoundingClientRect();
-      const duration = audio.duration || Number(chapters[currentIndex]?.dur || 0);
-      if (!duration || !event.touches[0]) return;
-      const ratio = Math.min(1, Math.max(0, (event.touches[0].clientX - rect.left) / rect.width));
-      seekTooltip.style.left = (ratio * 100) + '%';
-      seekTooltip.textContent = fmtTime(ratio * duration);
-      seekTooltip.classList.add('show');
-    }, { passive: true });
-    seekBar.addEventListener('touchend', () => { seekTooltip.classList.remove('show'); });
-  
-    // ===== Theme 动效 =====
-    const themeBtn = $('themeButton');
-    themeBtn.addEventListener('click', () => {
-      themeBtn.classList.add('spinning');
-      setTimeout(() => themeBtn.classList.remove('spinning'), 380);
-      const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
-      document.documentElement.dataset.theme = next;
-      localStorage.setItem('nagao_theme', next);
-      announce(next === 'dark' ? '已切换到深色主题' : '已切换到浅色主题');
-    });
-  
-    // ===== 增强键盘快捷键 =====
-    document.addEventListener('keydown', (event) => {
-      if (event.metaKey || event.ctrlKey || event.altKey) return;
-      const tag = event.target.tagName;
-      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
-      if (event.target === seekBar) return;
-      if (event.key === ' ') { event.preventDefault(); playButton.click(); return; }
-      if (event.key === 'ArrowLeft' && !event.shiftKey) { event.preventDefault(); nudgeSeconds(-15); return; }
-      if (event.key === 'ArrowRight' && !event.shiftKey) { event.preventDefault(); nudgeSeconds(15); return; }
-      if (event.shiftKey && event.key === 'ArrowLeft') { event.preventDefault(); if (currentIndex > 0) loadChapter(currentIndex - 1, !audio.paused); return; }
-      if (event.shiftKey && event.key === 'ArrowRight') { event.preventDefault(); if (currentIndex < chapters.length - 1) loadChapter(currentIndex + 1, !audio.paused); return; }
-      if (event.key.toLowerCase() === 'm') { event.preventDefault(); audio.muted = !audio.muted; showToast(audio.muted ? '已静音' : '已取消静音'); announce(audio.muted ? '已静音' : '已取消静音'); return; }
-    });
-  
-    const savedTheme = localStorage.getItem('nagao_theme'); if (savedTheme === 'dark' || savedTheme === 'light') document.documentElement.dataset.theme = savedTheme;
+  const savedTheme = localStorage.getItem('nagao_theme'); if (savedTheme === 'dark' || savedTheme === 'light') document.documentElement.dataset.theme = savedTheme;
   currentIndex = Math.min(Math.max(Number(localStorage.getItem(chapterKey) || 0), 0), Math.max(0, chapters.length - 1));
-  if (chapters.length) { initializeStats(); renderChapterList(''); renderChapter(currentIndex); formatResumeNote(); applyHashRoute(); updateMediaSession(); updateHash(); } else { $('readerTitle').textContent = '章节数据未找到'; readingBody.innerHTML = '<p class="empty">请确认 chapters.js 与本页面位于同一目录。</p>'; }
+  if (chapters.length) { initializeStats(); renderChapterList(''); renderChapter(currentIndex); formatResumeNote(); } else { $('readerTitle').textContent = '章节数据未找到'; readingBody.innerHTML = '<p class="empty">请确认 chapters.js 与本页面位于同一目录。</p>'; }
 
-  // Service Worker 注册（PWA / 离线缓存）
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('../sw.js', { scope: '../' }).then((reg) => {
-        if (reg.waiting) { reg.waiting.postMessage('SKIP_WAITING'); }
-        reg.addEventListener('updatefound', () => {
-          const newWorker = reg.installing;
-          if (newWorker) {
-            newWorker.addEventListener('statechange', () => {
-              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                newWorker.postMessage('SKIP_WAITING');
-              }
-            });
-          }
-        });
-      }).catch((err) => { console.error('SW registration failed:', err); });
-      let refreshing = false;
-      navigator.serviceWorker.addEventListener('controllerchange', () => {
-        if (refreshing) return;
-        refreshing = true;
-        window.location.reload();
+  // 直接打开播放器时也注册根 Service Worker，确保音频走 Cache-first。
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('../sw.js').catch(() => {});
+
+  // ===== 离线缓存功能 =====
+  (() => {
+    const AUDIO_CACHE_NAME = 'audio-audiobook-hub-v8';
+    const cacheToggle = $('cacheToggle');
+    const cachePopup = $('cachePopup');
+    const cacheIcon = $('cacheIcon');
+    const cacheBadge = $('cacheBadge');
+    const cacheStatusText = $('cacheStatusText');
+    const cacheProgressBar = $('cacheProgressBar');
+    const cacheCountText = $('cacheCountText');
+    const cacheHint = $('cacheHint');
+    const cacheStartBtn = $('cacheStartBtn');
+    const cacheStopBtn = $('cacheStopBtn');
+    const cacheClearBtn = $('cacheClearBtn');
+
+    let prefetching = false;
+    let abortController = null;
+    let cachedCount = 0;
+    // 默认开启持续缓存：有网时从当前章节向后顺序下载，直到全书完成。
+    let autoCacheEnabled = readJson('nanian_auto_cache', true) !== false;
+    let prefetchRun = 0;
+
+    // 获取所有音频 URL
+    function getAllAudioUrls() {
+      return chapters.map((ch) => {
+        const base = location.href.replace(/[^/]*$/, '');
+        return new URL(ch.file, base).href;
       });
+    }
+
+    // 查询已缓存的音频数量
+    async function queryCachedCount() {
+      try {
+        const cache = await caches.open(AUDIO_CACHE_NAME);
+        const keys = await cache.keys();
+        const urls = getAllAudioUrls();
+        const cachedUrls = new Set(keys.map((r) => r.url));
+        return urls.filter((u) => cachedUrls.has(u)).length;
+      } catch (_) { return 0; }
+    }
+
+    // 更新 UI
+    async function updateCacheUI() {
+      const total = chapters.length;
+      cachedCount = await queryCachedCount();
+      const pct = total > 0 ? (cachedCount / total * 100) : 0;
+      cacheProgressBar.style.width = pct.toFixed(1) + '%';
+      cacheCountText.textContent = cachedCount + ' / ' + total + ' 章';
+      cacheBadge.textContent = cachedCount;
+      cacheBadge.hidden = cachedCount === 0;
+
+      const online = navigator.onLine;
+      cacheStatusText.textContent = online ? '在线' : '离线';
+      cacheStatusText.className = 'cache-status ' + (online ? 'online' : 'offline');
+
+      if (cachedCount >= total) {
+        cacheHint.textContent = '全部章节已缓存，断网也能听';
+        cacheStartBtn.disabled = true;
+        cacheStartBtn.textContent = '已完成';
+      } else if (!online) {
+        cacheHint.textContent = '当前离线，连接网络后可继续缓存';
+        cacheStartBtn.disabled = true;
+      } else {
+        cacheHint.textContent = '有网络时自动缓存后续章节，断网也能听';
+        cacheStartBtn.disabled = false;
+      }
+
+      cacheStopBtn.hidden = !prefetching;
+      cacheStartBtn.hidden = prefetching || cachedCount >= total;
+    }
+
+    // 开始预缓存
+    async function startPrefetch() {
+      if (prefetching || !navigator.onLine || !autoCacheEnabled) return;
+      prefetching = true;
+      const runId = ++prefetchRun;
+      abortController = new AbortController();
+      cacheStartBtn.hidden = true;
+      cacheStopBtn.hidden = false;
+      cacheStopBtn.disabled = false;
+
+      const allUrls = getAllAudioUrls();
+      // 当前章节之后优先，走到末尾后再从头补齐，确保最终覆盖全书。
+      const ordered = [...allUrls.slice(currentIndex), ...allUrls.slice(0, currentIndex)];
+
+      try {
+        const cache = await caches.open(AUDIO_CACHE_NAME);
+        for (const url of ordered) {
+          if (!prefetching || runId !== prefetchRun) break;
+          if (!navigator.onLine) break;
+          const hit = await cache.match(url);
+          if (hit) continue;
+          try {
+            const resp = await fetch(url, { signal: abortController.signal, mode: 'cors', cache: 'no-cache' });
+            if (resp && resp.ok) {
+              await cache.put(url, resp.clone());
+              cachedCount++;
+              const pct = (cachedCount / allUrls.length * 100);
+              cacheProgressBar.style.width = pct.toFixed(1) + '%';
+              cacheCountText.textContent = cachedCount + ' / ' + allUrls.length + ' 章';
+              cacheBadge.textContent = cachedCount;
+              cacheBadge.hidden = false;
+            }
+          } catch (e) {
+            if (e.name === 'AbortError') break;
+            // 单章失败不阻塞队列；断网时交给 online 事件继续。
+            if (!navigator.onLine) break;
+          }
+          // 给移动端网络栈和浏览器渲染留出调度间隔，避免并发下载拖垮播放。
+          await new Promise((resolve) => setTimeout(resolve, 120));
+        }
+      } catch (_) {}
+
+      prefetching = false;
+      abortController = null;
+      await updateCacheUI();
+      if (cachedCount >= allUrls.length) showToast('全部章节已缓存');
+    }
+
+    function stopPrefetch() {
+      autoCacheEnabled = false;
+      try { localStorage.setItem('nanian_auto_cache', 'false'); } catch (_) {}
+      ++prefetchRun;
+      if (abortController) abortController.abort();
+      prefetching = false;
+      updateCacheUI();
+      showToast('已暂停自动缓存，可重新开始');
+    }
+
+    async function clearCache() {
+      try {
+        await caches.delete(AUDIO_CACHE_NAME);
+      } catch (_) {}
+      cachedCount = 0;
+      await updateCacheUI();
+      showToast('已清除缓存');
+    }
+
+    // 事件绑定
+    cacheToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      cachePopup.classList.toggle('open');
     });
-  }
+    cacheStartBtn.addEventListener('click', () => {
+      autoCacheEnabled = true;
+      try { localStorage.setItem('nanian_auto_cache', 'true'); } catch (_) {}
+      startPrefetch();
+    });
+    cacheStopBtn.addEventListener('click', stopPrefetch);
+    cacheClearBtn.addEventListener('click', clearCache);
+
+    // 点击外部关闭（排除缓存按钮本身）
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.cache-panel')) cachePopup.classList.remove('open');
+    });
+
+    // 网络状态变化时更新 UI；重新联网后自动从断点继续。
+    window.addEventListener('online', () => {
+      updateCacheUI();
+      if (autoCacheEnabled) window.setTimeout(startPrefetch, 250);
+    });
+    window.addEventListener('offline', updateCacheUI);
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden && navigator.onLine && autoCacheEnabled && !prefetching) startPrefetch();
+    });
+
+    // 注册 SW 并监听消息
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.addEventListener('message', (e) => {
+        if (e.data && e.data.type === 'PREFETCH_DONE') updateCacheUI();
+        if (e.data && e.data.type === 'CACHED_AUDIO_LIST') updateCacheUI();
+      });
+    }
+
+    // 申请持久化存储，避免移动端浏览器在空间紧张时优先清理音频缓存。
+    if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+    // 页面打开即开始持续缓存；浏览器后台冻结时，恢复前台后会继续。
+    updateCacheUI();
+    if (navigator.onLine && autoCacheEnabled) window.setTimeout(startPrefetch, 800);
+  })();
 })();
 </script>
 </body>
