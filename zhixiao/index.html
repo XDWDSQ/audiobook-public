@@ -3,26 +3,23 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="description" content="《知晓》完整有声书，177章，15小时51分。免费收听，支持文本同步高亮、倍速播放。">
-<meta name="theme-color" content="#1a1715" media="(prefers-color-scheme: dark)">
-<meta name="theme-color" content="#f5f0e8" media="(prefers-color-scheme: light)">
-<meta name="format-detection" content="telephone=no">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="知晓">
-<link rel="manifest" href="../manifest.json">
-<link rel="apple-touch-icon" href="../icon.svg">
-<meta property="og:title" content="知晓 - 有声书 | 免费收听">
-<meta property="og:description" content="《知晓》完整有声书，177章，15小时51分，支持文本同步高亮">
-<meta property="og:image" content="../preview-desktop.png">
-<meta property="og:url" content="https://audiobook-hub.site/zhixiao/">
+<meta name="description" content="《知晓》完整有声书，免费收听，支持文本同步高亮、倍速播放、章节目录与断点续听。">
+<meta name="keywords" content="知晓,有声书,有声小说,校园文学,原创长篇">
+<meta name="author" content="知晓">
+<meta name="theme-color" content="#c9974a">
+<meta name="color-scheme" content="dark light">
+
+<!-- Open Graph -->
 <meta property="og:type" content="website">
+<meta property="og:title" content="知晓 · 有声书 | 免费收听">
+<meta property="og:description" content="《知晓》完整有声书，支持文本同步高亮、倍速播放、断点续听">
+
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📖</text></svg>">
 <link rel="stylesheet" href="../_shared/audiobook-common.css">
 <title>知晓 · 有声书</title>
 <style>
 :root {
+  color-scheme: dark;
   --bg: #1a1715;
   --surface: #252220;
   --surface-light: #2f2b28;
@@ -34,6 +31,7 @@
   --border: #3a3530;
 }
 [data-theme="light"] {
+  color-scheme: light;
   --bg: #f5f0e8;
   --surface: #ffffff;
   --surface-light: #ede8e0;
@@ -45,6 +43,7 @@
   --border: #d8d0c8;
 }
 * { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
 body {
   background: var(--bg);
   color: var(--text);
@@ -53,6 +52,8 @@ body {
   display: flex;
   flex-direction: column;
   transition: background 0.3s, color 0.3s;
+  -webkit-tap-highlight-color: transparent;
+  contain: layout style;
 }
 header {
   text-align: center;
@@ -91,6 +92,7 @@ header p {
   font-size: 1rem;
   display: flex; align-items: center; justify-content: center;
   transition: all 0.2s;
+  touch-action: manipulation;
 }
 .icon-btn:hover { background: var(--accent-glow); border-color: var(--accent); }
 .menu-btn {
@@ -109,12 +111,11 @@ header p {
   height: 100vh;
   background: var(--surface);
   border-right: 1px solid var(--border);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
+  overflow-y: auto;
   transition: left 0.3s ease;
   z-index: 200;
-  padding: 20px 0 0;
+  padding: 20px 0;
+  contain: layout style;
 }
 .sidebar.open { left: 0; }
 .sidebar-overlay {
@@ -132,7 +133,6 @@ header p {
   padding: 0 20px 16px;
   border-bottom: 1px solid var(--border);
   margin-bottom: 8px;
-  flex-shrink: 0;
 }
 .sidebar a {
   display: flex;
@@ -174,6 +174,7 @@ header p {
   width: 100%;
   margin: 0 auto;
   padding: 32px 24px 40px;
+  -webkit-overflow-scrolling: touch;
 }
 .chapter-title {
   font-size: 1.4rem;
@@ -196,7 +197,11 @@ header p {
   padding: 1px 2px;
 }
 .seg:hover { background: var(--surface-light); }
-.seg.active { background: var(--highlight); }
+.seg.active {
+  background: var(--highlight);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
+  transition: background .15s ease, box-shadow .25s ease;
+}
 
 /* 底部播放栏 */
 .player-bar {
@@ -219,6 +224,7 @@ header p {
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
   transition: all 0.2s;
+  touch-action: manipulation;
 }
 .play-btn:hover { opacity: 0.85; }
 .play-btn:disabled { opacity: 0.3; cursor: not-allowed; }
@@ -254,7 +260,6 @@ header p {
   border-radius: 3px;
   cursor: pointer;
   position: relative;
-  overflow: hidden;
 }
 .progress-fill {
   height: 100%;
@@ -264,7 +269,24 @@ header p {
   transition: width 0.1s linear;
 }
 .progress-track:hover .progress-fill { opacity: 0.8; }
-.speed-btn {
+.progress-tooltip {
+  position: absolute;
+  top: -22px;
+  left: 0;
+  transform: translateX(-50%);
+  padding: 2px 6px;
+  border-radius: 5px;
+  background: var(--accent);
+  color: var(--bg);
+  font-size: 0.65rem;
+  font-family: monospace;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .15s ease;
+}
+.progress-tooltip.show { opacity: 1; }
+.speed-btn, .font-size-btn {
   background: var(--surface-light);
   border: 1px solid var(--border);
   color: var(--text);
@@ -275,8 +297,10 @@ header p {
   font-family: inherit;
   flex-shrink: 0;
   transition: all 0.2s;
+  touch-action: manipulation;
 }
-.speed-btn:hover { border-color: var(--accent); color: var(--accent); }
+.speed-btn:hover, .font-size-btn:hover { border-color: var(--accent); color: var(--accent); }
+.font-size-btn.active { color: var(--accent); border-color: var(--accent); background: var(--accent-glow); }
 
 /* 导航按钮 */
 .nav-btns {
@@ -294,6 +318,7 @@ header p {
   font-size: 0.85rem;
   display: flex; align-items: center; justify-content: center;
   transition: all 0.2s;
+  touch-action: manipulation;
 }
 .nav-btn:hover { background: var(--accent-glow); border-color: var(--accent); }
 .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
@@ -304,6 +329,8 @@ header p {
   padding: 60px 20px;
   color: var(--text-dim);
 }
+.loading p { animation: pulse 1.4s ease infinite; }
+@keyframes pulse { 0%, 100% { opacity: .5; } 50% { opacity: 1; } }
 .loading .spinner {
   display: inline-block;
   width: 32px; height: 32px;
@@ -322,101 +349,14 @@ header p {
   height: 3px;
   background: var(--accent);
   z-index: 300;
-  transition: width 0.2s;
-}
-
-@media (max-width: 768px) {
-  header { padding: 16px 16px 12px; }
-  header h1 { font-size: 1.35rem; }
-  .menu-btn { left: 12px; }
-  .header-btns { right: 12px; }
-  .reader { padding: 20px 16px 30px; }
-  .chapter-title { font-size: 1.2rem; }
-  .chapter-content { font-size: 0.95rem; line-height: 1.9; }
-  .player-bar { padding: 8px 12px; gap: 8px; }
-  .play-btn { width: 44px; height: 44px; font-size: 1rem; }
-  .speed-btn { padding: 4px 10px; min-height: 44px; font-size: 0.72rem; }
-  .nav-btn { width: 44px; height: 44px; font-size: 0.8rem; }
-  .player-title { font-size: 0.75rem; }
-  .sidebar { width: 85vw; max-width: 320px; left: -85vw; }
-  .sidebar.open { left: 0; }
-  .sidebar a { padding: 12px 20px; font-size: 0.9rem; }
-  .sidebar h3 { font-size: 1rem; }
-}
-@media (max-width: 480px) {
-  header h1 { font-size: 1.2rem; letter-spacing: 0.3em; }
-  header p { font-size: 0.7rem; }
-  .icon-btn { width: 40px; height: 40px; font-size: 0.95rem; }
-  .reader { padding: 16px 14px 24px; }
-  .chapter-content { font-size: 0.9rem; }
-  .player-bar { padding: 8px 12px; gap: 6px 10px; flex-wrap: wrap; }
-  /* 第一行：播放按钮 + 标题/进度条 */
-  .player-bar .play-btn { order: 1; flex-shrink: 0; }
-  .player-bar .player-info { order: 2; flex: 1 1 calc(100% - 54px); min-width: 0; }
-  /* 第二行：速度 + 前后章 均匀分布 */
-  .player-bar .speed-btn { order: 3; }
-  .player-bar .nav-btns { order: 5; flex: 1 1 auto; justify-content: flex-end; }
-  .player-bar .speed-btn { font-size: 0.72rem; min-height: 40px; }
-  .time-label { font-size: 0.65rem; min-width: 32px; }
-  /* 进度条触控区域扩大（视觉不变，触控友好） */
-  .progress-track { position: relative; }
-  .progress-track::before { content: ''; position: absolute; left: 0; right: 0; top: -10px; bottom: -10px; }
-}
-@media (max-width: 360px) {
-  header h1 { font-size: 1.05rem; letter-spacing: 0.2em; }
-  .player-bar { padding: 6px 10px; }
-  .player-bar .nav-btns { justify-content: center; }
-  .chapter-content { font-size: 0.85rem; line-height: 1.85; }
-}
-
-/* ── 触摸设备优化 ── */
-@media (hover: none) and (pointer: coarse) {
-  .icon-btn:hover, .nav-btn:hover, .speed-btn:hover {
-    background: var(--surface-light); border-color: var(--border);
-  }
-  .icon-btn:active, .nav-btn:active { transform: scale(0.92); }
-  .sidebar a:hover { background: transparent; border-left-color: transparent; }
-  .sidebar a:active { background: var(--surface-light); }
-}
-
-/* ── 安全区域适配（刘海屏/底部横条） ── */
-@supports (padding-bottom: env(safe-area-inset-bottom)) {
-  header { padding-top: calc(16px + env(safe-area-inset-top)); }
-  .player-bar { padding-bottom: calc(10px + env(safe-area-inset-bottom)); }
-}
-
-/* ── 动画无障碍：尊重用户偏好 ── */
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-}
-
-/* ===== 入场动画 ===== */
-@keyframes ab-fade-up { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
-header, .reader, .player-bar { animation: ab-fade-up .55s ease both; }
-header { animation-delay: .05s; }
-.reader { animation-delay: .15s; }
-.player-bar { animation-delay: .25s; }
-
-/* ===== 章节顶部进度条动画 ===== */
-.top-progress {
   transition: width .55s cubic-bezier(.22,.61,.36,1);
 }
 
-/* ===== 主题图标动效 ===== */
-#themeBtn { transition: transform .35s cubic-bezier(.22,.61,.36,1); }
-#themeBtn.spinning { transform: rotate(180deg); }
-
-/* ===== 章节搜索 ===== */
+/* 章节搜索 */
 .sidebar-search {
   padding: 12px 20px 8px;
   border-bottom: 1px solid var(--border);
   position: relative;
-  flex-shrink: 0;
 }
 .sidebar-search input {
   width: 100%;
@@ -442,46 +382,130 @@ header { animation-delay: .05s; }
   pointer-events: none;
 }
 
-/* ===== 跳过链接 ===== */
-.skip-link:focus { outline: none; }
+/* 阅读字号变量 */
+.reader { font-size: calc(1rem * var(--reading-size, 1)); }
+.reader .chapter-content { font-size: calc(1.05rem * var(--reading-size, 1)); }
 
-/* ===== 段落光晕增强 ===== */
-.seg.active {
-  background: var(--highlight);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
-  transition: background .15s ease, box-shadow .25s ease;
+/* 主题图标动效 */
+#themeBtn { transition: transform .35s cubic-bezier(.22,.61,.36,1); }
+#themeBtn.spinning { transform: rotate(180deg); }
+
+/* 入场动画 */
+@keyframes ab-fade-up { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+header, .reader, .player-bar { animation: ab-fade-up .55s ease both; }
+header { animation-delay: .05s; }
+.reader { animation-delay: .15s; }
+.player-bar { animation-delay: .25s; }
+
+@media (max-width: 768px) {
+  header { padding: 16px 16px 12px; }
+  header h1 { font-size: 1.35rem; }
+  .menu-btn { left: 12px; }
+  .header-btns { right: 12px; }
+  .reader { padding: 20px 16px 30px; }
+  .chapter-title { font-size: 1.2rem; }
+  .chapter-content { font-size: 0.95rem; line-height: 1.9; }
+  .player-bar { padding: 8px 12px; gap: 8px; }
+  .play-btn { width: 44px; height: 44px; font-size: 1rem; }
+  .speed-btn, .font-size-btn { padding: 4px 8px; font-size: 0.72rem; }
+  .nav-btn { width: 38px; height: 38px; font-size: 0.8rem; }
+  .player-title { font-size: 0.75rem; }
+  .sidebar { width: 85vw; max-width: 320px; left: -85vw; }
+  .sidebar.open { left: 0; }
+  .sidebar a { padding: 12px 20px; font-size: 0.9rem; }
+  .sidebar h3 { font-size: 1rem; }
+}
+@media (max-width: 480px) {
+  header h1 { font-size: 1.2rem; letter-spacing: 0.3em; }
+  header p { font-size: 0.7rem; }
+  .icon-btn { width: 34px; height: 34px; font-size: 0.9rem; }
+  .reader { padding: 16px 14px 24px; }
+  .chapter-content { font-size: 0.9rem; }
+  .player-bar { padding: 6px 10px; gap: 6px; flex-wrap: wrap; }
+  .player-bar .nav-btns { order: 10; width: 100%; justify-content: center; }
+  .player-bar .speed-btn, .player-bar .font-size-btn { font-size: 0.68rem; }
+  .time-label { font-size: 0.65rem; min-width: 32px; }
 }
 
-/* ===== 进度条悬停气泡 ===== */
-.progress-tooltip {
-  position: absolute;
-  top: -22px;
-  left: 0;
-  transform: translateX(-50%);
-  padding: 2px 6px;
-  border-radius: 5px;
-  background: var(--accent);
-  color: var(--bg);
-  font-size: 0.65rem;
-  font-family: monospace;
-  white-space: nowrap;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity .15s ease;
+/* 触摸设备优化 */
+@media (hover: none) and (pointer: coarse) {
+  .icon-btn:hover, .nav-btn:hover, .speed-btn:hover, .font-size-btn:hover {
+    background: var(--surface-light); border-color: var(--border); color: var(--text);
+  }
+  .icon-btn:active, .nav-btn:active { transform: scale(0.92); }
+  .sidebar a:hover { background: transparent; border-left-color: transparent; }
+  .sidebar a:active { background: var(--surface-light); }
 }
-.progress-tooltip.show { opacity: 1; }
-.progress-track { position: relative; }
 
-/* ===== 加载骨架 ===== */
-@keyframes pulse { 0%, 100% { opacity: .5; } 50% { opacity: 1; } }
-.loading p { animation: pulse 1.4s ease infinite; }
+/* 离线缓存浮动面板（持续自动缓存） */
+.cache-panel {
+  position: fixed; z-index: 25; right: 16px; bottom: 100px;
+}
+.cache-toggle {
+  width: 42px; height: 42px; border-radius: 50%;
+  border: 1px solid var(--border); background: var(--surface-light);
+  color: var(--text-dim); cursor: pointer;
+  display: grid; place-items: center; font-size: 18px; position: relative;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+  transition: all .2s;
+}
+.cache-toggle:hover { border-color: var(--accent); color: var(--accent); }
+.cache-toggle.active { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.cache-badge {
+  position: absolute; top: -4px; right: -4px; min-width: 18px; height: 18px;
+  border-radius: 9px; background: var(--accent); color: var(--bg);
+  font-size: 10px; font-weight: 700;
+  display: grid; place-items: center; padding: 0 4px;
+}
+.cache-popup {
+  display: none; position: absolute; right: 0; bottom: 52px;
+  width: 280px; padding: 16px; border-radius: 16px;
+  border: 1px solid var(--border); background: var(--surface);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.28);
+}
+.cache-popup.open { display: block; }
+.cache-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.cache-title { font-size: 14px; font-weight: 700; color: var(--accent); }
+.cache-status { font-size: 11px; color: var(--text-dim); }
+.cache-status.online { color: #2f7d4a; }
+.cache-status.offline { color: var(--accent); }
+.cache-progress-wrap { margin-bottom: 8px; }
+.cache-progress { height: 6px; border-radius: 3px; background: var(--surface-light); overflow: hidden; }
+.cache-progress > span {
+  display: block; height: 100%; width: 0; border-radius: inherit;
+  background: var(--accent); transition: width .3s;
+}
+.cache-count { display: block; margin-top: 5px; font-size: 11px; color: var(--text-dim); text-align: right; }
+.cache-hint { margin: 0 0 12px; font-size: 11px; color: var(--text-dim); line-height: 1.5; }
+.cache-actions { display: flex; gap: 8px; }
+.cache-btn {
+  flex: 1; padding: 8px 0; border: 1px solid var(--border); border-radius: 10px;
+  background: var(--surface-light); color: var(--text); cursor: pointer;
+  font-size: 12px; font-family: inherit;
+  transition: all .15s;
+}
+.cache-btn:hover { border-color: var(--accent); color: var(--accent); }
+.cache-btn.primary { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.cache-btn.primary:hover { opacity: 0.85; }
+.cache-btn:disabled { opacity: .45; cursor: not-allowed; }
+/* 移动端：避让底部播放器，移到导航条下方 */
+@media (max-width: 480px) {
+  .cache-panel { right: 12px; bottom: 130px; }
+  .cache-toggle { width: 40px; height: 40px; }
+  .cache-popup { width: calc(100vw - 24px); max-width: 320px; }
+}
 
-/* ===== 目录虚拟滚动 ===== */
-#toc { position: relative; flex: 1 1 auto; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-#toc .toc-spacer { position: relative; width: 100%; }
-#toc a { position: absolute; left: 0; right: 0; box-sizing: border-box; }
-#toc a > span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-#toc > p.loading { position: static; padding: 40px 20px; }
+/* 安全区域适配（刘海屏/底部横条） */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  header { padding-top: calc(16px + env(safe-area-inset-top)); }
+  .player-bar { padding-bottom: calc(10px + env(safe-area-inset-bottom)); }
+}
+
+/* 高对比度模式 */
+@media (prefers-contrast: more) {
+  .seg.active { box-shadow: 0 0 0 2px var(--accent); }
+  .icon-btn, .nav-btn, .speed-btn, .font-size-btn { border-width: 2px; }
+}
 </style>
 </head>
 <body>
@@ -489,11 +513,10 @@ header { animation-delay: .05s; }
 <div class="top-progress" id="topProgress" style="width:0%"></div>
 
 <header>
-  <button class="icon-btn menu-btn" id="menuBtn" aria-label="打开章节目录">☰</button>
+  <button class="icon-btn menu-btn" id="menuBtn" aria-label="打开章节目录" aria-controls="sidebar" aria-expanded="false">☰</button>
   <h1>知 晓</h1>
   <p>有声书</p>
   <div class="header-btns">
-    <a href="../index.html" class="icon-btn" title="返回首页" aria-label="返回有声书首页" style="text-decoration:none">⌂</a>
     <button class="icon-btn" id="themeBtn" title="切换主题" aria-label="切换明暗主题">🌙</button>
   </div>
 </header>
@@ -505,12 +528,12 @@ header { animation-delay: .05s; }
   <div id="toc"><p class="loading"><span class="spinner"></span><br>加载中...</p></div>
 </nav>
 
-<div class="main-wrap">
-<div class="reader" id="reader">
+<main class="main-wrap">
+<article class="reader" id="reader">
   <div class="loading" id="initLoading"><div class="spinner"></div><br>加载中...</div>
-</div>
+</article>
 
-<div class="player-bar">
+<div class="player-bar" role="region" aria-label="播放控制">
   <button class="play-btn" id="playBtn" aria-label="播放" disabled>▶</button>
   <div class="player-info">
     <div class="player-title" id="playerTitle">—</div>
@@ -524,11 +547,36 @@ header { animation-delay: .05s; }
     </div>
   </div>
   <button class="speed-btn" id="speedBtn" aria-label="播放速度">1.0x</button>
+  <button class="font-size-btn" id="fontSizeBtn" aria-label="阅读字号">Aa</button>
   <div class="nav-btns">
     <button class="nav-btn" id="prevBtn" title="上一章" aria-label="上一章">⏮</button>
     <button class="nav-btn" id="nextBtn" title="下一章" aria-label="下一章">⏭</button>
   </div>
 </div>
+</main>
+
+<!-- 离线缓存面板（持续自动缓存：有网时从当前章节向后顺序下载，直到全书完成） -->
+<div class="cache-panel" id="cachePanel">
+  <button class="cache-toggle" id="cacheToggle" type="button" title="离线缓存" aria-label="离线缓存管理" aria-expanded="false">
+    <span class="cache-icon" id="cacheIcon">⬇</span>
+    <span class="cache-badge" id="cacheBadge" hidden>0</span>
+  </button>
+  <div class="cache-popup" id="cachePopup" role="dialog" aria-label="离线缓存状态">
+    <div class="cache-head">
+      <span class="cache-title">离线缓存</span>
+      <span class="cache-status" id="cacheStatusText">检测中…</span>
+    </div>
+    <div class="cache-progress-wrap">
+      <div class="cache-progress"><span id="cacheProgressBar"></span></div>
+      <span class="cache-count" id="cacheCountText">0 / 0 章</span>
+    </div>
+    <p class="cache-hint" id="cacheHint">有网络时自动缓存后续章节，断网也能听</p>
+    <div class="cache-actions">
+      <button class="cache-btn primary" id="cacheStartBtn" type="button">开始缓存</button>
+      <button class="cache-btn" id="cacheStopBtn" type="button" hidden>暂停</button>
+      <button class="cache-btn" id="cacheClearBtn" type="button">清除缓存</button>
+    </div>
+  </div>
 </div>
 
 <audio id="audio" preload="metadata"></audio>
@@ -536,15 +584,18 @@ header { animation-delay: .05s; }
 <script src="../_shared/audiobook-common.js"></script>
 
 <script>
+'use strict';
+
 function safeGetStorage(key) {
   try { return localStorage.getItem(key); } catch (e) { console.error('LocalStorage read error:', e); return null; }
 }
 function safeSetStorage(key, value) {
   try { localStorage.setItem(key, value); } catch (e) { console.error('LocalStorage write error:', e); }
 }
+
 const AB = window.ABCommon;
 if (!AB) { document.body.insertAdjacentHTML('beforeend', '<p style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;color:#000;padding:16px;border-radius:8px;z-index:99999">共享脚本未加载</p>'); }
-const { fmtTime, findActiveSeg, applyHashRoute: ABHashRoute, updateHash: ABUpdateHash, updateMediaSession: ABUpdateMediaSession, saveThrottled, readJSON, showToast, announce } = AB || {};
+const { fmtTime, findActiveSeg, applyHashRoute: ABHashRoute, updateHash: ABUpdateHash, updateMediaSession: ABUpdateMediaSession, saveThrottled, showToast, announce } = AB || {};
 
 let CHAPTERS = [];
 let currentIdx = 0;
@@ -557,9 +608,6 @@ let isFirstLoad = true;
 let userScrolling = false;
 let scrollResumeTimer = null;
 let lastActiveSegIdx = -1;
-let prefetchAudio = null;
-let prefetchedFile = '';
-let prefetchTimer = 0;
 
 const audio = document.getElementById('audio');
 const playBtn = document.getElementById('playBtn');
@@ -567,6 +615,8 @@ const prevBtn = document.getElementById('prevBtn');
 const nextBtn = document.getElementById('nextBtn');
 const speedBtn = document.getElementById('speedBtn');
 const themeBtn = document.getElementById('themeBtn');
+const fontSizeBtn = document.getElementById('fontSizeBtn');
+const menuBtn = document.getElementById('menuBtn');
 const progressTrack = document.getElementById('progressTrack');
 const progressFill = document.getElementById('progressFill');
 const progressTooltip = document.getElementById('progressTooltip');
@@ -574,6 +624,8 @@ const curTimeLabel = document.getElementById('curTime');
 const durTimeLabel = document.getElementById('durTime');
 const playerTitle = document.getElementById('playerTitle');
 const topProgress = document.getElementById('topProgress');
+const sidebar = document.getElementById('sidebar');
+const overlay = document.getElementById('overlay');
 
 // ===== 主题 =====
 function initTheme() {
@@ -605,78 +657,59 @@ function toggleTheme() {
     safeSetStorage('zhixiao_theme', 'light');
     themeBtn.textContent = '☀';
   }
-  announce(isLight ? '已切换到深色主题' : '已切换到浅色主题');
+  announce && announce(isLight ? '已切换到深色主题' : '已切换到浅色主题');
 }
+
+// ===== 阅读字号 =====
+const readingSizeKey = 'zhixiao_reading_size';
+const sizes = [1, 1.15, 1.3];
+let sizeIdx = Math.max(0, sizes.indexOf(Number(safeGetStorage(readingSizeKey)) || 1));
+function applyReadingSize() {
+  document.documentElement.style.setProperty('--reading-size', String(sizes[sizeIdx]));
+  fontSizeBtn.classList.toggle('active', sizeIdx !== 0);
+  fontSizeBtn.setAttribute('aria-label', '阅读字号：' + Math.round(sizes[sizeIdx] * 100) + '%');
+  fontSizeBtn.textContent = sizes[sizeIdx] === 1 ? 'Aa' : (sizes[sizeIdx] >= 1.3 ? 'Aa++' : 'Aa+');
+  announce && announce('字号已调为 ' + Math.round(sizes[sizeIdx] * 100) + '%');
+}
+fontSizeBtn.addEventListener('click', () => {
+  sizeIdx = (sizeIdx + 1) % sizes.length;
+  safeSetStorage(readingSizeKey, String(sizes[sizeIdx]));
+  applyReadingSize();
+});
+applyReadingSize();
 
 // ===== 加载数据 =====
 async function loadData() {
   try {
     const resp = await fetch('data.json');
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
     CHAPTERS = await resp.json();
     document.getElementById('initLoading').style.display = 'none';
     buildTOC();
-    const saved = parseInt(safeGetStorage('zhixiao_chapter') || '0');
-    currentIdx = isNaN(saved) ? 0 : Math.min(saved, CHAPTERS.length - 1);
+    const saved = parseInt(safeGetStorage('zhixiao_chapter') || '0', 10);
+    currentIdx = isNaN(saved) ? 0 : Math.min(Math.max(saved, 0), CHAPTERS.length - 1);
     applyHashRoute();
     loadChapter(currentIdx, false);
   } catch(e) {
-    document.getElementById('initLoading').innerHTML = '<p>加载失败: ' + e.message + '</p>';
+    document.getElementById('initLoading').innerHTML = '<p>加载失败: ' + (e && e.message || e) + '</p>';
   }
 }
 
-// ===== 目录 (带搜索 + 虚拟滚动) =====
-// 仅渲染可视区内的章节按钮，177 章不再全量入 DOM
-let tocFiltered = [];   // 当前过滤后可见的章节原始索引
-let tocRowH = 40;       // 单行高度(px)，随视口调整
-
-function computeTocRowH() {
-  tocRowH = window.matchMedia('(max-width: 768px)').matches ? 48 : 40;
-}
-
+// ===== 目录 (带搜索) =====
 function buildTOC(keyword) {
   const toc = document.getElementById('toc');
+  toc.innerHTML = '';
   const kw = String(keyword || '').trim().toLowerCase();
-  tocFiltered = [];
+  const frag = document.createDocumentFragment();
+  let count = 0;
   CHAPTERS.forEach((ch, i) => {
     if (kw && !(ch.title || '').toLowerCase().includes(kw)) return;
-    tocFiltered.push(i);
-  });
-  computeTocRowH();
-  toc.innerHTML = '';
-  if (!tocFiltered.length) {
-    toc.innerHTML = '<p class="loading">没有找到匹配章节</p>';
-    return;
-  }
-  const spacer = document.createElement('div');
-  spacer.className = 'toc-spacer';
-  spacer.style.height = (tocFiltered.length * tocRowH) + 'px';
-  toc.appendChild(spacer);
-  renderTOCWindow();
-}
-
-function renderTOCWindow() {
-  const toc = document.getElementById('toc');
-  const spacer = toc.querySelector('.toc-spacer');
-  if (!spacer) return;
-  const scrollTop = toc.scrollTop;
-  const viewport = toc.clientHeight || 400;
-  const buffer = 4;
-  const start = Math.max(0, Math.floor(scrollTop / tocRowH) - buffer);
-  const end = Math.min(tocFiltered.length - 1, Math.ceil((scrollTop + viewport) / tocRowH) + buffer);
-  // 清掉旧的可视节点，只保留 spacer
-  const old = spacer.querySelectorAll('a');
-  for (let k = 0; k < old.length; k++) old[k].remove();
-  const frag = document.createDocumentFragment();
-  for (let pos = start; pos <= end; pos++) {
-    const i = tocFiltered[pos];
-    const ch = CHAPTERS[i];
+    count++;
     const a = document.createElement('a');
     a.href = 'javascript:void(0)';
     a.dataset.idx = i;
     a.setAttribute('role', 'button');
-    a.style.top = (pos * tocRowH) + 'px';
-    a.style.height = tocRowH + 'px';
-    if (i === currentIdx) { a.classList.add('active'); a.setAttribute('aria-current', 'true'); }
+    if (i === currentIdx) a.setAttribute('aria-current', 'true');
     const span = document.createElement('span');
     span.textContent = ch.title;
     const dur = document.createElement('span');
@@ -693,44 +726,19 @@ function renderTOCWindow() {
       if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); a.click(); }
     });
     frag.appendChild(a);
-  }
-  spacer.appendChild(frag);
+  });
+  toc.appendChild(frag);
+  if (!count) { toc.innerHTML = '<p class="loading">没有找到匹配章节</p>'; }
+  updateTOCActive();
 }
 
 function updateTOCActive() {
-  const toc = document.getElementById('toc');
-  if (!toc || !tocFiltered.length) return;
-  // 让当前章节滚动进可视区
-  const pos = tocFiltered.indexOf(currentIdx);
-  if (pos >= 0) {
-    const top = pos * tocRowH;
-    const viewport = toc.clientHeight || 400;
-    if (top < toc.scrollTop || top + tocRowH > toc.scrollTop + viewport) {
-      toc.scrollTop = Math.max(0, top - viewport / 2 + tocRowH / 2);
-    }
-  }
-  renderTOCWindow();
-}
-
-// 虚拟滚动：监听目录滚动与视口变化
-(function initTOCVirtual() {
-  const toc = document.getElementById('toc');
-  if (!toc) return;
-  let raf = null;
-  toc.addEventListener('scroll', () => {
-    if (raf) return;
-    raf = requestAnimationFrame(() => { raf = null; renderTOCWindow(); });
-  }, { passive: true });
-  window.addEventListener('resize', () => {
-    const prev = tocRowH;
-    computeTocRowH();
-    if (prev !== tocRowH) {
-      const sp = toc.querySelector('.toc-spacer');
-      if (sp) sp.style.height = (tocFiltered.length * tocRowH) + 'px';
-    }
-    renderTOCWindow();
+  document.querySelectorAll('.sidebar a').forEach((a) => {
+    const active = Number(a.dataset.idx) === currentIdx;
+    a.classList.toggle('active', active);
+    if (active) a.setAttribute('aria-current', 'true'); else a.removeAttribute('aria-current');
   });
-})();
+}
 
 document.getElementById('tocSearch').addEventListener('input', (e) => {
   buildTOC(e.target.value);
@@ -738,14 +746,16 @@ document.getElementById('tocSearch').addEventListener('input', (e) => {
 
 // ===== 侧边栏 =====
 function openSidebar() {
-  document.getElementById('sidebar').classList.add('open');
-  document.getElementById('overlay').classList.add('show');
-  document.getElementById('overlay').setAttribute('aria-hidden', 'false');
+  sidebar.classList.add('open');
+  overlay.classList.add('show');
+  overlay.setAttribute('aria-hidden', 'false');
+  menuBtn.setAttribute('aria-expanded', 'true');
 }
 function closeSidebar() {
-  document.getElementById('sidebar').classList.remove('open');
-  document.getElementById('overlay').classList.remove('show');
-  document.getElementById('overlay').setAttribute('aria-hidden', 'true');
+  sidebar.classList.remove('open');
+  overlay.classList.remove('show');
+  overlay.setAttribute('aria-hidden', 'true');
+  menuBtn.setAttribute('aria-expanded', 'false');
 }
 
 // ===== 章节渲染 =====
@@ -762,10 +772,11 @@ function loadChapter(idx, autoplay) {
   titleEl.textContent = ch.title;
   reader.appendChild(titleEl);
 
-  // 渲染文本段
+  // 渲染文本段（使用文档片段，减少回流）
   const contentEl = document.createElement('div');
   contentEl.className = 'chapter-content';
   segElements = [];
+  const frag = document.createDocumentFragment();
   ch.segs.forEach((seg, si) => {
     const span = document.createElement('span');
     span.className = 'seg';
@@ -776,16 +787,17 @@ function loadChapter(idx, autoplay) {
     span.addEventListener('click', () => {
       if (audio.duration) {
         audio.currentTime = seg.s + 0.01;
-        if (!isPlaying) { audio.play(); }
+        if (!isPlaying) { audio.play().catch(() => {}); }
         highlightSeg(si);
       }
     });
     span.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); span.click(); }
     });
-    contentEl.appendChild(span);
+    frag.appendChild(span);
     segElements.push(span);
   });
+  contentEl.appendChild(frag);
   reader.appendChild(contentEl);
   userScrolling = false;
   clearTimeout(scrollResumeTimer);
@@ -798,7 +810,7 @@ function loadChapter(idx, autoplay) {
   prevBtn.disabled = (idx === 0);
   nextBtn.disabled = (idx === CHAPTERS.length - 1);
 
-  // 更新进度（动条动画）
+  // 更新顶部进度条（带动画）
   topProgress.style.width = '0';
   requestAnimationFrame(() => requestAnimationFrame(() => {
     const bookProgress = ((idx + 1) / CHAPTERS.length * 100).toFixed(1);
@@ -811,8 +823,6 @@ function loadChapter(idx, autoplay) {
   // 更新目录高亮
   updateTOCActive();
 
-  // 重置搜索框（加载新章节后保留用户输入,不重置）
-
   updateMediaSession();
   updateHash();
   lastActiveSegIdx = -1;
@@ -821,36 +831,18 @@ function loadChapter(idx, autoplay) {
   highlightSeg(0);
 
   // 屏幕阅读器播报
-  announce('已加载第 ' + (idx + 1) + ' 章：' + ch.title);
+  announce && announce('已加载第 ' + (idx + 1) + ' 章：' + ch.title);
 
   // 自动播放
   if (autoplay) {
     audio.play().catch(() => {});
   }
-
-  // 预加载下一章音频元数据（空闲时进行，切章等待更短）
-  clearTimeout(prefetchTimer);
-  prefetchTimer = setTimeout(() => prefetchNextChapter(idx), 1500);
-}
-
-// 预加载下一章：仅拉取 metadata（几 KB），使切章等待从 ~2s 降至 <200ms
-function prefetchNextChapter(idx) {
-  const nextIdx = idx + 1;
-  if (nextIdx >= CHAPTERS.length) return;
-  const nextFile = CHAPTERS[nextIdx] && CHAPTERS[nextIdx].file;
-  if (!nextFile || nextFile === prefetchedFile) return;
-  try {
-    if (!prefetchAudio) { prefetchAudio = new Audio(); prefetchAudio.preload = 'metadata'; }
-    prefetchAudio.src = nextFile;
-    prefetchAudio.load();
-    prefetchedFile = nextFile;
-  } catch (_) {}
 }
 
 // ===== 播放控制 =====
 function togglePlay() {
   if (audio.paused) {
-    audio.play();
+    audio.play().catch(() => {});
   } else {
     audio.pause();
   }
@@ -861,10 +853,25 @@ playBtn.addEventListener('click', togglePlay);
 audio.addEventListener('play', () => {
   isPlaying = true;
   playBtn.textContent = '⏸';
+  playBtn.setAttribute('aria-label', '暂停');
 });
 audio.addEventListener('pause', () => {
   isPlaying = false;
   playBtn.textContent = '▶';
+  playBtn.setAttribute('aria-label', '播放');
+});
+
+audio.addEventListener('error', async () => {
+  if (CHAPTERS[currentIdx]) {
+    const cached = await isChapterCached(CHAPTERS[currentIdx].file);
+    if (cached) {
+      showToast && showToast('网络不可用，尝试从缓存读取');
+      audio.src = CHAPTERS[currentIdx].file;
+      audio.play().catch(() => {});
+      return;
+    }
+  }
+  showToast && showToast('音频加载失败，请检查网络后重试');
 });
 
 // 自动连播核心：章节结束 → 播放下一章
@@ -879,7 +886,7 @@ audio.addEventListener('loadedmetadata', () => {
   progressTrack.setAttribute('aria-valuemax', String(Math.round(audio.duration)));
 });
 
-// 统一的 timeupdate 监听器：进度条 + 文本高亮 + 节流保存(取代旧的两个监听器)
+// 统一的 timeupdate 监听器：进度条 + 文本高亮 + 节流保存
 audio.addEventListener('timeupdate', () => {
   const cur = audio.currentTime;
   const dur = audio.duration;
@@ -890,7 +897,7 @@ audio.addEventListener('timeupdate', () => {
   }
   curTimeLabel.textContent = fmtTime(cur);
 
-  // 文本高亮跟随
+  // 文本高亮跟随（二分查找）
   const ch = CHAPTERS[currentIdx];
   if (ch && ch.segs) {
     const activeIdx = findActiveSeg(ch.segs, cur);
@@ -916,8 +923,8 @@ function seekFromEvent(e) {
 progressTrack.addEventListener('mousedown', (e) => { isDragging = true; seekFromEvent(e); });
 document.addEventListener('mousemove', (e) => { if (isDragging) seekFromEvent(e); });
 document.addEventListener('mouseup', () => { isDragging = false; });
-progressTrack.addEventListener('touchstart', (e) => { isDragging = true; seekFromEvent(e); });
-progressTrack.addEventListener('touchmove', (e) => { if (isDragging) seekFromEvent(e); });
+progressTrack.addEventListener('touchstart', (e) => { isDragging = true; seekFromEvent(e); }, { passive: true });
+progressTrack.addEventListener('touchmove', (e) => { if (isDragging) seekFromEvent(e); }, { passive: true });
 progressTrack.addEventListener('touchend', () => { isDragging = false; });
 
 // 进度条悬停气泡
@@ -933,9 +940,6 @@ function showTooltip(e) {
 }
 progressTrack.addEventListener('mousemove', showTooltip);
 progressTrack.addEventListener('mouseleave', () => progressTooltip.classList.remove('show'));
-progressTrack.addEventListener('touchstart', showTooltip, { passive: true });
-progressTrack.addEventListener('touchmove', showTooltip, { passive: true });
-progressTrack.addEventListener('touchend', () => progressTooltip.classList.remove('show'));
 
 // 键盘控制进度条
 progressTrack.addEventListener('keydown', (e) => {
@@ -945,19 +949,18 @@ progressTrack.addEventListener('keydown', (e) => {
   if (e.key === 'ArrowRight') { e.preventDefault(); audio.currentTime = Math.min(audio.duration, audio.currentTime + delta); }
 });
 
-// 高亮段
+// 高亮段（仅更新变化的节点，避免每帧遍历整章，减少重绘/回流）
 function highlightSeg(idx) {
-  segElements.forEach((el, i) => {
-    const isActive = i === idx;
-    el.classList.toggle('active', isActive);
-    if (isActive) el.setAttribute('aria-current', 'true'); else el.removeAttribute('aria-current');
-  });
-  if (idx >= 0 && lastActiveSegIdx !== idx) {
-    lastActiveSegIdx = idx;
-    announce((CHAPTERS[currentIdx]?.segs?.[idx]?.t || '').slice(0, 24));
-  }
-  if (idx >= 0 && !userScrolling && segElements[idx]) {
-    const node = segElements[idx];
+  if (idx < 0 || idx >= segElements.length) return;
+  if (idx === lastActiveSegIdx) return;
+  const prev = segElements[lastActiveSegIdx];
+  if (prev) { prev.classList.remove('active'); prev.removeAttribute('aria-current'); }
+  const node = segElements[idx];
+  node.classList.add('active');
+  node.setAttribute('aria-current', 'true');
+  lastActiveSegIdx = idx;
+  // 播放中自动滚动跟随；用户手动滚动时暂停跟随
+  if (!userScrolling) {
     const readerEl = document.getElementById('reader');
     const rect = node.getBoundingClientRect();
     const containerRect = readerEl.getBoundingClientRect();
@@ -971,39 +974,13 @@ function highlightSeg(idx) {
 (function() {
   const readerEl = document.getElementById('reader');
   if (!readerEl) return;
-  readerEl.addEventListener('touchmove', () => {
+  const markScrolling = () => {
     userScrolling = true;
     clearTimeout(scrollResumeTimer);
     scrollResumeTimer = setTimeout(() => { userScrolling = false; }, 3000);
-  }, { passive: true });
-  readerEl.addEventListener('wheel', () => {
-    userScrolling = true;
-    clearTimeout(scrollResumeTimer);
-    scrollResumeTimer = setTimeout(() => { userScrolling = false; }, 3000);
-  }, { passive: true });
-})();
-
-// 阅读区左右滑动切章（区分于竖向滚动）
-(function() {
-  const readerEl = document.getElementById('reader');
-  if (!readerEl) return;
-  let sx = 0, sy = 0, st = 0, tracking = false;
-  readerEl.addEventListener('touchstart', (e) => {
-    if (e.touches.length !== 1) { tracking = false; return; }
-    sx = e.touches[0].clientX; sy = e.touches[0].clientY; st = Date.now(); tracking = true;
-  }, { passive: true });
-  readerEl.addEventListener('touchend', (e) => {
-    if (!tracking) return;
-    tracking = false;
-    const t = e.changedTouches[0];
-    const dx = t.clientX - sx, dy = t.clientY - sy, dt = Date.now() - st;
-    if (dt > 600 || Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
-    if (dx < 0) {
-      if (currentIdx < CHAPTERS.length - 1) { loadChapter(currentIdx + 1, isPlaying); showToast && showToast('下一章'); }
-    } else {
-      if (currentIdx > 0) { loadChapter(currentIdx - 1, isPlaying); showToast && showToast('上一章'); }
-    }
-  }, { passive: true });
+  };
+  readerEl.addEventListener('touchmove', markScrolling, { passive: true });
+  readerEl.addEventListener('wheel', markScrolling, { passive: true });
 })();
 
 // 上一章/下一章
@@ -1019,16 +996,17 @@ speedBtn.addEventListener('click', () => {
   speedIdx = (speedIdx + 1) % speeds.length;
   audio.playbackRate = speeds[speedIdx];
   speedBtn.textContent = speeds[speedIdx].toFixed(1) + 'x';
+  announce && announce('播放速度 ' + speeds[speedIdx].toFixed(1) + ' 倍');
 });
 
 // 侧边栏
-document.getElementById('menuBtn').addEventListener('click', openSidebar);
-document.getElementById('overlay').addEventListener('click', closeSidebar);
+menuBtn.addEventListener('click', openSidebar);
+overlay.addEventListener('click', closeSidebar);
 
 // 主题
 themeBtn.addEventListener('click', toggleTheme);
 
-// 键盘快捷键（增强）
+// 键盘快捷键
 document.addEventListener('keydown', (e) => {
   const tag = e.target.tagName;
   if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
@@ -1052,7 +1030,13 @@ document.addEventListener('keydown', (e) => {
       e.preventDefault();
       audio.muted = !audio.muted;
       showToast && showToast(audio.muted ? '已静音' : '已取消静音');
-      announce(audio.muted ? '已静音' : '已取消静音');
+      announce && announce(audio.muted ? '已静音' : '已取消静音');
+      break;
+    case 'f': case 'F':
+      e.preventDefault();
+      if (e.shiftKey) { sizeIdx = Math.max(0, sizeIdx - 1); } else { sizeIdx = Math.min(sizes.length - 1, sizeIdx + 1); }
+      safeSetStorage(readingSizeKey, String(sizes[sizeIdx]));
+      applyReadingSize();
       break;
   }
 });
@@ -1069,50 +1053,255 @@ audio.addEventListener('canplay', function restoreTime() {
   }
 });
 
-
 // ===== Media Session API (包装 ABCommon) =====
 function updateMediaSession() {
-  ABUpdateMediaSession(audio, CHAPTERS[currentIdx], {
+  ABUpdateMediaSession && ABUpdateMediaSession(audio, CHAPTERS[currentIdx], {
     artist: '知晓',
-    album: '有声书馆',
+    album: '知晓 · 有声书',
     onPrev: () => { if (currentIdx > 0) loadChapter(currentIdx - 1, isPlaying); },
     onNext: () => { if (currentIdx < CHAPTERS.length - 1) loadChapter(currentIdx + 1, isPlaying); }
   });
 }
 
 // ===== URL hash 路由 (包装 ABCommon) =====
-function applyHashRoute() { ABHashRoute(CHAPTERS, (idx) => { if (idx !== currentIdx) loadChapter(idx, false); }); }
-function updateHash() { ABUpdateHash(currentIdx); }
+function applyHashRoute() { ABHashRoute && ABHashRoute(CHAPTERS, (idx) => { if (idx !== currentIdx) loadChapter(idx, false); }); }
+function updateHash() { ABUpdateHash && ABUpdateHash(currentIdx); }
 window.addEventListener('hashchange', () => { applyHashRoute(); });
+
+// ===== 全局错误处理 =====
+window.addEventListener('error', (e) => { console.error('Global error:', e.error || e.message); });
+window.addEventListener('unhandledrejection', (e) => { console.error('Unhandled promise rejection:', e.reason); });
+
+// ===== 性能监控 (LCP) =====
+if ('PerformanceObserver' in window) {
+  try {
+    const po = new PerformanceObserver((list) => {
+      for (const entry of list.getEntries()) {
+        if (entry.entryType === 'largest-contentful-paint') {
+          console.log('LCP:', Math.round(entry.renderTime || entry.loadTime), 'ms');
+        }
+      }
+    });
+    po.observe({ type: 'largest-contentful-paint', buffered: true });
+  } catch (_) {}
+}
+
+// ===== 离线缓存管理（持续自动缓存：有网时从当前章节向后顺序下载，直到全书完成） =====
+(() => {
+  /* 注册 Service Worker（先于缓存查询，避免初次重复下载） */
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+
+  const CACHE_NAME = 'zhixiao-audiobook-v2';
+  const cacheToggle = document.getElementById('cacheToggle');
+  const cachePopup = document.getElementById('cachePopup');
+  const cacheIcon = document.getElementById('cacheIcon');
+  const cacheBadge = document.getElementById('cacheBadge');
+  const cacheStatusText = document.getElementById('cacheStatusText');
+  const cacheProgressBar = document.getElementById('cacheProgressBar');
+  const cacheCountText = document.getElementById('cacheCountText');
+  const cacheHint = document.getElementById('cacheHint');
+  const cacheStartBtn = document.getElementById('cacheStartBtn');
+  const cacheStopBtn = document.getElementById('cacheStopBtn');
+  const cacheClearBtn = document.getElementById('cacheClearBtn');
+
+  /* 默认开启持续缓存；用户点击"暂停"后设为 false 并持久化 */
+  let autoCacheEnabled = (function () {
+    try { const raw = localStorage.getItem('zhixiao_auto_cache'); return raw == null ? true : raw !== 'false'; }
+    catch (_) { return true; }
+  })();
+
+  let prefetching = false;
+  let abortController = null;
+  let cachedCount = 0;
+  let prefetchRun = 0;
+  /* 数据未加载完成时，预缓存会被延迟到 loadChapter 后 */
+  let dataReady = CHAPTERS.length > 0;
+
+  /* 获取所有音频 URL（同源，相对路径基于当前位置） */
+  function getAllAudioUrls() {
+    return CHAPTERS.map((ch) => {
+      const base = location.href.replace(/[^/]*$/, '');
+      return new URL(ch.file, base).href;
+    });
+  }
+
+  /* 统计已缓存的章节数（仅匹配 chapters/ch*.mp3，忽略外壳资源） */
+  async function queryCachedCount() {
+    try {
+      const cache = await caches.open(CACHE_NAME);
+      const keys = await cache.keys();
+      const audioUrls = new Set(getAllAudioUrls());
+      let n = 0;
+      keys.forEach((r) => { if (audioUrls.has(r.url)) n++; });
+      return n;
+    } catch (_) { return 0; }
+  }
+
+  /* 同步刷新 UI */
+  async function updateCacheUI() {
+    if (!cacheToggle) return;
+    const total = CHAPTERS.length;
+    if (total > 0) cachedCount = await queryCachedCount();
+    const pct = total > 0 ? (cachedCount / total * 100) : 0;
+    if (cacheProgressBar) cacheProgressBar.style.width = pct.toFixed(1) + '%';
+    if (cacheCountText) cacheCountText.textContent = cachedCount + ' / ' + total + ' 章';
+    if (cacheBadge) {
+      cacheBadge.textContent = cachedCount;
+      cacheBadge.hidden = cachedCount === 0;
+    }
+
+    const online = navigator.onLine;
+    if (cacheStatusText) {
+      cacheStatusText.textContent = online ? '在线' : '离线';
+      cacheStatusText.className = 'cache-status ' + (online ? 'online' : 'offline');
+    }
+
+    if (total > 0 && cachedCount >= total) {
+      if (cacheHint) cacheHint.textContent = '全部章节已缓存，断网也能听';
+      if (cacheStartBtn) { cacheStartBtn.disabled = true; cacheStartBtn.textContent = '已完成'; }
+    } else if (!online) {
+      if (cacheHint) cacheHint.textContent = '当前离线，连接网络后可继续缓存';
+      if (cacheStartBtn) cacheStartBtn.disabled = true;
+    } else {
+      if (cacheHint) cacheHint.textContent = '有网络时自动缓存后续章节，断网也能听';
+      if (cacheStartBtn) { cacheStartBtn.disabled = false; cacheStartBtn.textContent = autoCacheEnabled ? '继续缓存' : '开始缓存'; }
+    }
+
+    if (cacheStopBtn) cacheStopBtn.hidden = !prefetching;
+    if (cacheStartBtn) cacheStartBtn.hidden = prefetching || (total > 0 && cachedCount >= total);
+    if (cacheToggle) cacheToggle.classList.toggle('active', prefetching);
+    if (cacheIcon) cacheIcon.textContent = prefetching ? '⟳' : '⬇';
+  }
+
+  /* 开始预缓存：当前章节之后优先，走到末尾后再从头补齐，确保最终覆盖全书 */
+  async function startPrefetch() {
+    if (prefetching) return;
+    if (!dataReady || CHAPTERS.length === 0) return;
+    if (!navigator.onLine) { updateCacheUI(); return; }
+    if (cachedCount >= CHAPTERS.length) { updateCacheUI(); return; }
+
+    prefetching = true;
+    const runId = ++prefetchRun;
+    abortController = new AbortController();
+    updateCacheUI();
+
+    const allUrls = getAllAudioUrls();
+    const ordered = [...allUrls.slice(currentIdx), ...allUrls.slice(0, currentIdx)];
+
+    try {
+      const cache = await caches.open(CACHE_NAME);
+      for (const url of ordered) {
+        if (!prefetching || runId !== prefetchRun) break;
+        if (!navigator.onLine) break;
+        const hit = await cache.match(url);
+        if (hit) continue;
+        try {
+          const resp = await fetch(url, { signal: abortController.signal, mode: 'cors', cache: 'no-cache' });
+          if (resp && resp.ok) {
+            await cache.put(url, resp.clone());
+            cachedCount++;
+            const pct = (cachedCount / allUrls.length * 100);
+            if (cacheProgressBar) cacheProgressBar.style.width = pct.toFixed(1) + '%';
+            if (cacheCountText) cacheCountText.textContent = cachedCount + ' / ' + allUrls.length + ' 章';
+            if (cacheBadge) { cacheBadge.textContent = cachedCount; cacheBadge.hidden = false; }
+          }
+        } catch (e) {
+          if (e && e.name === 'AbortError') break;
+          if (!navigator.onLine) break;
+        }
+        /* 给移动端网络栈与浏览器渲染留出调度间隔，避免并发下载拖垮播放 */
+        await new Promise((resolve) => setTimeout(resolve, 120));
+      }
+    } catch (_) {}
+
+    prefetching = false;
+    abortController = null;
+    await updateCacheUI();
+    if (cachedCount >= allUrls.length) showToast && showToast('全部章节已缓存');
+  }
+
+  /* 暂停：用户主动停止，并持久化状态 */
+  function stopPrefetch() {
+    autoCacheEnabled = false;
+    try { localStorage.setItem('zhixiao_auto_cache', 'false'); } catch (_) {}
+    ++prefetchRun;
+    if (abortController) abortController.abort();
+    prefetching = false;
+    updateCacheUI();
+    showToast && showToast('已暂停自动缓存，可随时继续');
+  }
+
+  /* 启用：用户主动开启，并持久化状态 */
+  function startManual() {
+    autoCacheEnabled = true;
+    try { localStorage.setItem('zhixiao_auto_cache', 'true'); } catch (_) {}
+    startPrefetch();
+  }
+
+  /* 清除全部缓存（仅删音频 cache，外壳不受影响） */
+  async function clearCache() {
+    try { await caches.delete(CACHE_NAME); } catch (_) {}
+    cachedCount = 0;
+    await updateCacheUI();
+    showToast && showToast('已清除缓存');
+  }
+
+  /* 事件绑定 */
+  if (cacheToggle) {
+    cacheToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      cachePopup.classList.toggle('open');
+      cacheToggle.setAttribute('aria-expanded', String(cachePopup.classList.contains('open')));
+    });
+  }
+  if (cacheStartBtn) cacheStartBtn.addEventListener('click', startManual);
+  if (cacheStopBtn) cacheStopBtn.addEventListener('click', stopPrefetch);
+  if (cacheClearBtn) cacheClearBtn.addEventListener('click', clearCache);
+
+  document.addEventListener('click', (e) => {
+    if (cachePopup && cachePopup.classList.contains('open') && !e.target.closest('.cache-panel')) {
+      cachePopup.classList.remove('open');
+      if (cacheToggle) cacheToggle.setAttribute('aria-expanded', 'false');
+    }
+  });
+
+  /* 网络状态变化时更新 UI；重新联网后自动从断点继续 */
+  window.addEventListener('online', () => { updateCacheUI(); if (autoCacheEnabled) window.setTimeout(startPrefetch, 300); });
+  window.addEventListener('offline', () => { updateCacheUI(); });
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && navigator.onLine && autoCacheEnabled && !prefetching && dataReady) startPrefetch();
+  });
+
+  /* 监听 SW 消息：若被其他客户端触发缓存完成，同步刷新 UI */
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.addEventListener('message', (e) => {
+      if (e.data && (e.data.type === 'PREFETCH_DONE' || e.data.type === 'CACHED_AUDIO_LIST')) updateCacheUI();
+    });
+  }
+
+  /* 申请持久化存储，避免移动端浏览器在空间紧张时优先清理音频缓存 */
+  if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+
+  /* 暴露给 loadData 调用：数据加载完成后启动持续缓存 */
+  window.__zhixiaoStartCache = function () {
+    dataReady = true;
+    updateCacheUI();
+    if (navigator.onLine && autoCacheEnabled) window.setTimeout(startPrefetch, 800);
+  };
+})();
+
+// 数据加载完成后启动持续缓存（loadData 内部已成功才调用）
+const origLoadData = loadData;
+loadData = async function () {
+  await origLoadData.apply(this, arguments);
+  if (CHAPTERS.length > 0) window.__zhixiaoStartCache && window.__zhixiaoStartCache();
+};
 
 // 初始化
 initTheme();
 loadData();
-
-// Service Worker 注册（PWA / 离线缓存）
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('../sw.js', { scope: '../' }).then((reg) => {
-      if (reg.waiting) { reg.waiting.postMessage('SKIP_WAITING'); }
-      reg.addEventListener('updatefound', () => {
-        const newWorker = reg.installing;
-        if (newWorker) {
-          newWorker.addEventListener('statechange', () => {
-            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              newWorker.postMessage('SKIP_WAITING');
-            }
-          });
-        }
-      });
-    }).catch((err) => { console.error('SW registration failed:', err); });
-    let refreshing = false;
-    navigator.serviceWorker.addEventListener('controllerchange', () => {
-      if (refreshing) return;
-      refreshing = true;
-      window.location.reload();
-    });
-  });
-}
 </script>
 </body>
 </html>
