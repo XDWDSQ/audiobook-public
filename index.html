@@ -8,8 +8,6 @@
 <meta name="author" content="有声书馆">
 <meta name="theme-color" content="#b66b3f" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#1a1715" media="(prefers-color-scheme: dark)">
-
-<!-- 移动端 / PWA -->
 <meta name="format-detection" content="telephone=no">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -17,27 +15,20 @@
 <meta name="apple-mobile-web-app-title" content="有声书馆">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon.svg">
-
-<!-- Open Graph / Facebook -->
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://audiobook-hub.site/">
 <meta property="og:title" content="有声书馆 - 用声音，重新讲述故事">
 <meta property="og:description" content="免费有声书收听平台，支持文本同步高亮、倍速播放、定时关闭">
 <meta property="og:image" content="preview-desktop.png">
-
-<!-- Twitter -->
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:url" content="https://audiobook-hub.site/">
 <meta name="twitter:title" content="有声书馆 - 用声音，重新讲述故事">
 <meta name="twitter:description" content="免费有声书收听平台，支持文本同步高亮、倍速播放、定时关闭">
 <meta name="twitter:image" content="preview-desktop.png">
-
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📖</text></svg>">
 <link rel="stylesheet" href="_shared/audiobook-common.css">
 <link rel="stylesheet" href="_shared/performance-optimized.css">
-<title>有声书馆 · 知晓 & 那年高中</title>
-
-<!-- 结构化数据 -->
+<title>有声书馆 · 知晓 &amp; 那年高中</title>
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -99,7 +90,6 @@ body {
   flex-direction: column;
   contain: layout style;
 }
-/* ── Top bar ── */
 .topbar {
   display: flex;
   align-items: center;
@@ -107,36 +97,19 @@ body {
   padding: 22px clamp(20px, 5vw, 48px);
   border-bottom: 1px solid var(--line);
 }
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
+.brand { display: flex; align-items: center; gap: 14px; }
 .brand-mark {
   width: 42px; height: 42px;
   border-radius: 13px;
-  display: grid;
-  place-items: center;
+  display: grid; place-items: center;
   color: #fff8ef;
   background: linear-gradient(145deg, var(--accent), var(--gold));
   box-shadow: 0 8px 20px color-mix(in srgb, var(--accent) 30%, transparent);
-  font-family: var(--font-serif);
-  font-size: 21px;
-  font-weight: 700;
+  font-family: var(--font-serif); font-size: 21px; font-weight: 700;
 }
 .brand-text { line-height: 1.3; }
-.brand-title {
-  font-family: var(--font-serif);
-  font-size: 20px;
-  font-weight: 700;
-  letter-spacing: .1em;
-}
-.brand-sub {
-  color: var(--muted);
-  font-size: 11px;
-  letter-spacing: .15em;
-  margin-top: 2px;
-}
+.brand-title { font-family: var(--font-serif); font-size: 20px; font-weight: 700; letter-spacing: .1em; }
+.brand-sub { color: var(--muted); font-size: 11px; letter-spacing: .15em; margin-top: 2px; }
 .theme-btn {
   width: 40px; height: 40px;
   border: 1px solid var(--line);
@@ -145,47 +118,15 @@ body {
   color: var(--ink);
   cursor: pointer;
   font-size: 17px;
-  display: grid;
-  place-items: center;
+  display: grid; place-items: center;
   transition: transform .2s, border-color .2s, background .2s;
 }
-.theme-btn:hover {
-  transform: translateY(-2px);
-  border-color: var(--accent);
-  background: var(--accent-soft);
-}
-/* ── Hero ── */
-.hero {
-  text-align: center;
-  padding: clamp(40px, 7vw, 72px) 20px 28px;
-}
-.hero-kicker {
-  color: var(--accent);
-  font-size: 12px;
-  letter-spacing: .3em;
-  font-weight: 700;
-}
-.hero h1 {
-  margin: 16px 0 14px;
-  font-family: var(--font-serif);
-  font-size: clamp(32px, 5.5vw, 56px);
-  font-weight: 700;
-  letter-spacing: .06em;
-  line-height: 1.15;
-}
-.hero h1 em {
-  color: var(--accent);
-  font-style: normal;
-}
-.hero p {
-  max-width: 580px;
-  margin: 0 auto;
-  color: var(--muted);
-  font-family: var(--font-serif);
-  font-size: 15px;
-  line-height: 1.9;
-}
-/* ── Cards ── */
+.theme-btn:hover { transform: translateY(-2px); border-color: var(--accent); background: var(--accent-soft); }
+.hero { text-align: center; padding: clamp(40px, 7vw, 72px) 20px 28px; }
+.hero-kicker { color: var(--accent); font-size: 12px; letter-spacing: .3em; font-weight: 700; }
+.hero h1 { margin: 16px 0 14px; font-family: var(--font-serif); font-size: clamp(32px, 5.5vw, 56px); font-weight: 700; letter-spacing: .06em; line-height: 1.15; }
+.hero h1 em { color: var(--accent); font-style: normal; }
+.hero p { max-width: 580px; margin: 0 auto; color: var(--muted); font-family: var(--font-serif); font-size: 15px; line-height: 1.9; }
 .cards {
   flex: 1;
   display: grid;
@@ -218,87 +159,18 @@ body {
   box-shadow: 0 30px 70px color-mix(in srgb, var(--accent) 16%, transparent);
   border-color: color-mix(in srgb, var(--accent) 40%, var(--line));
 }
-.card-banner {
-  height: 140px;
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.card-banner::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 70%, transparent), color-mix(in srgb, var(--gold) 60%, transparent));
-  opacity: .85;
-}
-.card-banner::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(circle at 30% 40%, rgba(255,255,255,.15), transparent 50%),
-    radial-gradient(circle at 70% 60%, rgba(0,0,0,.08), transparent 50%);
-}
-.card-glyph {
-  position: relative;
-  z-index: 1;
-  font-family: var(--font-serif);
-  font-size: 64px;
-  font-weight: 700;
-  color: rgba(255, 248, 239, .95);
-  letter-spacing: .15em;
-  text-shadow: 0 4px 20px rgba(0,0,0,.2);
-}
-.card-body {
-  padding: 28px 28px 30px;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-.card-title {
-  font-family: var(--font-serif);
-  font-size: 26px;
-  font-weight: 700;
-  letter-spacing: .08em;
-  margin-bottom: 6px;
-}
-.card-subtitle {
-  color: var(--muted);
-  font-size: 12px;
-  letter-spacing: .1em;
-  margin-bottom: 16px;
-}
-.card-desc {
-  font-family: var(--font-serif);
-  font-size: 14px;
-  line-height: 1.85;
-  color: color-mix(in srgb, var(--ink) 80%, var(--muted));
-  margin-bottom: 22px;
-  flex: 1;
-}
-.card-stats {
-  display: flex;
-  gap: 24px;
-  margin-bottom: 24px;
-  padding-top: 18px;
-  border-top: 1px solid var(--line);
-}
+.card-banner { height: 140px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+.card-banner::before { content: ""; position: absolute; inset: 0; background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 70%, transparent), color-mix(in srgb, var(--gold) 60%, transparent)); opacity: .85; }
+.card-banner::after { content: ""; position: absolute; inset: 0; background: radial-gradient(circle at 30% 40%, rgba(255,255,255,.15), transparent 50%), radial-gradient(circle at 70% 60%, rgba(0,0,0,.08), transparent 50%); }
+.card-glyph { position: relative; z-index: 1; font-family: var(--font-serif); font-size: 64px; font-weight: 700; color: rgba(255, 248, 239, .95); letter-spacing: .15em; text-shadow: 0 4px 20px rgba(0,0,0,.2); }
+.card-body { padding: 28px 28px 30px; flex: 1; display: flex; flex-direction: column; }
+.card-title { font-family: var(--font-serif); font-size: 26px; font-weight: 700; letter-spacing: .08em; margin-bottom: 6px; }
+.card-subtitle { color: var(--muted); font-size: 12px; letter-spacing: .1em; margin-bottom: 16px; }
+.card-desc { font-family: var(--font-serif); font-size: 14px; line-height: 1.85; color: color-mix(in srgb, var(--ink) 80%, var(--muted)); margin-bottom: 22px; flex: 1; }
+.card-stats { display: flex; gap: 24px; margin-bottom: 24px; padding-top: 18px; border-top: 1px solid var(--line); }
 .stat-item { text-align: center; }
-.stat-value {
-  display: block;
-  font-family: var(--font-serif);
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--accent);
-}
-.stat-label {
-  display: block;
-  color: var(--muted);
-  font-size: 11px;
-  margin-top: 3px;
-}
+.stat-value { display: block; font-family: var(--font-serif); font-size: 22px; font-weight: 700; color: var(--accent); }
+.stat-label { display: block; color: var(--muted); font-size: 11px; margin-top: 3px; }
 .card-cta {
   display: flex;
   align-items: center;
@@ -313,29 +185,42 @@ body {
   color: #fff8ef;
   background: linear-gradient(135deg, var(--accent), var(--accent-deep));
   box-shadow: 0 8px 22px color-mix(in srgb, var(--accent) 28%, transparent);
-  transition: transform .2s, box-shadow .2s;
+  transition: transform .22s cubic-bezier(.22,.61,.36,1), box-shadow .22s ease;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.card-cta::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,.32) 50%, transparent 70%);
+  transform: translateX(-101%);
+  transition: transform .55s cubic-bezier(.22,.61,.36,1);
+  pointer-events: none;
+  z-index: -1;
+}
+.card-cta::after {
+  content: "";
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.6);
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0);
+  transition: transform .55s ease, opacity .35s ease;
+  pointer-events: none;
 }
 .card:hover .card-cta {
-  transform: scale(1.02);
-  box-shadow: 0 12px 30px color-mix(in srgb, var(--accent) 36%, transparent);
+  transform: scale(1.03) translateY(-1px);
+  box-shadow: 0 14px 36px color-mix(in srgb, var(--accent) 42%, transparent);
 }
-.card-cta-arrow {
-  font-size: 18px;
-  transition: transform .2s;
-}
-.card:hover .card-cta-arrow {
-  transform: translateX(4px);
-}
-/* ── Footer ── */
-.footer {
-  text-align: center;
-  padding: 24px 20px 36px;
-  color: var(--muted);
-  font-size: 12px;
-  letter-spacing: .08em;
-  border-top: 1px solid var(--line);
-}
-/* ── Responsive ── */
+.card:hover .card-cta::before { transform: translateX(101%); }
+.card:hover .card-cta::after { transform: translate(-50%, -50%) scale(28); opacity: .25; transition: transform .7s ease, opacity .4s ease .05s; }
+.card-cta-arrow { font-size: 18px; transition: transform .2s; }
+.card:hover .card-cta-arrow { transform: translateX(4px); }
+.footer { text-align: center; padding: 24px 20px 36px; color: var(--muted); font-size: 12px; letter-spacing: .08em; border-top: 1px solid var(--line); }
 @media (max-width: 768px) {
   .topbar { padding: 16px 16px; }
   .brand-mark { width: 36px; height: 36px; font-size: 18px; }
@@ -362,8 +247,6 @@ body {
   .card-body { padding: 18px 18px 22px; }
   .card-stats { gap: 14px; }
 }
-
-/* ── 超小屏适配（≤360px） ── */
 @media (max-width: 360px) {
   .topbar { padding: 12px 12px; }
   .brand-mark { width: 32px; height: 32px; font-size: 16px; }
@@ -382,8 +265,6 @@ body {
   .stat-label { font-size: 10px; }
   .card-cta { padding: 11px 16px; font-size: 13px; }
 }
-
-/* ── 动画无障碍：尊重用户偏好 ── */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
@@ -392,26 +273,27 @@ body {
     scroll-behavior: auto !important;
   }
 }
-
-/* ── 触摸设备优化 ── */
 @media (hover: none) and (pointer: coarse) {
   .card:hover { transform: none; box-shadow: var(--shadow); border-color: var(--line); }
   .card:active { transform: scale(0.98); transition: transform .1s; }
   .card:hover .card-cta { transform: none; box-shadow: 0 8px 22px color-mix(in srgb, var(--accent) 28%, transparent); }
+  .card:hover .card-cta::before { transform: translateX(-101%); }
+  .card:hover .card-cta::after { opacity: 0; transform: translate(-50%,-50%) scale(0); }
   .card:hover .card-cta-arrow { transform: none; }
+  .card:active { transform: scale(.99); transition: transform .12s ease; }
+  .card:active .card-cta { transform: scale(.98); transition: transform .12s ease; }
+  .card:active .card-cta::before { transform: translateX(101%); }
+  .card:active .card-cta::after { transform: translate(-50%,-50%) scale(28); opacity: .22; transition: transform .7s ease, opacity .4s ease .05s; }
+  .card:active .card-cta-arrow { transform: translateX(4px); }
   .card::before { display: none; }
   .theme-btn:hover { transform: none; }
   .theme-btn:active { transform: scale(0.92); }
 }
-
-/* ── 安全区域适配（刘海屏/底部横条） ── */
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
   .topbar { padding-top: calc(16px + env(safe-area-inset-top)); }
   .footer { padding-bottom: calc(28px + env(safe-area-inset-bottom)); }
   .cards { padding-bottom: calc(48px + env(safe-area-inset-bottom)); }
 }
-
-/* ── 入场动画 ── */
 @keyframes ab-fade-up { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 .hero-kicker, .hero h1, .hero p, .card { animation: ab-fade-up .65s cubic-bezier(.22,.61,.36,1) both; }
 .hero-kicker { animation-delay: .1s; }
@@ -421,8 +303,6 @@ body {
 .cards .card:nth-child(2) { animation-delay: .5s; }
 .cards .card:nth-child(3) { animation-delay: .6s; }
 .cards .card:nth-child(4) { animation-delay: .7s; }
-
-/* ── 卡片光斑跟随 ── */
 .card { position: relative; }
 .card::before {
   content: "";
@@ -437,12 +317,8 @@ body {
 }
 .card:hover::before { opacity: 1; }
 .card > * { position: relative; z-index: 1; }
-
-/* ── 主题图标动效 ── */
 .theme-btn { transition: transform .35s cubic-bezier(.22,.61,.36,1), border-color .2s, background .2s; }
 .theme-btn.spinning { transform: rotate(180deg); }
-
-/* ── 继续收听徽章 ── */
 .resume-badge {
   display: inline-flex;
   align-items: center;
@@ -466,7 +342,6 @@ body {
 </head>
 <body>
 <a class="skip-link" href="#cards">跳转到书目列表</a>
-
 <header class="topbar">
   <div class="brand">
     <span class="brand-mark">声</span>
@@ -477,15 +352,12 @@ body {
   </div>
   <button class="theme-btn" id="themeBtn" title="切换明暗主题" aria-label="切换明暗主题">◐</button>
 </header>
-
 <section class="hero">
   <div class="hero-kicker">THE AUDIOBOOK ARCHIVE</div>
   <h1>用声音，<em>重新讲述故事</em></h1>
   <p>两部原创长篇小说，两百一十四章声音旅程。从少年心事到青春暗恋，选一部，坐下来，慢慢听。</p>
 </section>
-
 <div class="cards" id="cards">
-  <!-- 知晓 -->
   <a class="card" data-novel="zhixiao" href="zhixiao/index.html">
     <div class="card-banner">
       <span class="card-glyph">知晓</span>
@@ -495,27 +367,13 @@ body {
       <div class="card-subtitle">校园成长 · 长篇有声书</div>
       <p class="card-desc">从初三到大学，许闻和唐星烨的故事跨越数年。锁骨上的疤痕、火车上的初遇、没有说出口的告白——一百七十七章，十五小时五十一分钟，一个完整的青春。</p>
       <div class="card-stats">
-        <div class="stat-item">
-          <span class="stat-value">177</span>
-          <span class="stat-label">章节</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-value">15h 51m</span>
-          <span class="stat-label">总时长</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-value">8591</span>
-          <span class="stat-label">段落</span>
-        </div>
+        <div class="stat-item"><span class="stat-value">177</span><span class="stat-label">章节</span></div>
+        <div class="stat-item"><span class="stat-value">15h 51m</span><span class="stat-label">总时长</span></div>
+        <div class="stat-item"><span class="stat-value">8591</span><span class="stat-label">段落</span></div>
       </div>
-      <div class="card-cta">
-        进入有声书
-        <span class="card-cta-arrow">→</span>
-      </div>
+      <div class="card-cta">进入有声书 <span class="card-cta-arrow">→</span></div>
     </div>
   </a>
-
-  <!-- 那年高中 -->
   <a class="card" data-novel="nagao" href="nanian/index.html">
     <div class="card-banner">
       <span class="card-glyph">那年高中</span>
@@ -525,196 +383,14 @@ body {
       <div class="card-subtitle">校园双向暗恋 · 长篇有声书</div>
       <p class="card-desc">窗外的眼睛、晚自习的风、没有说出口的心事。四十章声音，两小时四十五分，把那段青春重新听一遍。从故事发生的地方开始。</p>
       <div class="card-stats">
-        <div class="stat-item">
-          <span class="stat-value">40</span>
-          <span class="stat-label">章节</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-value">2h 45m</span>
-          <span class="stat-label">总时长</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-value">2923</span>
-          <span class="stat-label">段落</span>
-        </div>
+        <div class="stat-item"><span class="stat-value">40</span><span class="stat-label">章节</span></div>
+        <div class="stat-item"><span class="stat-value">2h 45m</span><span class="stat-label">总时长</span></div>
+        <div class="stat-item"><span class="stat-value">2923</span><span class="stat-label">段落</span></div>
       </div>
-      <div class="card-cta">
-        进入有声书
-        <span class="card-cta-arrow">→</span>
-      </div>
+      <div class="card-cta">进入有声书 <span class="card-cta-arrow">→</span></div>
     </div>
   </a>
 </div>
-
-<footer class="footer">
-  有声书馆 · 知晓 & 那年高中 · 苏打语音合成
-</footer>
-
-<script>
-(() => {
-  'use strict';
-  
-  // 错误处理工具
-  const safeGetStorage = (key) => {
-    try {
-      return localStorage.getItem(key);
-    } catch (e) {
-      console.error('LocalStorage read error:', e);
-      return null;
-    }
-  };
-  
-  const safeSetStorage = (key, value) => {
-    try {
-      localStorage.setItem(key, value);
-      return true;
-    } catch (e) {
-      console.error('LocalStorage write error:', e);
-      return false;
-    }
-  };
-  
-  // 主题切换
-  const key = 'audiobook_lib_theme';
-  const btn = document.getElementById('themeBtn');
-  const saved = safeGetStorage(key);
-  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  const theme = saved || (prefersDark ? 'dark' : 'light');
-  
-  if (theme === 'dark') {
-    document.documentElement.setAttribute('data-theme', 'dark');
-  }
-  
-  if (btn) {
-    btn.addEventListener('click', () => {
-      try {
-        btn.classList.add('spinning');
-        setTimeout(() => btn.classList.remove('spinning'), 380);
-        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-        if (isDark) {
-          document.documentElement.removeAttribute('data-theme');
-          safeSetStorage(key, 'light');
-        } else {
-          document.documentElement.setAttribute('data-theme', 'dark');
-          safeSetStorage(key, 'dark');
-        }
-      } catch (e) {
-        console.error('Theme toggle error:', e);
-      }
-    });
-  }
-
-  // 卡片光斑跟随（鼠标+触摸）
-  const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-  const throttle = (func, limit) => {
-    let inThrottle;
-    return function(...args) {
-      if (!inThrottle) {
-        func.apply(this, args);
-        inThrottle = true;
-        setTimeout(() => inThrottle = false, limit);
-      }
-    };
-  };
-  
-  if (!isTouchDevice) {
-    document.querySelectorAll('.card').forEach((card) => {
-      const updatePosition = throttle((clientX, clientY) => {
-        const rect = card.getBoundingClientRect();
-        const mx = ((clientX - rect.left) / rect.width) * 100;
-        const my = ((clientY - rect.top) / rect.height) * 100;
-        card.style.setProperty('--mx', mx + '%');
-        card.style.setProperty('--my', my + '%');
-      }, 16);
-      
-      card.addEventListener('mousemove', (e) => updatePosition(e.clientX, e.clientY));
-    });
-  }
-
-  // 继续收听徽章（读取 localStorage 中各小说最新章节）
-  const badges = document.querySelectorAll('[data-resume-badge]');
-  badges.forEach((badge) => {
-    try {
-      const card = badge.closest('.card');
-      const novel = card && card.dataset.novel;
-      if (!novel) return;
-      const keyMap = {
-        'zhixiao': { chapter: 'zhixiao_chapter', time: 'zhixiao_time' },
-        'nagao':   { chapter: 'nagao_chapter',   time: 'nagao_times' }
-      };
-      const conf = keyMap[novel];
-      if (!conf) return;
-      const chapter = Number(safeGetStorage(conf.chapter));
-      const timeRaw = safeGetStorage(conf.time);
-      let time = 0;
-      if (timeRaw) {
-        try { 
-          const parsed = JSON.parse(timeRaw); 
-          time = Number(parsed[chapter] || parsed); 
-        } catch (_) { 
-          time = Number(timeRaw) || 0; 
-        }
-      }
-      if (Number.isInteger(chapter) && chapter >= 0 && time >= 1) {
-        badge.hidden = false;
-      }
-    } catch (e) {
-      console.error('Resume badge error:', e);
-    }
-  });
-  
-  // 性能监控
-  if ('performance' in window && 'PerformanceObserver' in window) {
-    try {
-      const observer = new PerformanceObserver((list) => {
-        for (const entry of list.getEntries()) {
-          if (entry.entryType === 'largest-contentful-paint') {
-            console.log('LCP:', entry.renderTime || entry.loadTime);
-          }
-        }
-      });
-      observer.observe({ entryTypes: ['largest-contentful-paint'] });
-    } catch (e) {
-      console.error('Performance observer error:', e);
-    }
-  }
-  
-  // 错误边界
-  window.addEventListener('error', (e) => {
-    console.error('Global error:', e.error);
-  });
-  
-  window.addEventListener('unhandledrejection', (e) => {
-    console.error('Unhandled promise rejection:', e.reason);
-  });
-
-  // Service Worker 注册（PWA / 离线缓存）
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js').then((reg) => {
-        // 检测到新 SW 等待激活时，立即触发 skipWaiting
-        if (reg.waiting) { reg.waiting.postMessage('SKIP_WAITING'); }
-        reg.addEventListener('updatefound', () => {
-          const newWorker = reg.installing;
-          if (newWorker) {
-            newWorker.addEventListener('statechange', () => {
-              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                newWorker.postMessage('SKIP_WAITING');
-              }
-            });
-          }
-        });
-      }).catch((err) => { console.error('SW registration failed:', err); });
-      // 新 SW 接管后自动刷新页面
-      let refreshing = false;
-      navigator.serviceWorker.addEventListener('controllerchange', () => {
-        if (refreshing) return;
-        refreshing = true;
-        window.location.reload();
-      });
-    });
-  }
-})();
-</script>
+<footer class="footer">有声书馆 · 知晓 &amp; 那年高中 · 苏打语音合成</footer>
 </body>
 </html>
