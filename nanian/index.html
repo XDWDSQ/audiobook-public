@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#f7f1e8">
+<script>/* 主题前置初始化：避免深色用户先看到浅色闪屏 */
+try{var t=localStorage.getItem('nagao_theme');if(t==='dark'||t==='light')document.documentElement.dataset.theme=t;}catch(e){}document.documentElement.classList.add('js');</script>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📖</text></svg>">
+<link rel="stylesheet" href="../_shared/audiobook-common.css">
 <title>那年高中 · 有声书</title>
 <style>
 :root {
@@ -83,11 +87,12 @@ button:focus-visible, input:focus-visible, .segment:focus-visible {
 .top-actions { display: flex; align-items: center; gap: 10px; }
 .icon-button, .outline-button {
   border: 1px solid var(--line); background: var(--panel); cursor: pointer;
-  transition: transform .18s ease, border-color .18s ease, background .18s ease;
+  transition: transform .22s cubic-bezier(.22,.61,.36,1), border-color .22s ease, background .22s ease, color .22s ease, box-shadow .22s ease;
 }
 .icon-button { width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; font-size: 16px; }
 .outline-button { padding: 9px 13px; border-radius: 11px; font-size: 12px; }
-.icon-button:hover, .outline-button:hover { transform: translateY(-1px); border-color: var(--accent); background: var(--accent-soft); }
+.icon-button:hover, .outline-button:hover { transform: translateY(-2px); border-color: var(--accent); background: var(--accent-soft); box-shadow: 0 8px 18px -12px color-mix(in srgb, var(--accent) 60%, transparent); }
+.icon-button:active, .outline-button:active { transform: translateY(0) scale(.96); transition: transform .12s ease; }
 .hero { padding: 58px 0 35px; display: grid; grid-template-columns: 1.15fr .85fr; gap: 44px; align-items: end; }
 .hero > * { min-width: 0; }
 .kicker { color: var(--accent); font-size: 12px; letter-spacing: .25em; font-weight: 700; }
@@ -101,8 +106,26 @@ button:focus-visible, input:focus-visible, .segment:focus-visible {
 .progress-card { margin: 4px 0 28px; padding: 18px 20px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius-lg); box-shadow: var(--shadow); }
 .progress-head { display: flex; justify-content: space-between; align-items: center; gap: 15px; font-size: 12px; }
 .progress-head strong { color: var(--accent); }
-.book-progress { height: 8px; margin-top: 11px; border-radius: 99px; overflow: hidden; background: var(--bg-deep); }
-.book-progress > span { display: block; height: 100%; width: 0; border-radius: inherit; background: linear-gradient(90deg, var(--accent), var(--gold)); transition: width .35s ease; }
+.book-progress { height: 8px; margin-top: 11px; border-radius: 99px; overflow: hidden; background: var(--bg-deep); position: relative; }
+.book-progress > span {
+  display: block; height: 100%; width: 0; border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent), var(--gold));
+  transition: width .35s ease;
+  position: relative;
+}
+.book-progress > span::after {
+  content: "";
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,.45) 50%, transparent 100%);
+  transform: translateX(-100%);
+  animation: ng-book-shimmer 3s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes ng-book-shimmer {
+  0%   { transform: translateX(-100%); }
+  60%  { transform: translateX(120%); }
+  100% { transform: translateX(120%); }
+}
 .resume-note { margin: 11px 0 0; color: var(--muted); font-size: 11px; }
 .resume-note strong { color: var(--accent); font-weight: 600; }
 .workspace { display: grid; grid-template-columns: 330px minmax(0, 1fr); gap: 22px; align-items: start; }
@@ -122,12 +145,48 @@ button:focus-visible, input:focus-visible, .segment:focus-visible {
 .menu-toggle { display: none; }
 .drawer-overlay { display: none; }
 .drawer-close { display: none; }
-.chapter-item { margin: 2px 0; }
-.chapter-button { width: 100%; display: flex; align-items: center; gap: 11px; padding: 11px 12px; border: 0; border-radius: 12px; cursor: pointer; text-align: left; background: transparent; transition: background .18s ease, color .18s ease; }
-.chapter-button:hover { background: var(--accent-soft); }
-.chapter-button.active { background: var(--accent); color: #fff9f2; }
-.chapter-number { width: 28px; height: 28px; flex: 0 0 28px; display: grid; place-items: center; border-radius: 9px; background: var(--bg-deep); color: var(--accent); font-size: 11px; font-weight: 700; }
+.chapter-item { margin: 2px 0; animation: ng-toc-in .5s ease both; animation-delay: calc(min(var(--toc-i, 0), 24) * 14ms); }
+@keyframes ng-toc-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.chapter-button {
+  width: 100%; display: flex; align-items: center; gap: 11px;
+  padding: 11px 12px; border: 0; border-radius: 12px; cursor: pointer;
+  text-align: left; background: transparent;
+  position: relative;
+  transition: background .22s ease, color .22s ease, transform .25s cubic-bezier(.22,.61,.36,1), padding-left .25s cubic-bezier(.22,.61,.36,1), box-shadow .25s ease;
+}
+.chapter-button::before {
+  content: ""; position: absolute; left: 0; top: 50%;
+  width: 3px; height: 0; border-radius: 0 3px 3px 0;
+  background: var(--accent);
+  transform: translateY(-50%);
+  transition: height .25s cubic-bezier(.22,.61,.36,1);
+  pointer-events: none;
+}
+.chapter-button:hover { background: var(--accent-soft); transform: translateX(3px); padding-left: 14px; }
+.chapter-button:hover::before { height: 22px; }
+.chapter-button:active { transform: translateX(2px) scale(.99); transition: transform .12s ease; }
+.chapter-button.active {
+  background: var(--accent);
+  color: #fff9f2;
+  box-shadow: 0 6px 18px -8px color-mix(in srgb, var(--accent) 60%, transparent);
+}
+.chapter-button.active::before { height: 26px; background: #fff0e1; box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 60%, transparent); }
+.chapter-number {
+  width: 28px; height: 28px; flex: 0 0 28px; display: grid; place-items: center;
+  border-radius: 9px; background: var(--bg-deep); color: var(--accent); font-size: 11px; font-weight: 700;
+  transition: transform .22s cubic-bezier(.22,.61,.36,1), background .22s ease, color .22s ease;
+}
+.chapter-button:hover .chapter-number { transform: scale(1.08) rotate(-3deg); }
 .chapter-button.active .chapter-number { color: var(--accent-deep); background: #fff0e1; }
+.chapter-button.active .chapter-number { animation: ng-num-pulse 2.4s ease-out infinite; }
+@keyframes ng-num-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(255,240,225,.65); }
+  70%  { box-shadow: 0 0 0 8px rgba(255,240,225,0); }
+  100% { box-shadow: 0 0 0 0 rgba(255,240,225,0); }
+}
 .chapter-copy { min-width: 0; flex: 1; }
 .chapter-name { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-serif); font-size: 13px; }
 .chapter-duration { display: block; margin-top: 3px; opacity: .65; font-size: 10px; }
@@ -138,16 +197,39 @@ button:focus-visible, input:focus-visible, .segment:focus-visible {
 .reader-title { margin: 10px 0 0; font-family: var(--font-serif); font-size: clamp(25px, 4vw, 38px); letter-spacing: .06em; }
 .reader-subtitle { margin: 9px 0 0; color: var(--muted); font-size: 12px; }
 .reading-body { height: min(610px, calc(100vh - 240px)); min-height: 390px; padding: 35px clamp(22px, 5vw, 72px) 70px; overflow-y: auto; }
-.segment { display: inline-block; color: var(--ink); border-radius: 5px; padding: 2px 3px; margin: 0 1px; cursor: pointer; font-family: var(--font-serif); font-size: clamp(17px, 1.8vw, 20px); line-height: 2.25; transition: background .16s ease, color .16s ease, text-decoration-color .16s ease; text-decoration: underline transparent 2px; text-underline-offset: 4px; }
-.segment:hover { background: var(--accent-soft); }
+.segment { display: inline-block; color: var(--ink); border-radius: 5px; padding: 2px 3px; margin: 0 1px; cursor: pointer; font-family: var(--font-serif); font-size: clamp(17px, 1.8vw, 20px); line-height: 2.25; transition: background .18s ease, color .18s ease, text-decoration-color .18s ease, transform .18s ease; text-decoration: underline transparent 2px; text-underline-offset: 4px; }
+.segment:hover { background: var(--accent-soft); transform: translateY(-1px); }
 .segment.active { color: var(--accent-deep); background: color-mix(in srgb, var(--accent-soft) 76%, transparent); text-decoration-color: var(--accent); }
+.segment.flash { animation: ng-seg-flash .75s ease; }
+@keyframes ng-seg-flash {
+  0%   { background: var(--accent); color: #fff9f2; transform: scale(1.05); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 30%, transparent); }
+  100% { background: color-mix(in srgb, var(--accent-soft) 76%, transparent); color: var(--accent-deep); transform: scale(1); box-shadow: 0 0 0 0 transparent; }
+}
 .reader-foot { padding: 15px 25px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; gap: 12px; color: var(--muted); font-size: 11px; }
 .reader-foot span:last-child { color: var(--accent); }
 .bottom-player { position: fixed; z-index: 20; left: 0; right: 0; bottom: 0; padding: 13px 0 15px; border-top: 1px solid var(--line); background: color-mix(in srgb, var(--panel-solid) 92%, transparent); box-shadow: 0 -10px 35px rgba(70, 46, 28, .12); backdrop-filter: blur(16px); }
 .player-grid { display: grid; grid-template-columns: auto minmax(150px, .8fr) minmax(220px, 1.5fr) auto; gap: 17px; align-items: center; }
-.main-play { width: 49px; height: 49px; border: 0; border-radius: 50%; color: #fff9f2; background: var(--accent); cursor: pointer; display: grid; place-items: center; padding: 0; box-shadow: 0 7px 16px rgba(182,107,63,.28); transition: transform .18s ease, background .18s ease; }
-.main-play:hover { transform: scale(1.04); background: var(--accent-deep); }
-.main-play svg { display: block; }
+.main-play {
+  width: 49px; height: 49px; border: 0; border-radius: 50%; color: #fff9f2;
+  background: var(--accent); cursor: pointer; display: grid; place-items: center;
+  padding: 0; box-shadow: 0 7px 16px rgba(182,107,63,.28);
+  position: relative;
+  transition: transform .22s cubic-bezier(.22,.61,.36,1), background .22s ease, box-shadow .22s ease;
+}
+.main-play::before {
+  content: ""; position: absolute; inset: -4px; border-radius: 50%;
+  border: 2px solid var(--accent); opacity: 0; pointer-events: none;
+}
+.main-play:hover { transform: scale(1.06); background: var(--accent-deep); box-shadow: 0 10px 24px rgba(182,107,63,.38); }
+.main-play:active { transform: scale(.96); }
+.main-play.playing::before { animation: ng-play-pulse 2.4s ease-out infinite; }
+@keyframes ng-play-pulse {
+  0%   { transform: scale(.92); opacity: .55; }
+  70%  { transform: scale(1.22); opacity: 0; }
+  100% { transform: scale(1.22); opacity: 0; }
+}
+.main-play svg { display: block; transition: transform .3s cubic-bezier(.22,.61,.36,1); }
+.main-play:hover svg { transform: scale(1.08); }
 .main-play .icon-pause { display: none; }
 .main-play.playing .icon-play { display: none; }
 .main-play.playing .icon-pause { display: block; }
@@ -157,9 +239,28 @@ button:focus-visible, input:focus-visible, .segment:focus-visible {
 .seek-line { display: flex; align-items: center; gap: 9px; }
 .time { color: var(--muted); font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 10px; min-width: 34px; }
 .time:last-child { text-align: right; }
-.seek { height: 8px; flex: 1; position: relative; border-radius: 99px; cursor: pointer; background: var(--bg-deep); }
-.seek-fill { position: absolute; inset: 0 auto 0 0; width: 0; border-radius: inherit; background: linear-gradient(90deg, var(--accent), var(--gold)); pointer-events: none; }
-.seek-dot { position: absolute; top: 50%; left: 0; width: 14px; height: 14px; border: 3px solid var(--panel-solid); border-radius: 50%; background: var(--accent); transform: translate(-50%, -50%); box-shadow: 0 1px 5px rgba(0,0,0,.2); pointer-events: none; }
+.seek { height: 8px; flex: 1; position: relative; border-radius: 99px; cursor: pointer; background: var(--bg-deep); overflow: hidden; transition: height .22s ease; }
+.seek:hover { height: 11px; }
+.seek-fill {
+  position: absolute; inset: 0 auto 0 0; width: 0; border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent), var(--gold)); pointer-events: none;
+  overflow: hidden;
+}
+.seek-fill::after {
+  content: "";
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,.45) 50%, transparent 100%);
+  transform: translateX(-100%);
+  animation: ng-seek-shimmer 2.4s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes ng-seek-shimmer {
+  0%   { transform: translateX(-100%); }
+  60%  { transform: translateX(120%); }
+  100% { transform: translateX(120%); }
+}
+.seek-dot { position: absolute; top: 50%; left: 0; width: 14px; height: 14px; border: 3px solid var(--panel-solid); border-radius: 50%; background: var(--accent); transform: translate(-50%, -50%); box-shadow: 0 1px 5px rgba(0,0,0,.2); pointer-events: none; transition: transform .18s cubic-bezier(.22,.61,.36,1), box-shadow .18s ease; }
+.seek:hover .seek-dot { transform: translate(-50%, -50%) scale(1.15); box-shadow: 0 2px 8px rgba(0,0,0,.25); }
 .player-actions { display: flex; align-items: center; gap: 8px; }
 .timer-wrap, .jump-wrap { position: relative; }
 .timer-menu, .jump-menu { position: absolute; right: 0; bottom: 50px; display: none; z-index: 30; }
@@ -180,9 +281,14 @@ button:focus-visible, input:focus-visible, .segment:focus-visible {
 .timer-option:hover { color: var(--accent-deep); background: var(--accent-soft); }
 .timer-option.cancel { color: var(--muted); border-top: 1px solid var(--line); margin-top: 3px; padding-top: 10px; }
 .timer-badge { color: var(--accent); font-variant-numeric: tabular-nums; }
-.player-actions button { min-width: 40px; height: 40px; padding: 0; border: 1px solid var(--line); border-radius: 50%; cursor: pointer; background: var(--panel); font-size: 13px; display: inline-grid; place-items: center; }
-.player-actions button:hover { color: var(--accent); border-color: var(--accent); }
-.player-actions button.active { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+.player-actions button {
+  min-width: 40px; height: 40px; padding: 0; border: 1px solid var(--line); border-radius: 50%;
+  cursor: pointer; background: var(--panel); font-size: 13px; display: inline-grid; place-items: center;
+  transition: transform .18s cubic-bezier(.22,.61,.36,1), color .18s ease, border-color .18s ease, background .18s ease, box-shadow .18s ease;
+}
+.player-actions button:hover { color: var(--accent); border-color: var(--accent); transform: translateY(-1px); }
+.player-actions button:active { transform: scale(.9); }
+.player-actions button.active { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 30%, transparent); }
 .volume { display: none; }
 .toast { position: fixed; z-index: 50; left: 50%; bottom: 102px; transform: translate(-50%, 14px); padding: 10px 15px; border-radius: 10px; color: #fff9f2; background: #3e3028; opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; font-size: 12px; }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
@@ -233,7 +339,100 @@ button:focus-visible, input:focus-visible, .segment:focus-visible {
   .player-actions button { min-width: 42px; height: 42px; }
   .app { padding-bottom: 175px; }
 }
+/* 触屏：禁用持续动画与 hover 提升（避免移动端性能开销） */
+@media (hover: none) and (pointer: coarse) {
+  .chapter-button:hover { transform: none; padding-left: 12px; }
+  .chapter-button:hover::before { height: 0; }
+  .chapter-button:active { transform: scale(.99); }
+  .icon-button:hover, .outline-button:hover { transform: none; box-shadow: none; }
+  .icon-button:active, .outline-button:active { transform: scale(.94); }
+  .main-play:hover { transform: none; box-shadow: 0 7px 16px rgba(182,107,63,.28); }
+  .main-play:active { transform: scale(.94); }
+  .main-play.playing::before { animation: none; opacity: 0; }
+  .player-actions button:hover { transform: none; }
+  .player-actions button:active { transform: scale(.88); }
+  .chapter-button.active .chapter-number { animation: none; }
+  .seek-fill::after, .book-progress > span::after { animation: none; transform: translateX(120%); }
+  .seek:hover { height: 8px; }
+  .seek:hover .seek-dot { transform: translate(-50%, -50%); }
+}
+/* ===== 交互动效升级 ===== */
+/* 页面入场编排（html.js 门控，无 JS 时直出） */
+@keyframes ng-hero-in { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+html.js .kicker, html.js .hero h1, html.js .hero-intro { opacity: 0; animation: ng-hero-in .7s cubic-bezier(.22,.61,.36,1) forwards; }
+html.js .hero h1 { animation-delay: .08s; }
+html.js .hero-intro { animation-delay: .18s; }
+html.js .hero-stats .stat { opacity: 0; animation: ng-hero-in .6s cubic-bezier(.22,.61,.36,1) forwards; }
+html.js .hero-stats .stat:nth-child(1) { animation-delay: .22s; }
+html.js .hero-stats .stat:nth-child(2) { animation-delay: .3s; }
+html.js .hero-stats .stat:nth-child(3) { animation-delay: .38s; }
+html.js .progress-card { opacity: 0; animation: ng-hero-in .7s .3s cubic-bezier(.22,.61,.36,1) forwards; }
+html.js .library { opacity: 0; animation: ng-hero-in .7s .4s cubic-bezier(.22,.61,.36,1) forwards; }
+html.js .reader-panel { opacity: 0; animation: ng-hero-in .7s .48s cubic-bezier(.22,.61,.36,1) forwards; }
+html.js .bottom-player { animation: ng-player-in .55s .55s cubic-bezier(.22,.61,.36,1) both; }
+@keyframes ng-player-in { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+
+/* 统计卡 hover 微浮 */
+.stat { transition: transform .3s ease, border-color .3s ease, box-shadow .3s ease; }
+.stat:hover { transform: translateY(-3px); border-color: var(--accent); }
+@media (hover: none) and (pointer: coarse) { .stat:hover { transform: none; border-color: var(--line); } }
+
+/* 章节正文入场（节点随章节切换重建，动画自动重放） */
+.reading-body > div { animation: ng-content-in .45s cubic-bezier(.22,.61,.36,1) both; }
+@keyframes ng-content-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+/* 章节标题切换渐显（JS 重触发） */
+.reader-title.title-in { animation: ng-title-in .5s cubic-bezier(.22,.61,.36,1) both; }
+@keyframes ng-title-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+/* 定时 / 跳转菜单：弹性弹入 */
+.timer-menu, .jump-menu { display: grid; opacity: 0; visibility: hidden; transform: translateY(10px) scale(.96); transform-origin: bottom right; transition: opacity .22s ease, transform .28s cubic-bezier(.22,.61,.36,1), visibility 0s linear .28s; }
+.timer-menu.open, .jump-menu.open { opacity: 1; visibility: visible; transform: none; transition: opacity .22s ease, transform .28s cubic-bezier(.22,.61,.36,1); }
+
+/* 移动端抽屉遮罩淡入淡出 */
+@media (max-width: 700px) {
+  .drawer-overlay { display: block; opacity: 0; visibility: hidden; transition: opacity .3s ease, visibility 0s linear .32s; }
+  .drawer-overlay.show { opacity: 1; visibility: visible; transition: opacity .3s ease; }
+}
+
+/* 主题切换按钮旋转 */
+#themeButton.spin { animation: ng-spin .5s cubic-bezier(.22,.61,.36,1); }
+@keyframes ng-spin { to { transform: rotate(360deg); } }
+
+/* 减少动态偏好：补齐 animation 关停（原有仅关 transition） */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; animation-delay: 0s !important; }
+  html.js .kicker, html.js .hero h1, html.js .hero-intro, html.js .hero-stats .stat, html.js .progress-card, html.js .library, html.js .reader-panel { opacity: 1 !important; }
+}
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; } }
+
+/* 骨架屏加载 */
+.skeleton-wrap { padding: 4px 0; }
+.skeleton { position: relative; overflow: hidden; background: var(--bg-deep); border-radius: 6px; }
+.skeleton::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--ink) 8%, transparent), transparent);
+  transform: translateX(-100%);
+  animation: ng-sk 1.4s ease-in-out infinite;
+}
+@keyframes ng-sk { 60% { transform: translateX(100%); } 100% { transform: translateX(100%); } }
+.sk-title { width: 44%; height: 26px; margin-bottom: 30px; }
+.sk-line { height: 15px; margin-bottom: 20px; }
+@media (prefers-reduced-motion: reduce) { .skeleton::after { animation: none !important; } }
+
+/* 内联错误条 */
+.ab-inline-error {
+  position: absolute; left: 50%; bottom: 100%; transform: translate(-50%, 8px);
+  margin-bottom: 8px; padding: 8px 16px; border-radius: 10px;
+  background: rgba(224, 82, 82, .92); color: #fff; font-size: 12px;
+  white-space: nowrap; max-width: calc(100vw - 32px); overflow: hidden; text-overflow: ellipsis;
+  opacity: 0; pointer-events: none;
+  transition: opacity .25s ease, transform .25s cubic-bezier(.22,.61,.36,1);
+  backdrop-filter: blur(6px); box-shadow: 0 6px 18px rgba(224,82,82,.25);
+}
+.ab-inline-error.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+@media (max-width: 480px) { .ab-inline-error { white-space: normal; text-align: center; font-size: 11px; } }
+.bottom-player { position: relative; }
 </style>
 </head>
 <body>
@@ -287,7 +486,7 @@ button:focus-visible, input:focus-visible, .segment:focus-visible {
           <h2 class="reader-title" id="readerTitle">正在加载章节…</h2>
           <p class="reader-subtitle">点击任意段落，可从该处开始听</p>
         </header>
-        <div class="reading-body" id="readingBody"><p class="empty">正在准备文字内容…</p></div>
+        <div class="reading-body" id="readingBody"><div class="skeleton-wrap"><div class="skeleton sk-title"></div><div class="skeleton sk-line" style="width:96%"></div><div class="skeleton sk-line" style="width:91%"></div><div class="skeleton sk-line" style="width:95%"></div><div class="skeleton sk-line" style="width:88%"></div><div class="skeleton sk-line" style="width:93%"></div><div class="skeleton sk-line" style="width:55%"></div></div></div>
         <footer class="reader-foot"><span id="segmentHint">声音会跟随文字自动高亮</span><span id="chapterStatus">未播放</span></footer>
       </article>
       </section>
@@ -404,7 +603,11 @@ button:focus-visible, input:focus-visible, .segment:focus-visible {
 .cache-btn.primary:hover { background: var(--accent-deep); }
 .cache-btn:disabled { opacity: .5; cursor: not-allowed; }
 @media (max-width: 700px) { .cache-panel { right: 12px; bottom: 185px; } }
+/* 缓存弹层：弹性弹入（覆盖上方 display 切换，同优先级后写生效） */
+.cache-popup { display: block; opacity: 0; visibility: hidden; transform: translateY(10px) scale(.97); transform-origin: bottom right; transition: opacity .24s ease, transform .3s cubic-bezier(.22,.61,.36,1), visibility 0s linear .3s; }
+.cache-popup.open { opacity: 1; visibility: visible; transform: none; transition: opacity .24s ease, transform .3s cubic-bezier(.22,.61,.36,1); }
 </style>
+<script src="../_shared/audiobook-common.js"></script>
 <script src="chapters.js"></script>
 <script>
 (() => {
@@ -448,6 +651,7 @@ button:focus-visible, input:focus-visible, .segment:focus-visible {
   let restoreListener = null;
   let seekToken = 0;
   let lastActiveSegment = -1;
+  let isFirstRender = true;
 
   const $ = (id) => document.getElementById(id);
   const fmtTime = (value) => {
@@ -516,9 +720,10 @@ button:focus-visible, input:focus-visible, .segment:focus-visible {
     const normalized = keyword.trim().toLowerCase();
     chapterList.innerHTML = '';
     const visible = chapters.map((chapter, index) => ({ chapter, index })).filter(({ chapter, index }) => !normalized || chapter.title.toLowerCase().includes(normalized) || String(index + 1).padStart(2, '0').includes(normalized));
-    if (!visible.length) { chapterList.innerHTML = '<li class="empty">没有找到匹配章节</li>'; return; }
-    visible.forEach(({ chapter, index }) => {
+    if (!visible.length) { chapterList.innerHTML = (window.ABCommon ? ABCommon.emptyHTML('没有找到匹配章节', '清除搜索', 'clearSearchBtn') : '<li class="empty">没有找到匹配章节</li>'); var cb = document.getElementById('clearSearchBtn'); if (cb) cb.addEventListener('click', function() { search.value = ''; renderChapterList(''); }); return; }
+    visible.forEach(({ chapter, index }, i) => {
       const item = document.createElement('li'); item.className = 'chapter-item';
+      item.style.setProperty('--toc-i', String(i));
       const button = document.createElement('button'); button.className = 'chapter-button' + (index === currentIndex ? ' active' : ''); button.type = 'button'; button.dataset.index = index;
       button.innerHTML = '<span class="chapter-number">' + String(index + 1).padStart(2, '0') + '</span><span class="chapter-copy"><span class="chapter-name"></span><span class="chapter-duration">' + fmtTime(chapter.dur) + '</span></span>';
       button.querySelector('.chapter-name').textContent = chapter.title.replace(/^第\d+章\s*/, '');
@@ -532,19 +737,36 @@ button:focus-visible, input:focus-visible, .segment:focus-visible {
     segmentNodes = [];
     $('readerIndex').textContent = 'CHAPTER ' + String(index + 1).padStart(2, '0');
     $('readerTitle').textContent = chapter.title;
+    $('readerTitle').classList.remove('title-in'); void $('readerTitle').offsetWidth; $('readerTitle').classList.add('title-in');
     $('readerDuration').textContent = fmtTime(chapter.dur);
     $('playerTitle').textContent = chapter.title;
     $('chapterStatus').textContent = '准备播放';
-    readingBody.innerHTML = '';
-    const text = document.createElement('div');
-    (chapter.segs || []).forEach((segment, segmentIndex) => {
-      const span = document.createElement('span');
-      span.className = 'segment'; span.tabIndex = 0; span.dataset.segment = segmentIndex; span.textContent = segment.t;
-      span.addEventListener('click', () => seekToSegment(segmentIndex, true));
-      span.addEventListener('keydown', (event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); seekToSegment(segmentIndex, true); } });
-      text.appendChild(span); segmentNodes.push(span);
-    });
-    readingBody.appendChild(text);
+
+    const doRender = function () {
+      readingBody.innerHTML = '';
+      const text = document.createElement('div');
+      (chapter.segs || []).forEach((segment, segmentIndex) => {
+        const span = document.createElement('span');
+        span.className = 'segment'; span.tabIndex = 0; span.dataset.segment = segmentIndex; span.textContent = segment.t;
+        span.addEventListener('click', () => {
+          seekToSegment(segmentIndex, true);
+          span.classList.remove('flash');
+          span.addEventListener('animationend', function onEnd() { span.classList.remove('flash'); span.removeEventListener('animationend', onEnd); });
+          span.classList.add('flash');
+        });
+        span.addEventListener('keydown', (event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); seekToSegment(segmentIndex, true); } });
+        text.appendChild(span); segmentNodes.push(span);
+      });
+      readingBody.appendChild(text);
+      lastActiveSegment = -1;
+      userScrolling = false;
+      clearTimeout(scrollResumeTimer);
+      readingBody.scrollTop = 0;
+      updateSegment(-1);
+    };
+
+    if (isFirstRender) { isFirstRender = false; doRender(); }
+    else { (window.ABCommon || {}).crossFade ? ABCommon.crossFade(readingBody, doRender) : doRender(); }
     const savedTime = Number(times[index] || 0);
     if (restoreListener) audio.removeEventListener('loadedmetadata', restoreListener);
     restoreListener = function restore() {
@@ -563,11 +785,6 @@ button:focus-visible, input:focus-visible, .segment:focus-visible {
     if (jumpSelect) { jumpSelect.value = String(index); }
     updateChapterListActive();
     initializeStats();
-    lastActiveSegment = -1;
-    userScrolling = false;
-    clearTimeout(scrollResumeTimer);
-    readingBody.scrollTop = 0;
-    updateSegment(-1);
   }
 
   function loadChapter(index, autoplay = false) {
@@ -685,6 +902,22 @@ button:focus-visible, input:focus-visible, .segment:focus-visible {
     if (event.key === ' ') { event.preventDefault(); playButton.click(); }
     if (event.key === 'ArrowLeft' && !event.shiftKey && !event.altKey) { event.preventDefault(); nudgeSeconds(-15); }
     if (event.key === 'ArrowRight' && !event.shiftKey && !event.altKey) { event.preventDefault(); nudgeSeconds(15); }
+    // 菜单键盘支持：Escape 关闭，ArrowUp/Down 循环
+    if (event.key === 'Escape') {
+      if (timerMenu.classList.contains('open')) toggleMenu(timerMenu, timerButton, false);
+      if (jumpMenu.classList.contains('open')) toggleMenu(jumpMenu, jumpButton, false);
+    }
+    if ((event.key === 'ArrowDown' || event.key === 'ArrowUp') && (timerMenu.classList.contains('open') || jumpMenu.classList.contains('open'))) {
+      const menu = timerMenu.classList.contains('open') ? timerMenu : jumpMenu;
+      const items = [...menu.querySelectorAll('button:not([disabled]), select')];
+      if (!items.length) return;
+      event.preventDefault();
+      const cur = items.indexOf(document.activeElement);
+      let nextIdx;
+      if (event.key === 'ArrowDown') nextIdx = cur < items.length - 1 ? cur + 1 : 0;
+      else nextIdx = cur > 0 ? cur - 1 : items.length - 1;
+      items[nextIdx].focus();
+    }
   });
 
   function toggleMenu(menu, button, force) {
@@ -692,6 +925,11 @@ button:focus-visible, input:focus-visible, .segment:focus-visible {
     [timerMenu, jumpMenu].forEach((other) => { if (other !== menu) other.classList.remove('open'); });
     menu.classList.toggle('open', next);
     if (button) button.setAttribute('aria-expanded', String(next));
+    // 焦点管理：打开时陷阱焦点，关闭时归还
+    if (window.ABCommon) {
+      if (next) { ABCommon.trapFocus(menu, button); }
+      else { ABCommon.releaseFocus(); }
+    }
   }
   timerButton.addEventListener('click', (event) => { event.stopPropagation(); toggleMenu(timerMenu, timerButton); });
   timerOptions.forEach((option) => option.addEventListener('click', () => {
@@ -719,16 +957,16 @@ button:focus-visible, input:focus-visible, .segment:focus-visible {
     if (jumpMenu.classList.contains('open') && !event.target.closest('.jump-wrap')) toggleMenu(jumpMenu, jumpButton, false);
   });
   audio.addEventListener('play', setPlayingUI); audio.addEventListener('pause', setPlayingUI); audio.addEventListener('timeupdate', updateTime); audio.addEventListener('loadedmetadata', updateTime);
-  audio.addEventListener('error', () => { $('chapterStatus').textContent = '音频加载失败'; showToast('当前音频加载失败，请确认章节文件仍在 chapters 文件夹'); });
-  $('themeButton').addEventListener('click', () => { const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'; document.documentElement.dataset.theme = next; localStorage.setItem('nagao_theme', next); });
+  audio.addEventListener('error', () => { $('chapterStatus').textContent = '音频加载失败'; showToast('当前音频加载失败，请确认章节文件仍在 chapters 文件夹'); var bp = document.querySelector('.bottom-player'); if (bp) { var ex = bp.querySelector('.ab-inline-error'); if (ex) ex.remove(); var errEl = document.createElement('div'); errEl.className = 'ab-inline-error'; errEl.textContent = '音频加载失败，请检查网络'; errEl.setAttribute('role', 'alert'); bp.appendChild(errEl); requestAnimationFrame(() => errEl.classList.add('show')); setTimeout(() => { errEl.classList.remove('show'); setTimeout(() => errEl.remove(), 300); }, 3000); } });
+  $('themeButton').addEventListener('click', () => { const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'; document.documentElement.dataset.theme = next; localStorage.setItem('nagao_theme', next); const tb = $('themeButton'); tb.textContent = next === 'dark' ? '◑' : '◐'; tb.classList.remove('spin'); void tb.offsetWidth; tb.classList.add('spin'); });
 
   // ===== 移动端章节抽屉 =====
   const menuToggle = $('menuToggle');
   const drawerOverlay = $('drawerOverlay');
   const drawerClose = $('drawerClose');
   const library = document.querySelector('.library');
-  function openDrawer() { library.classList.add('open'); drawerOverlay.classList.add('show'); menuToggle.setAttribute('aria-expanded', 'true'); document.body.style.overflow = 'hidden'; }
-  function closeDrawer() { library.classList.remove('open'); drawerOverlay.classList.remove('show'); menuToggle.setAttribute('aria-expanded', 'false'); document.body.style.overflow = ''; }
+  function openDrawer() { library.classList.add('open'); drawerOverlay.classList.add('show'); menuToggle.setAttribute('aria-expanded', 'true'); document.body.style.overflow = 'hidden'; if (window.ABCommon) ABCommon.trapFocus(library, menuToggle); }
+  function closeDrawer() { library.classList.remove('open'); drawerOverlay.classList.remove('show'); menuToggle.setAttribute('aria-expanded', 'false'); document.body.style.overflow = ''; if (window.ABCommon) ABCommon.releaseFocus(); }
   menuToggle.addEventListener('click', () => { library.classList.contains('open') ? closeDrawer() : openDrawer(); });
   drawerOverlay.addEventListener('click', closeDrawer);
   if (drawerClose) drawerClose.addEventListener('click', closeDrawer);
@@ -744,8 +982,9 @@ button:focus-visible, input:focus-visible, .segment:focus-visible {
   });
 
   const savedTheme = localStorage.getItem('nagao_theme'); if (savedTheme === 'dark' || savedTheme === 'light') document.documentElement.dataset.theme = savedTheme;
+  $('themeButton').textContent = document.documentElement.dataset.theme === 'dark' ? '◑' : '◐';
   currentIndex = Math.min(Math.max(Number(localStorage.getItem(chapterKey) || 0), 0), Math.max(0, chapters.length - 1));
-  if (chapters.length) { initializeStats(); renderChapterList(''); renderChapter(currentIndex); formatResumeNote(); } else { $('readerTitle').textContent = '章节数据未找到'; readingBody.innerHTML = '<p class="empty">请确认 chapters.js 与本页面位于同一目录。</p>'; }
+  if (chapters.length) { initializeStats(); renderChapterList(''); renderChapter(currentIndex); formatResumeNote(); } else { $('readerTitle').textContent = '章节数据未找到'; readingBody.innerHTML = (window.ABCommon ? ABCommon.errorHTML('请确认 chapters.js 与本页面位于同一目录。', 'retryDataBtn') : '<p class="empty">请确认 chapters.js 与本页面位于同一目录。</p>'); }
 
   // 直接打开播放器时也注册根 Service Worker，确保音频走 Cache-first。
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('../sw.js').catch(() => {});
@@ -930,6 +1169,43 @@ button:focus-visible, input:focus-visible, .segment:focus-visible {
     updateCacheUI();
     if (navigator.onLine && autoCacheEnabled) window.setTimeout(startPrefetch, 800);
   })();
+})();
+</script>
+<script>
+/* 交互动效增强：首屏统计数字滚动（读取主逻辑已计算的终值，再补滚动过程） */
+(function () {
+  'use strict';
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  function animateInt(el, target, comma, dur) {
+    var t0 = null;
+    requestAnimationFrame(function step(t) {
+      if (t0 === null) t0 = t;
+      var p = Math.min(1, (t - t0) / dur);
+      var e = 1 - Math.pow(1 - p, 3);
+      var v = Math.round(target * e);
+      el.textContent = comma ? v.toLocaleString('en-US') : String(v);
+      if (p < 1) requestAnimationFrame(step);
+    });
+  }
+  function animateDur(el, h, m, dur) {
+    var target = h * 60 + m, t0 = null;
+    requestAnimationFrame(function step(t) {
+      if (t0 === null) t0 = t;
+      var p = Math.min(1, (t - t0) / dur);
+      var e = 1 - Math.pow(1 - p, 3);
+      var v = Math.round(target * e);
+      el.textContent = Math.floor(v / 60) + 'h ' + String(v % 60).padStart(2, '0') + 'm';
+      if (p < 1) requestAnimationFrame(step);
+    });
+  }
+  setTimeout(function () {
+    var cc = document.getElementById('chapterCount');
+    var sc = document.getElementById('segmentCount');
+    var ds = document.getElementById('durationStat');
+    if (cc) { var n = parseInt(cc.textContent, 10); if (n > 0) animateInt(cc, n, false, 900); }
+    if (sc) { var s = parseInt(sc.textContent.replace(/[^\d]/g, ''), 10); if (s > 0) animateInt(sc, s, true, 1100); }
+    if (ds) { var m = ds.textContent.match(/^(\d+)h (\d+)m$/); if (m) animateDur(ds, +m[1], +m[2], 1100); }
+  }, 380);
 })();
 </script>
 </body>

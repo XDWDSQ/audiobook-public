@@ -138,26 +138,63 @@ header p {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 20px;
+  gap: 10px;
+  padding: 9px 18px 9px 16px;
   color: var(--text-dim);
   text-decoration: none;
   font-size: 0.85rem;
-  transition: all 0.15s;
+  transition: background 0.22s ease, color 0.22s ease, border-left-color 0.22s ease, padding-left 0.22s ease;
   border-left: 3px solid transparent;
+  border-radius: 0 8px 8px 0;
+  margin: 1px 0;
+  position: relative;
+  animation: ab-toc-in 0.5s ease both;
+}
+.sidebar a::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 6px; bottom: 6px;
+  width: 3px;
+  background: var(--accent);
+  border-radius: 0 3px 3px 0;
+  transform: scaleY(0);
+  transform-origin: center;
+  transition: transform 0.25s cubic-bezier(0.22, 0.61, 0.36, 1);
+  pointer-events: none;
 }
 .sidebar a:hover {
   color: var(--text);
-  background: var(--surface-light);
-  border-left-color: var(--accent);
+  background: var(--accent-glow);
+  padding-left: 19px;
+}
+.sidebar a:hover::before {
+  transform: scaleY(0.65);
 }
 .sidebar a.active {
   color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
   border-left-color: var(--accent);
+  font-weight: 600;
+}
+.sidebar a.active::before {
+  transform: scaleY(1);
+  box-shadow: 0 0 12px var(--accent);
 }
 .sidebar a .ch-dur {
   font-size: 0.7rem;
   color: var(--text-dim);
-  opacity: 0.6;
+  opacity: 0.65;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+  transition: opacity 0.22s ease, color 0.22s ease;
+}
+.sidebar a:hover .ch-dur {
+  opacity: 1;
+  color: var(--accent);
+}
+@keyframes ab-toc-in {
+  from { opacity: 0; transform: translateX(-8px); }
+  to { opacity: 1; transform: translateX(0); }
 }
 
 /* 主内容区 */
@@ -193,14 +230,22 @@ header p {
 .seg {
   cursor: pointer;
   border-radius: 4px;
-  transition: background 0.15s;
-  padding: 1px 2px;
+  transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease;
+  padding: 1px 3px;
 }
-.seg:hover { background: var(--surface-light); }
+.seg:hover { background: var(--surface-light); color: var(--text); transform: translateY(-1px); }
 .seg.active {
   background: var(--highlight);
+  color: var(--accent);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
-  transition: background .15s ease, box-shadow .25s ease;
+  transition: background .15s ease, box-shadow .25s ease, color .15s ease;
+}
+.seg.flash {
+  animation: ab-seg-flash .7s ease;
+}
+@keyframes ab-seg-flash {
+  0%   { background: var(--accent); color: #fff; box-shadow: 0 0 0 4px var(--accent); transform: scale(1.04); }
+  100% { background: var(--highlight); color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); transform: scale(1); }
 }
 
 /* 底部播放栏 */
@@ -260,15 +305,33 @@ header p {
   border-radius: 3px;
   cursor: pointer;
   position: relative;
+  overflow: hidden;
+  transition: height .22s ease;
 }
+.progress-track:hover { height: 9px; }
 .progress-fill {
   height: 100%;
-  background: var(--accent);
+  background: linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 60%, transparent));
   border-radius: 3px;
   width: 0%;
   transition: width 0.1s linear;
+  position: relative;
 }
-.progress-track:hover .progress-fill { opacity: 0.8; }
+.progress-fill::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,.45) 50%, transparent 100%);
+  transform: translateX(-100%);
+  animation: ab-fill-shimmer 2.4s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes ab-fill-shimmer {
+  0%   { transform: translateX(-100%); }
+  60%  { transform: translateX(120%); }
+  100% { transform: translateX(120%); }
+}
+.progress-track:hover .progress-fill { opacity: 0.95; }
 .progress-tooltip {
   position: absolute;
   top: -22px;
@@ -397,6 +460,70 @@ header { animation-delay: .05s; }
 .reader { animation-delay: .15s; }
 .player-bar { animation-delay: .25s; }
 
+/* 章节标题：带渐显 + 下划线扫过 */
+.chapter-title {
+  position: relative;
+  animation: ab-title-in .55s cubic-bezier(.22,.61,.36,1) both;
+}
+.chapter-title::after {
+  content: "";
+  position: absolute;
+  left: 0; bottom: -1px;
+  width: 0; height: 1px;
+  background: linear-gradient(90deg, var(--accent), transparent);
+  animation: ab-underline .9s .25s cubic-bezier(.22,.61,.36,1) forwards;
+}
+@keyframes ab-title-in {
+  from { opacity: 0; transform: translateY(8px); letter-spacing: .12em; }
+  to { opacity: 1; transform: translateY(0); letter-spacing: .05em; }
+}
+@keyframes ab-underline { to { width: 56px; } }
+
+/* 侧边栏切换图标动效 */
+.menu-btn { transition: transform .35s cubic-bezier(.22,.61,.36,1), background .22s ease, border-color .22s ease; }
+.menu-btn:hover { transform: rotate(90deg) translateY(0); }
+
+/* icon-btn：统一提升 */
+.icon-btn { transition: background .22s ease, border-color .22s ease, color .22s ease, transform .22s cubic-bezier(.22,.61,.36,1); }
+.icon-btn:active { transform: scale(.9); }
+
+/* 播放按钮：脉冲呼吸 */
+.play-btn { position: relative; transition: transform .2s cubic-bezier(.22,.61,.36,1), background .2s ease, box-shadow .2s ease; }
+.play-btn .icon-play, .play-btn .icon-pause {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  transition: opacity .22s ease, transform .28s cubic-bezier(.22,.61,.36,1);
+}
+.play-btn .icon-pause { opacity: 0; transform: translate(-50%,-50%) scale(.5); }
+.play-btn.playing .icon-play { opacity: 0; transform: translate(-50%,-50%) scale(.5); }
+.play-btn.playing .icon-pause { opacity: 1; transform: translate(-50%,-50%) scale(1); }
+.play-btn:not(:disabled)::before {
+  content: "";
+  position: absolute; inset: -3px;
+  border-radius: 50%;
+  border: 1.5px solid var(--accent);
+  opacity: 0;
+  pointer-events: none;
+  animation: ab-play-pulse 2.4s ease-out infinite;
+}
+@keyframes ab-play-pulse {
+  0%   { transform: scale(.92); opacity: .65; }
+  70%  { transform: scale(1.18); opacity: 0; }
+  100% { transform: scale(1.18); opacity: 0; }
+}
+.play-btn:hover:not(:disabled) { transform: scale(1.05); box-shadow: 0 6px 16px color-mix(in srgb, var(--accent) 30%, transparent); }
+.play-btn:active:not(:disabled) { transform: scale(.96); }
+
+/* speed-btn / font-size-btn：按下反馈 */
+.speed-btn, .font-size-btn { transition: background .18s ease, border-color .18s ease, color .18s ease, transform .18s cubic-bezier(.22,.61,.36,1); }
+.speed-btn:active, .font-size-btn:active { transform: scale(.92); }
+
+/* nav-btn：章节翻页按钮 */
+.nav-btn { transition: background .18s ease, border-color .18s ease, color .18s ease, transform .2s cubic-bezier(.22,.61,.36,1); }
+.nav-btn:hover:not(:disabled) { transform: translateY(-1px); }
+.nav-btn:active:not(:disabled) { transform: scale(.9); }
+.nav-btn:disabled { opacity: .25; }
+
 @media (max-width: 768px) {
   header { padding: 16px 16px 12px; }
   header h1 { font-size: 1.35rem; }
@@ -433,8 +560,14 @@ header { animation-delay: .05s; }
     background: var(--surface-light); border-color: var(--border); color: var(--text);
   }
   .icon-btn:active, .nav-btn:active { transform: scale(0.92); }
-  .sidebar a:hover { background: transparent; border-left-color: transparent; }
+  .sidebar a:hover { background: transparent; border-left-color: transparent; padding-left: 16px; }
+  .sidebar a:hover::before { transform: scaleY(0); }
   .sidebar a:active { background: var(--surface-light); }
+  /* 触屏禁用菜单按钮 90° 旋转 + 标题下划线扫过 + 持续脉冲，节电 */
+  .menu-btn:hover { transform: none; }
+  .chapter-title::after { animation: none; width: 56px; }
+  .play-btn:not(:disabled)::before { animation: none; opacity: 0; }
+  .progress-track:hover { height: 6px; }
 }
 
 /* 离线缓存浮动面板（持续自动缓存） */
@@ -506,6 +639,69 @@ header { animation-delay: .05s; }
   .seg.active { box-shadow: 0 0 0 2px var(--accent); }
   .icon-btn, .nav-btn, .speed-btn, .font-size-btn { border-width: 2px; }
 }
+
+/* ===== 交互动效升级 ===== */
+/* 章节内容入场（节点随章节切换重建，动画自动重放） */
+.chapter-content { animation: ab-content-in .5s cubic-bezier(.22,.61,.36,1) both; }
+@keyframes ab-content-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+/* 骨架屏加载（替代 spinner） */
+.skeleton-wrap { padding: 4px 0; }
+.skeleton { position: relative; overflow: hidden; background: var(--surface-light); border-radius: 6px; }
+.skeleton::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--text) 9%, transparent), transparent);
+  transform: translateX(-100%);
+  animation: ab-sk 1.4s ease-in-out infinite;
+}
+@keyframes ab-sk { 60% { transform: translateX(100%); } 100% { transform: translateX(100%); } }
+.sk-title { width: 44%; height: 26px; margin-bottom: 30px; }
+.sk-line { height: 15px; margin-bottom: 20px; }
+
+/* 侧栏遮罩淡入淡出 */
+.sidebar-overlay { display: block; opacity: 0; visibility: hidden; transition: opacity .3s ease, visibility 0s linear .32s; }
+.sidebar-overlay.show { opacity: 1; visibility: visible; transition: opacity .3s ease; }
+
+/* 侧栏滑动缓动升级 */
+.sidebar { transition: left .38s cubic-bezier(.22,.61,.36,1); }
+
+/* 目录条目：打开侧栏时才播 stagger（配合 JS 逐项 delay） */
+.sidebar a { animation: none; }
+.sidebar.open a { animation: ab-toc-in .45s cubic-bezier(.22,.61,.36,1) both; }
+
+/* 进度条拇指：悬停/拖拽时浮现 */
+.progress-thumb {
+  position: absolute; top: 50%; left: 0; z-index: 2;
+  width: 13px; height: 13px; border-radius: 50%;
+  background: var(--accent); border: 2.5px solid var(--surface);
+  box-shadow: 0 1px 5px rgba(0,0,0,.35);
+  transform: translate(-50%,-50%) scale(0);
+  transition: transform .18s cubic-bezier(.22,.61,.36,1);
+  pointer-events: none;
+}
+.progress-track:hover .progress-thumb,
+.progress-track.is-dragging .progress-thumb { transform: translate(-50%,-50%) scale(1); }
+
+/* 播放键状态切换弹跳 */
+.play-btn.is-pop { animation: ab-pop .3s cubic-bezier(.22,.61,.36,1); }
+@keyframes ab-pop { 0% { transform: scale(.84); } 60% { transform: scale(1.07); } 100% { transform: scale(1); } }
+
+/* 缓存弹层：弹入 */
+.cache-popup {
+  display: block; opacity: 0; visibility: hidden;
+  transform: translateY(10px) scale(.97); transform-origin: bottom right;
+  transition: opacity .24s ease, transform .3s cubic-bezier(.22,.61,.36,1), visibility 0s linear .3s;
+}
+.cache-popup.open { opacity: 1; visibility: visible; transform: none; transition: opacity .24s ease, transform .3s cubic-bezier(.22,.61,.36,1); }
+
+/* 减少动态偏好：新增动画直出 */
+@media (prefers-reduced-motion: reduce) {
+  .chapter-content, .sidebar.open a, .skeleton::after { animation: none !important; }
+  .play-btn .icon-play, .play-btn .icon-pause { transition: none !important; }
+}
+
+/* 内联错误条（播放器上方） */
+.player-bar { position: relative; }
 </style>
 </head>
 <body>
@@ -530,11 +726,19 @@ header { animation-delay: .05s; }
 
 <main class="main-wrap">
 <article class="reader" id="reader">
-  <div class="loading" id="initLoading"><div class="spinner"></div><br>加载中...</div>
+  <div class="skeleton-wrap" id="initLoading" role="status" aria-label="章节加载中">
+    <div class="skeleton sk-title"></div>
+    <div class="skeleton sk-line" style="width:97%"></div>
+    <div class="skeleton sk-line" style="width:92%"></div>
+    <div class="skeleton sk-line" style="width:96%"></div>
+    <div class="skeleton sk-line" style="width:89%"></div>
+    <div class="skeleton sk-line" style="width:94%"></div>
+    <div class="skeleton sk-line" style="width:58%"></div>
+  </div>
 </article>
 
 <div class="player-bar" role="region" aria-label="播放控制">
-  <button class="play-btn" id="playBtn" aria-label="播放" disabled>▶</button>
+  <button class="play-btn" id="playBtn" aria-label="播放" disabled><svg class="icon-play" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg><svg class="icon-pause" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg></button>
   <div class="player-info">
     <div class="player-title" id="playerTitle">—</div>
     <div class="progress-row">
@@ -542,6 +746,7 @@ header { animation-delay: .05s; }
       <div class="progress-track" id="progressTrack" role="slider" aria-label="播放进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" tabindex="0">
         <span class="progress-tooltip" id="progressTooltip">0:00</span>
         <div class="progress-fill" id="progressFill"></div>
+        <span class="progress-thumb" id="progressThumb"></span>
       </div>
       <span class="time-label" id="durTime">0:00</span>
     </div>
@@ -609,6 +814,8 @@ let userScrolling = false;
 let scrollResumeTimer = null;
 let lastActiveSegIdx = -1;
 
+let isFirstRender = true;
+
 const audio = document.getElementById('audio');
 const playBtn = document.getElementById('playBtn');
 const prevBtn = document.getElementById('prevBtn');
@@ -619,6 +826,7 @@ const fontSizeBtn = document.getElementById('fontSizeBtn');
 const menuBtn = document.getElementById('menuBtn');
 const progressTrack = document.getElementById('progressTrack');
 const progressFill = document.getElementById('progressFill');
+const progressThumb = document.getElementById('progressThumb');
 const progressTooltip = document.getElementById('progressTooltip');
 const curTimeLabel = document.getElementById('curTime');
 const durTimeLabel = document.getElementById('durTime');
@@ -691,7 +899,12 @@ async function loadData() {
     applyHashRoute();
     loadChapter(currentIdx, false);
   } catch(e) {
-    document.getElementById('initLoading').innerHTML = '<p>加载失败: ' + (e && e.message || e) + '</p>';
+    document.getElementById('initLoading').innerHTML = AB.errorHTML('加载失败: ' + (e && e.message || e), 'retryLoadBtn');
+    var retryBtn = document.getElementById('retryLoadBtn');
+    if (retryBtn) retryBtn.addEventListener('click', function() {
+      document.getElementById('initLoading').innerHTML = '<div class="skeleton sk-title"></div><div class="skeleton sk-line" style="width:97%"></div><div class="skeleton sk-line" style="width:92%"></div><div class="skeleton sk-line" style="width:96%"></div>';
+      loadData();
+    });
   }
 }
 
@@ -708,6 +921,8 @@ function buildTOC(keyword) {
     const a = document.createElement('a');
     a.href = 'javascript:void(0)';
     a.dataset.idx = i;
+    /* 目录入场 stagger：仅完整列表启用；搜索过滤时直出 */
+    if (!kw) { a.style.animationDelay = Math.min(count - 1, 24) * 14 + 'ms'; } else { a.style.animation = 'none'; }
     a.setAttribute('role', 'button');
     if (i === currentIdx) a.setAttribute('aria-current', 'true');
     const span = document.createElement('span');
@@ -728,7 +943,7 @@ function buildTOC(keyword) {
     frag.appendChild(a);
   });
   toc.appendChild(frag);
-  if (!count) { toc.innerHTML = '<p class="loading">没有找到匹配章节</p>'; }
+  if (!count) { toc.innerHTML = AB.emptyHTML('没有找到匹配章节', '清除搜索', 'clearSearchBtn'); var cb = document.getElementById('clearSearchBtn'); if (cb) cb.addEventListener('click', function() { document.getElementById('tocSearch').value = ''; buildTOC(''); }); }
   updateTOCActive();
 }
 
@@ -750,12 +965,14 @@ function openSidebar() {
   overlay.classList.add('show');
   overlay.setAttribute('aria-hidden', 'false');
   menuBtn.setAttribute('aria-expanded', 'true');
+  AB.trapFocus(sidebar, menuBtn);
 }
 function closeSidebar() {
   sidebar.classList.remove('open');
   overlay.classList.remove('show');
   overlay.setAttribute('aria-hidden', 'true');
   menuBtn.setAttribute('aria-expanded', 'false');
+  AB.releaseFocus();
 }
 
 // ===== 章节渲染 =====
@@ -763,45 +980,55 @@ function loadChapter(idx, autoplay) {
   if (idx < 0 || idx >= CHAPTERS.length) return;
   currentIdx = idx;
   const ch = CHAPTERS[idx];
-
-  // 渲染标题
   const reader = document.getElementById('reader');
-  reader.innerHTML = '';
-  const titleEl = document.createElement('div');
-  titleEl.className = 'chapter-title';
-  titleEl.textContent = ch.title;
-  reader.appendChild(titleEl);
 
-  // 渲染文本段（使用文档片段，减少回流）
-  const contentEl = document.createElement('div');
-  contentEl.className = 'chapter-content';
-  segElements = [];
-  const frag = document.createDocumentFragment();
-  ch.segs.forEach((seg, si) => {
-    const span = document.createElement('span');
-    span.className = 'seg';
-    span.dataset.idx = si;
-    span.tabIndex = 0;
-    span.setAttribute('role', 'button');
-    span.textContent = seg.t;
-    span.addEventListener('click', () => {
-      if (audio.duration) {
-        audio.currentTime = seg.s + 0.01;
-        if (!isPlaying) { audio.play().catch(() => {}); }
-        highlightSeg(si);
-      }
+  // 使用 crossFade 过渡（首次加载直接渲染）
+  const doRender = function () {
+    reader.innerHTML = '';
+    const titleEl = document.createElement('div');
+    titleEl.className = 'chapter-title';
+    titleEl.textContent = ch.title;
+    reader.appendChild(titleEl);
+
+    const contentEl = document.createElement('div');
+    contentEl.className = 'chapter-content';
+    segElements = [];
+    const frag = document.createDocumentFragment();
+    ch.segs.forEach((seg, si) => {
+      const span = document.createElement('span');
+      span.className = 'seg';
+      span.dataset.idx = si;
+      span.tabIndex = 0;
+      span.setAttribute('role', 'button');
+      span.textContent = seg.t;
+      span.addEventListener('click', () => {
+        if (audio.duration) {
+          audio.currentTime = seg.s + 0.01;
+          if (!isPlaying) { audio.play().catch(() => {}); }
+          highlightSeg(si);
+          span.classList.remove('flash');
+          // 使用 animationend 清 class，避免强制重排
+          span.addEventListener('animationend', function onEnd() { span.classList.remove('flash'); span.removeEventListener('animationend', onEnd); });
+          span.classList.add('flash');
+        }
+      });
+      span.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); span.click(); }
+      });
+      frag.appendChild(span);
+      segElements.push(span);
     });
-    span.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); span.click(); }
-    });
-    frag.appendChild(span);
-    segElements.push(span);
-  });
-  contentEl.appendChild(frag);
-  reader.appendChild(contentEl);
-  userScrolling = false;
-  clearTimeout(scrollResumeTimer);
-  reader.scrollTop = 0;
+    contentEl.appendChild(frag);
+    reader.appendChild(contentEl);
+    userScrolling = false;
+    clearTimeout(scrollResumeTimer);
+    reader.scrollTop = 0;
+    lastActiveSegIdx = -1;
+    highlightSeg(0);
+  };
+
+  if (isFirstRender) { isFirstRender = false; doRender(); }
+  else { AB.crossFade(reader, doRender); }
 
   // 更新播放器
   playerTitle.textContent = ch.title;
@@ -825,18 +1052,36 @@ function loadChapter(idx, autoplay) {
 
   updateMediaSession();
   updateHash();
-  lastActiveSegIdx = -1;
-
-  // 高亮第一段
-  highlightSeg(0);
 
   // 屏幕阅读器播报
   announce && announce('已加载第 ' + (idx + 1) + ' 章：' + ch.title);
 
-  // 自动播放
-  if (autoplay) {
-    audio.play().catch(() => {});
-  }
+  // 自动播放：等待音频就绪后再 play()，避免移动浏览器（iOS Safari / Chrome Android）
+  // 在 src 改变后立即 play() 时因未加载完抛 NotAllowedError 被 catch 静默吞掉，
+  // 导致章节末尾跳转后听不见声音。
+  if (autoplay) tryPlayAfterReady();
+}
+
+/* 在 canplay / loadeddata 时再尝试播放；带过期保护避免事件链断裂。
+ * 仅在自动连播时使用，避免打断用户手动暂停的意图。 */
+function tryPlayAfterReady() {
+  const a = audio;
+  let done = false;
+  const tryOnce = () => {
+    if (done) return;
+    done = true;
+    a.removeEventListener('canplay', tryOnce);
+    a.removeEventListener('loadeddata', tryOnce);
+    a.play().catch(() => {
+      /* 兜底：play() 被拒绝时（极少数浏览器的 autoplay 策略），提示用户手动点击 */
+      showToast && showToast('请点击播放按钮继续收听');
+    });
+  };
+  a.addEventListener('canplay', tryOnce);
+  a.addEventListener('loadeddata', tryOnce);
+  /* 兜底：若 canplay 始终未触发（SW 已缓存完整文件时可能不触发 loadeddata），
+   * 最多等 1.2s 直接播放，避免用户感知"卡顿"或"跳章后无声"。 */
+  setTimeout(() => { if (!done) tryOnce(); }, 1200);
 }
 
 // ===== 播放控制 =====
@@ -852,26 +1097,31 @@ playBtn.addEventListener('click', togglePlay);
 
 audio.addEventListener('play', () => {
   isPlaying = true;
-  playBtn.textContent = '⏸';
+  playBtn.classList.add('playing');
   playBtn.setAttribute('aria-label', '暂停');
 });
 audio.addEventListener('pause', () => {
   isPlaying = false;
-  playBtn.textContent = '▶';
+  playBtn.classList.remove('playing');
   playBtn.setAttribute('aria-label', '播放');
 });
 
-audio.addEventListener('error', async () => {
-  if (CHAPTERS[currentIdx]) {
-    const cached = await isChapterCached(CHAPTERS[currentIdx].file);
-    if (cached) {
-      showToast && showToast('网络不可用，尝试从缓存读取');
-      audio.src = CHAPTERS[currentIdx].file;
-      audio.play().catch(() => {});
-      return;
-    }
+audio.addEventListener('error', () => {
+  /* 网络或解码失败：清晰提示用户，避免沉默。 */
+  showToast && showToast('音频加载失败，请检查网络后重试', null, 'error');
+  // 内联错误条
+  var bar = document.querySelector('.player-bar');
+  if (bar) {
+    var existing = bar.querySelector('.ab-inline-error');
+    if (existing) existing.remove();
+    var errEl = document.createElement('div');
+    errEl.className = 'ab-inline-error';
+    errEl.textContent = '音频加载失败，请检查网络';
+    errEl.setAttribute('role', 'alert');
+    bar.appendChild(errEl);
+    requestAnimationFrame(() => errEl.classList.add('show'));
+    setTimeout(() => { errEl.classList.remove('show'); setTimeout(() => errEl.remove(), 300); }, 3000);
   }
-  showToast && showToast('音频加载失败，请检查网络后重试');
 });
 
 // 自动连播核心：章节结束 → 播放下一章
@@ -893,6 +1143,7 @@ audio.addEventListener('timeupdate', () => {
   if (dur > 0) {
     const ratio = cur / dur;
     progressFill.style.width = (ratio * 100) + '%';
+    progressThumb.style.left = (ratio * 100) + '%';
     progressTrack.setAttribute('aria-valuenow', String(Math.round(ratio * 100)));
   }
   curTimeLabel.textContent = fmtTime(cur);
@@ -918,14 +1169,15 @@ function seekFromEvent(e) {
   if (audio.duration) {
     audio.currentTime = ratio * audio.duration;
     progressFill.style.width = (ratio * 100) + '%';
+    progressThumb.style.left = (ratio * 100) + '%';
   }
 }
-progressTrack.addEventListener('mousedown', (e) => { isDragging = true; seekFromEvent(e); });
+progressTrack.addEventListener('mousedown', (e) => { isDragging = true; progressTrack.classList.add('is-dragging'); seekFromEvent(e); });
 document.addEventListener('mousemove', (e) => { if (isDragging) seekFromEvent(e); });
-document.addEventListener('mouseup', () => { isDragging = false; });
-progressTrack.addEventListener('touchstart', (e) => { isDragging = true; seekFromEvent(e); }, { passive: true });
+document.addEventListener('mouseup', () => { isDragging = false; progressTrack.classList.remove('is-dragging'); });
+progressTrack.addEventListener('touchstart', (e) => { isDragging = true; progressTrack.classList.add('is-dragging'); seekFromEvent(e); }, { passive: true });
 progressTrack.addEventListener('touchmove', (e) => { if (isDragging) seekFromEvent(e); }, { passive: true });
-progressTrack.addEventListener('touchend', () => { isDragging = false; });
+progressTrack.addEventListener('touchend', () => { isDragging = false; progressTrack.classList.remove('is-dragging'); });
 
 // 进度条悬停气泡
 function showTooltip(e) {
@@ -1302,6 +1554,23 @@ loadData = async function () {
 // 初始化
 initTheme();
 loadData();
+</script>
+
+<script>
+/* 交互动效增强：播放/暂停键弹跳反馈（附加监听，不影响主逻辑） */
+(function () {
+  'use strict';
+  var audioEl = document.getElementById('audio');
+  var pBtn = document.getElementById('playBtn');
+  if (!audioEl || !pBtn) return;
+  function pop() {
+    pBtn.classList.remove('is-pop');
+    pBtn.addEventListener('animationend', function onEnd() { pBtn.classList.remove('is-pop'); pBtn.removeEventListener('animationend', onEnd); });
+    requestAnimationFrame(function() { pBtn.classList.add('is-pop'); });
+  }
+  audioEl.addEventListener('play', pop);
+  audioEl.addEventListener('pause', pop);
+})();
 </script>
 </body>
 </html>
