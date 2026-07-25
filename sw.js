@@ -6,7 +6,7 @@
  *   - 音频（.mp3）：cache-first（优先从缓存读取，无缓存时走网络）
  *     缓存由播放器页面的 prefetch 逻辑主动填充
  */
-const VERSION = 'audiobook-hub-v8';
+const VERSION = 'audiobook-hub-v9';
 const SHELL_CACHE = 'shell-' + VERSION;
 const AUDIO_CACHE = 'audio-' + VERSION;
 
