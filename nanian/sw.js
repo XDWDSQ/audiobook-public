@@ -1,4 +1,4 @@
-/* sw.js — 有声书馆 Hub Service Worker (v10)
+/* sw.js — 那年高中有声书 Service Worker (v10)
  *
  * 统一缓存策略：
  *   page-cache   — HTML 页面 / 章节数据：network-first，离线回退缓存
@@ -7,8 +7,8 @@
  *   audio-cache  — 音频文件：cache-first，容量上限 + LRU 淘汰
  *
  * 命名空间前缀：audiobook-hub-
- * 本书标识：hub
- * 完整缓存名：{type}-audiobook-hub-hub-v{version}
+ * 本书标识：nanian
+ * 完整缓存名：{type}-audiobook-hub-nanian-v{version}
  *
  * 消息 API：
  *   SKIP_WAITING              — 立即激活新 SW
@@ -18,7 +18,7 @@
  *   GET_CACHE_INFO            — 获取缓存统计信息
  */
 
-const SW_ID = 'hub';
+const SW_ID = 'nanian';
 const VERSION = 10;
 const CACHE_PREFIX = 'audiobook-hub-';
 
@@ -36,8 +36,10 @@ const AUDIO_CACHE_LIMIT = 500 * 1024 * 1024;
 const SHELL_ASSETS = [
   './',
   './index.html',
-  './_shared/audiobook-common.js',
-  './_shared/audiobook-common.css'
+  './data.json',
+  './chapters.js',
+  '../_shared/audiobook-common.js',
+  '../_shared/audiobook-common.css'
 ];
 
 /* ---------- 工具函数 ---------- */
@@ -62,7 +64,7 @@ function isStaticRequest(pathname) {
 
 /* ---------- 音频缓存 LRU 管理（基于 IndexedDB 追踪访问时间） ---------- */
 
-const DB_NAME = 'audiobook-hub-cache-meta';
+const DB_NAME = 'audiobook-hub-cache-meta-nanian';
 const DB_VERSION = 1;
 const AUDIO_STORE = 'audio-entries';
 
@@ -134,7 +136,7 @@ function evictAudioIfNeeded() {
       tx.oncomplete = () => {
         db.close();
         if (total <= AUDIO_CACHE_LIMIT) { resolve(0); return; }
-        // 按访问时间升序（最久未用在前），删除直到低于上限
+        // 按访问时间升序（最久未用在前），删除直到低于上限 90%
         let freed = 0;
         const toDelete = [];
         for (const entry of entries) {
@@ -161,17 +163,6 @@ function evictAudioIfNeeded() {
       tx.onerror = () => { db.close(); resolve(0); };
     });
   }).catch(() => 0);
-}
-
-function removeAudioMeta(url) {
-  return openDB().then((db) => {
-    return new Promise((resolve) => {
-      const tx = db.transaction(AUDIO_STORE, 'readwrite');
-      tx.objectStore(AUDIO_STORE).delete(url);
-      tx.oncomplete = () => { db.close(); resolve(); };
-      tx.onerror = () => { db.close(); resolve(); };
-    });
-  }).catch(() => {});
 }
 
 function clearAllAudioMeta() {

@@ -1,0 +1,3 @@
+# Service Worker 文件：_headers 已覆盖 Content-Type，静态文件优先于 SPA 回退
+# 保持线上既有行为：未知路径回退到着陆页（200）
+/*    /index.html   200

@@ -1,7 +1,95 @@
 /* audiobook-common.css
- * 有声书播放器共用样式(无障碍 + Toast + 移动端优化)
- * 两个播放器(nanian / zhixiao)都通过 <link> 引入
+ * 有声书播放器共用样式(无障碍 + Toast + 移动端优化 + 组件样式)
+ * 所有播放器页面通过 <link> 引入
+ *
+ * 设计令牌 (Design Tokens) - 在各页面 :root 中覆盖即可换肤：
+ *   --bg           页面背景色
+ *   --surface      卡片/面板背景色
+ *   --panel        浮层面板背景色（同 surface 备用）
+ *   --text         主要文字颜色
+ *   --text-dim     次要/弱化文字颜色
+ *   --muted        更弱化的文字/图标色（同 text-dim 备用）
+ *   --accent       主题强调色（按钮、链接、高亮）
+ *   --accent-glow  强调色光晕/悬停背景（半透明 accent）
+ *   --border       边框颜色
+ *   --line         分割线颜色（同 border 备用）
+ *   --highlight    文本高亮背景色（阅读同步高亮）
  */
+
+/* ===== 设计令牌 - 默认值 (兜底) ===== */
+:root {
+  /* 背景层 */
+  --bg: #ffffff;              /* 页面主背景 */
+  --bg-deep: #f5efe6;         /* 深色背景（次级、渐变底） */
+  --surface: #faf7f2;         /* 卡片/次级背景 */
+  --surface-light: #f5efe6;   /* 更浅的表面色（悬停态） */
+  --panel: var(--surface);    /* 浮层面板（抽屉、弹窗等） */
+
+  /* 文字层 */
+  --text: #2a2520;            /* 主要文字 */
+  --text-dim: #8b7d70;        /* 次要文字（说明、时间戳） */
+  --muted: var(--text-dim);   /* 更弱化的文字（备用别名） */
+  --text-inverse: #ffffff;    /* 反向文字（深色背景上） */
+
+  /* 强调色 */
+  --accent: #b66b3f;          /* 主题强调色 */
+  --accent-deep: #8f4f2c;     /* 强调色深色（渐变、按下态） */
+  --accent-soft: #f3dfcf;     /* 强调色浅色背景 */
+  --accent-glow: rgba(182, 107, 63, 0.1);  /* 强调色光晕/悬停态 */
+  --gold: #c7954f;            /* 金色辅助强调色 */
+  --highlight: rgba(182, 107, 63, 0.12);   /* 文本高亮背景 */
+
+  /* 边框/分割线 */
+  --border: #d6c3a8;          /* 边框颜色 */
+  --line: var(--border);      /* 分割线（备用别名） */
+
+  /* 功能色 */
+  --success: #4caf7d;         /* 成功色 */
+  --success-soft: rgba(76, 175, 125, 0.12);
+  --error: #e05252;           /* 错误色 */
+  --error-soft: rgba(224, 82, 82, 0.1);
+  --warning: #e8a93d;         /* 警告色 */
+  --warning-soft: rgba(232, 169, 61, 0.12);
+
+  /* 阴影 */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.10);
+  --shadow-lg: 0 14px 40px rgba(0, 0, 0, 0.14);
+
+  /* 圆角 */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
+
+  /* 间距 */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+
+  /* 字体 */
+  --font-serif: "Noto Serif SC", "Source Han Serif SC", "Songti SC", SimSun, serif;
+  --font-sans: "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Consolas, monospace;
+
+  /* 过渡 */
+  --transition-fast: 0.15s ease;
+  --transition-base: 0.25s ease;
+  --transition-slow: 0.4s cubic-bezier(.22,.61,.36,1);
+
+  /* 层级 */
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-modal-backdrop: 1040;
+  --z-modal: 1050;
+  --z-toast: 9999;
+}
 
 /* ===== 全局移动端优化 ===== */
 html {
@@ -306,6 +394,266 @@ body.is-leaving {
   }
 }
 
+/* ===== 缓冲进度条 ===== */
+/* 使用方式：在进度条 track 内添加 .ab-buffer 元素，位于播放进度条下方 */
+.ab-buffer {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  background: currentColor;
+  opacity: 0.25;
+  border-radius: inherit;
+  pointer-events: none;
+  transition: width .15s ease-out;
+  z-index: 0;
+}
+/* 播放进度条应在缓冲条上方 */
+.progress-fill, .seek-fill {
+  position: relative;
+  z-index: 1;
+}
+
+/* ===== 继续播放提示 ===== */
+.ab-resume-prompt {
+  position: fixed;
+  z-index: 9500;
+  left: 50%;
+  bottom: 120px;
+  transform: translate(-50%, 20px) scale(.95);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .3s cubic-bezier(.22,.61,.36,1), transform .3s cubic-bezier(.22,.61,.36,1);
+  max-width: calc(100vw - 32px);
+}
+.ab-resume-prompt.show {
+  opacity: 1;
+  transform: translate(-50%, 0) scale(1);
+  pointer-events: auto;
+}
+.ab-resume-prompt__content {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  border-radius: 14px;
+  background: rgba(45, 36, 28, .96);
+  color: #fff9f2;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 12px 36px rgba(0,0,0,.28);
+  border: 1px solid rgba(255,255,255,.08);
+}
+.ab-resume-prompt__icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--accent, #b66b3f);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.ab-resume-prompt__body {
+  flex: 1;
+  min-width: 0;
+}
+.ab-resume-prompt__title {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+.ab-resume-prompt__desc {
+  font-size: 12px;
+  color: rgba(255,249,242,.7);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ab-resume-prompt__actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.ab-resume-prompt__btn {
+  padding: 7px 14px;
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: 8px;
+  background: transparent;
+  color: #fff9f2;
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background .2s ease, border-color .2s ease, transform .15s ease;
+}
+.ab-resume-prompt__btn:hover {
+  background: rgba(255,255,255,.1);
+  border-color: rgba(255,255,255,.35);
+}
+.ab-resume-prompt__btn:active {
+  transform: scale(.94);
+}
+.ab-resume-prompt__btn--primary {
+  background: var(--accent, #b66b3f);
+  border-color: var(--accent, #b66b3f);
+  color: #fff;
+  font-weight: 600;
+}
+.ab-resume-prompt__btn--primary:hover {
+  background: color-mix(in srgb, var(--accent, #b66b3f) 85%, #fff);
+  border-color: color-mix(in srgb, var(--accent, #b66b3f) 85%, #fff);
+}
+
+/* ===== 虚拟滚动 ===== */
+.ab-virtual-spacer {
+  position: relative;
+}
+.ab-virtual-content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  will-change: transform;
+}
+
+/* ===== 快捷键帮助面板 ===== */
+.ab-shortcuts-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: rgba(0,0,0,.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .25s ease, visibility 0s linear .3s;
+  backdrop-filter: blur(4px);
+}
+.ab-shortcuts-overlay.show {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity .25s ease;
+}
+.ab-shortcuts-modal {
+  background: var(--panel, var(--surface, #fff));
+  border-radius: 18px;
+  box-shadow: 0 24px 60px rgba(0,0,0,.3);
+  max-width: 520px;
+  width: 100%;
+  max-height: 80vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border, var(--line, #e5d8c9));
+  transform: translateY(16px) scale(.96);
+  transition: transform .3s cubic-bezier(.22,.61,.36,1);
+}
+.ab-shortcuts-overlay.show .ab-shortcuts-modal {
+  transform: translateY(0) scale(1);
+}
+.ab-shortcuts-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 22px 14px;
+  border-bottom: 1px solid var(--border, var(--line, #e5d8c9));
+}
+.ab-shortcuts-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--accent, #b66b3f);
+  letter-spacing: .06em;
+}
+.ab-shortcuts-close {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border, var(--line, #e5d8c9));
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-dim, var(--muted, #8b7d70));
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: background .2s ease, color .2s ease, border-color .2s ease;
+}
+.ab-shortcuts-close:hover {
+  background: var(--accent-glow, rgba(182,107,63,.1));
+  color: var(--accent, #b66b3f);
+  border-color: var(--accent, #b66b3f);
+}
+.ab-shortcuts-body {
+  padding: 12px 6px;
+  overflow-y: auto;
+  flex: 1;
+}
+.ab-shortcuts-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  transition: background .15s ease;
+}
+.ab-shortcuts-item:hover {
+  background: var(--accent-glow, rgba(182,107,63,.08));
+}
+.ab-shortcuts-keys {
+  flex-shrink: 0;
+  min-width: 100px;
+  text-align: center;
+}
+.ab-shortcuts-keys kbd {
+  display: inline-block;
+  padding: 3px 8px;
+  border: 1px solid var(--border, var(--line, #e5d8c9));
+  border-radius: 6px;
+  background: var(--surface-light, var(--surface, #faf7f2));
+  color: var(--text, #2a2520);
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 12px;
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(0,0,0,.08);
+}
+.ab-shortcuts-info {
+  flex: 1;
+  min-width: 0;
+}
+.ab-shortcuts-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text, #2a2520);
+}
+.ab-shortcuts-desc {
+  font-size: 11px;
+  color: var(--text-dim, var(--muted, #8b7d70));
+  margin-top: 2px;
+}
+.ab-shortcuts-foot {
+  padding: 12px 22px;
+  border-top: 1px solid var(--border, var(--line, #e5d8c9));
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-dim, var(--muted, #8b7d70));
+}
+.ab-shortcuts-foot kbd {
+  padding: 2px 6px;
+  border: 1px solid var(--border, var(--line, #e5d8c9));
+  border-radius: 4px;
+  background: var(--surface-light, var(--surface, #faf7f2));
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 11px;
+}
+
+/* ===== PWA 安装按钮 ===== */
+.ab-pwa-install {
+  /* 可根据需要自定义按钮样式 */
+}
+
 /* ===== Reduced motion ===== */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -319,4 +667,307 @@ body.is-leaving {
   .ab-switch-enter { animation: none !important; }
   body.is-leaving { transition: none !important; }
   .ab-back-top { transition: none !important; }
+  .ab-resume-prompt { transition: none !important; }
+  .ab-shortcuts-overlay, .ab-shortcuts-modal { transition: none !important; }
+}
+
+/* ===== 移动端适配（新增组件） ===== */
+@media (max-width: 480px) {
+  .ab-resume-prompt {
+    bottom: 100px;
+    width: calc(100vw - 24px);
+  }
+  .ab-resume-prompt__content {
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 12px 14px;
+  }
+  .ab-resume-prompt__actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+  .ab-shortcuts-modal {
+    border-radius: 14px;
+  }
+  .ab-shortcuts-head {
+    padding: 14px 16px 12px;
+  }
+  .ab-shortcuts-title {
+    font-size: 15px;
+  }
+  .ab-shortcuts-item {
+    padding: 8px 12px;
+    gap: 12px;
+  }
+  .ab-shortcuts-keys {
+    min-width: 80px;
+  }
+  .ab-shortcuts-label {
+    font-size: 12px;
+  }
+}
+
+/* ===== 高对比度模式 ===== */
+@media (prefers-contrast: more) {
+  :root {
+    --border: #8b7d70;
+    --line: #8b7d70;
+    --text-dim: #5a5048;
+    --muted: #5a5048;
+  }
+  .ab-resume-prompt__content {
+    border-width: 2px;
+  }
+  .ab-shortcuts-modal {
+    border-width: 2px;
+  }
+  .ab-shortcuts-keys kbd {
+    border-width: 2px;
+  }
+  .ab-toast {
+    border: 2px solid rgba(255,255,255,.3);
+  }
+  .ab-back-top {
+    border-width: 2px;
+  }
+  .ab-empty__action,
+  .ab-error__retry {
+    border-width: 2px;
+  }
+  *:focus-visible {
+    outline-width: 3px !important;
+    outline-offset: 3px !important;
+  }
+}
+
+/* ===== 通用工具类 ===== */
+
+/* 显示/隐藏 */
+.ab-hidden { display: none !important; }
+.ab-invisible { visibility: hidden !important; }
+.ab-sr-only {
+  position: absolute !important;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* 文字截断 */
+.ab-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ab-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.ab-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* 弹性布局 */
+.ab-flex { display: flex; }
+.ab-flex-col { flex-direction: column; }
+.ab-items-center { align-items: center; }
+.ab-justify-center { justify-content: center; }
+.ab-justify-between { justify-content: space-between; }
+.ab-gap-1 { gap: 4px; }
+.ab-gap-2 { gap: 8px; }
+.ab-gap-3 { gap: 12px; }
+.ab-gap-4 { gap: 16px; }
+.ab-flex-1 { flex: 1; min-width: 0; }
+
+/* 文字对齐 */
+.ab-text-center { text-align: center; }
+.ab-text-left { text-align: left; }
+.ab-text-right { text-align: right; }
+
+/* 字体 */
+.ab-font-serif { font-family: var(--font-serif, serif); }
+.ab-font-sans { font-family: var(--font-sans, sans-serif); }
+.ab-font-mono { font-family: var(--font-mono, monospace); }
+.ab-text-sm { font-size: 12px; }
+.ab-text-base { font-size: 14px; }
+.ab-text-lg { font-size: 16px; }
+.ab-text-xl { font-size: 20px; }
+.ab-font-medium { font-weight: 500; }
+.ab-font-semibold { font-weight: 600; }
+.ab-font-bold { font-weight: 700; }
+
+/* 间距 */
+.ab-m-0 { margin: 0; }
+.ab-p-0 { padding: 0; }
+.ab-mt-auto { margin-top: auto; }
+.ab-mb-auto { margin-bottom: auto; }
+.ab-ml-auto { margin-left: auto; }
+.ab-mr-auto { margin-right: auto; }
+.ab-mx-auto { margin-left: auto; margin-right: auto; }
+
+/* 宽度 */
+.ab-w-full { width: 100%; }
+.ab-h-full { height: 100%; }
+.ab-min-w-0 { min-width: 0; }
+
+/* 圆角 */
+.ab-rounded-sm { border-radius: var(--radius-sm, 8px); }
+.ab-rounded-md { border-radius: var(--radius-md, 12px); }
+.ab-rounded-lg { border-radius: var(--radius-lg, 18px); }
+.ab-rounded-full { border-radius: var(--radius-full, 9999px); }
+
+/* 交互 */
+.ab-pointer-events-none { pointer-events: none; }
+.ab-select-none { user-select: none; -webkit-user-select: none; }
+.ab-cursor-pointer { cursor: pointer; }
+
+/* 定位 */
+.ab-relative { position: relative; }
+.ab-absolute { position: absolute; }
+.ab-fixed { position: fixed; }
+.ab-sticky { position: sticky; }
+.ab-inset-0 { inset: 0; }
+.ab-top-0 { top: 0; }
+.ab-bottom-0 { bottom: 0; }
+.ab-left-0 { left: 0; }
+.ab-right-0 { right: 0; }
+
+/* 溢出 */
+.ab-overflow-hidden { overflow: hidden; }
+.ab-overflow-auto { overflow: auto; }
+.ab-overflow-x-auto { overflow-x: auto; }
+.ab-overflow-y-auto { overflow-y: auto; }
+
+/* 滚动优化 */
+.ab-scroll-smooth { scroll-behavior: smooth; }
+.ab-overscroll-contain { overscroll-behavior: contain; }
+
+/* 网格 */
+.ab-grid { display: grid; }
+.ab-grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.ab-grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.ab-gap-2 { gap: 8px; }
+.ab-gap-3 { gap: 12px; }
+.ab-gap-4 { gap: 16px; }
+
+/* ===== 打印样式 ===== */
+@media print {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  html {
+    font-size: 12pt;
+    background: #fff !important;
+  }
+
+  body {
+    background: #fff !important;
+    color: #000 !important;
+    margin: 0;
+    padding: 0;
+    line-height: 1.6;
+  }
+
+  /* 隐藏交互元素 */
+  .ab-toast,
+  .ab-back-top,
+  .ab-scroll-progress,
+  .ab-resume-prompt,
+  .ab-shortcuts-overlay,
+  .ab-inline-error,
+  .skip-link,
+  button,
+  input[type="button"],
+  input[type="submit"],
+  input[type="reset"] {
+    display: none !important;
+  }
+
+  /* 移除背景和阴影 */
+  .ab-empty,
+  .ab-error,
+  .ab-shortcuts-modal,
+  .ab-resume-prompt__content {
+    background: #fff !important;
+    box-shadow: none !important;
+    border: 1px solid #ccc !important;
+  }
+
+  /* 链接颜色 */
+  a {
+    color: #000;
+    text-decoration: underline;
+  }
+
+  a::after {
+    content: " (" attr(href) ")";
+    font-size: 0.9em;
+    color: #666;
+  }
+
+  /* 只对外部链接显示 URL */
+  a[href^="#"]::after,
+  a[href^="javascript:"]::after {
+    content: "";
+  }
+
+  /* 分页优化 */
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+
+  p, ul, ol, dl, blockquote, table, pre {
+    orphans: 3;
+    widows: 3;
+  }
+
+  img, svg {
+    max-width: 100% !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* 隐藏装饰元素 */
+  .page-bg,
+  .page-bg__glow {
+    display: none !important;
+  }
+}
+
+/* ===== 暗色模式补充令牌（如果页面设置了 [data-theme="dark"] 或 .dark） ===== */
+[data-theme="dark"],
+.dark {
+  --bg-deep: #252220;
+  --surface-light: #3a3530;
+  --text-inverse: #1a1715;
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 14px 40px rgba(0, 0, 0, 0.45);
+}
+
+/* ===== 安全区域适配（全局补充） ===== */
+@supports (padding-top: env(safe-area-inset-top)) {
+  .ab-safe-top { padding-top: env(safe-area-inset-top); }
+  .ab-safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+  .ab-safe-left { padding-left: env(safe-area-inset-left); }
+  .ab-safe-right { padding-right: env(safe-area-inset-right); }
+  .ab-safe-x {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+  .ab-safe-y {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
 }

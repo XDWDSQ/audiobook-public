@@ -3,49 +3,100 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="description" content="《知晓》完整有声书，免费收听，支持文本同步高亮、倍速播放、章节目录与断点续听。">
-<meta name="keywords" content="知晓,有声书,有声小说,校园文学,原创长篇">
-<meta name="author" content="知晓">
-<meta name="theme-color" content="#c9974a">
-<meta name="color-scheme" content="dark light">
-
-<!-- Open Graph -->
+<title>知晓 · 有声书 | 有声书馆</title>
+<meta name="description" content="《知晓》完整有声书，免费收听，支持文本同步高亮、倍速播放、章节目录与断点续听。全 177 章，约 15 小时 51 分。">
+<meta name="keywords" content="知晓,有声书,有声小说,校园文学,原创长篇,许闻,唐星烨">
+<meta name="author" content="有声书馆">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#efe2cc">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1a1715">
+<meta name="color-scheme" content="light dark">
+<link rel="canonical" href="https://audiobook-hub.site/zhixiao/">
 <meta property="og:type" content="website">
-<meta property="og:title" content="知晓 · 有声书 | 免费收听">
-<meta property="og:description" content="《知晓》完整有声书，支持文本同步高亮、倍速播放、断点续听">
-
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📖</text></svg>">
+<meta property="og:site_name" content="有声书馆">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:url" content="https://audiobook-hub.site/zhixiao/">
+<meta property="og:title" content="知晓 · 有声书 | 有声书馆">
+<meta property="og:description" content="校园成长长篇有声书，全 177 章。许闻与唐星烨，从初遇到知悉。支持文本同步高亮、倍速播放、断点续听。">
+<meta property="og:image" content="https://audiobook-hub.site/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="知晓 · 有声书">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="知晓 · 有声书 | 有声书馆">
+<meta name="twitter:description" content="校园成长长篇有声书，全 177 章。许闻与唐星烨，从初遇到知悉。">
+<meta name="twitter:image" content="https://audiobook-hub.site/og-cover.png">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23efe2cc'/><text x='50' y='50' text-anchor='middle' dominant-baseline='central' font-size='56' fill='%23b66b3f' font-family='serif' font-weight='600'>听</text></svg>">
+<link rel="apple-touch-icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect width='180' height='180' rx='40' fill='%23efe2cc'/><text x='90' y='90' text-anchor='middle' dominant-baseline='central' font-size='100' fill='%23b66b3f' font-family='serif' font-weight='600'>听</text></svg>">
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="知晓">
+<meta name="application-name" content="知晓有声书">
 <link rel="stylesheet" href="../_shared/audiobook-common.css">
-<title>知晓 · 有声书</title>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Audiobook",
+  "name": "知晓",
+  "author": {
+    "@type": "Organization",
+    "name": "有声书馆"
+  },
+  "url": "https://audiobook-hub.site/zhixiao/",
+  "description": "校园成长长篇有声书，全 177 章。许闻的锁骨上有一道不轻易示人的疤。唐星烨在晃动的火车上与他擦肩，目光却停在那道疤上。",
+  "inLanguage": "zh-CN",
+  "duration": "PT15H51M",
+  "numberOfChapters": "177",
+  "readBy": {
+    "@type": "Person",
+    "name": "苏打"
+  },
+  "isPartOf": {
+    "@type": "WebSite",
+    "name": "有声书馆",
+    "url": "https://audiobook-hub.site/"
+  }
+}
+</script>
+<script>/* 主题前置初始化：避免深色用户先看到浅色闪屏 */
+try{var t=localStorage.getItem('zhixiao_theme');if(t==='dark'||t==='light')document.documentElement.dataset.theme=t;else if(window.matchMedia('(prefers-color-scheme: dark)').matches)document.documentElement.dataset.theme='dark';}catch(e){}document.documentElement.classList.add('js');</script>
 <style>
 :root {
-  color-scheme: dark;
-  --bg: #1a1715;
-  --surface: #252220;
-  --surface-light: #2f2b28;
-  --text: #e8e0d4;
-  --text-dim: #9a9088;
-  --accent: #c9974a;
-  --accent-glow: rgba(201,151,74,0.15);
-  --highlight: rgba(201,151,74,0.12);
-  --border: #3a3530;
-}
-[data-theme="light"] {
   color-scheme: light;
-  --bg: #f5f0e8;
-  --surface: #ffffff;
-  --surface-light: #ede8e0;
-  --text: #2a2520;
-  --text-dim: #7a7068;
-  --accent: #a67c2e;
-  --accent-glow: rgba(166,124,46,0.12);
-  --highlight: rgba(166,124,46,0.10);
-  --border: #d8d0c8;
+  --bg: #f7f1e8;
+  --surface: #fffaf4;
+  --surface-light: #efe4d5;
+  --text: #2f2923;
+  --text-dim: #8b7d70;
+  --accent: #b66b3f;
+  --accent-deep: #8f4f2c;
+  --accent-glow: rgba(182,107,63,0.12);
+  --highlight: rgba(182,107,63,0.10);
+  --gold: #c7954f;
+  --border: #e5d8c9;
+}
+[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #211b18;
+  --surface: #312721;
+  --surface-light: #30241e;
+  --text: #f3e9dd;
+  --text-dim: #b4a294;
+  --accent: #dc9968;
+  --accent-deep: #f0b184;
+  --accent-glow: rgba(220,153,104,0.16);
+  --highlight: rgba(220,153,104,0.12);
+  --gold: #d8ad68;
+  --border: #55443a;
 }
 * { margin:0; padding:0; box-sizing:border-box; }
 html { scroll-behavior: smooth; }
 body {
-  background: var(--bg);
+  background:
+    radial-gradient(circle at 10% 0%, rgba(199,149,79,.15), transparent 34rem),
+    radial-gradient(circle at 100% 20%, rgba(182,107,63,.11), transparent 30rem),
+    var(--bg);
   color: var(--text);
   font-family: "Noto Serif SC","Source Han Serif SC","Songti SC","SimSun",serif;
   min-height: 100vh;
@@ -57,23 +108,30 @@ body {
 }
 header {
   text-align: center;
-  padding: 20px 20px 16px;
+  padding: 16px 20px 14px;
   border-bottom: 1px solid var(--border);
   position: relative;
   flex-shrink: 0;
 }
-header h1 {
-  font-size: 1.6rem;
-  font-weight: 400;
-  letter-spacing: 0.4em;
-  color: var(--accent);
-  margin-bottom: 4px;
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: var(--text);
 }
-header p {
-  font-size: 0.75rem;
-  color: var(--text-dim);
-  letter-spacing: 0.15em;
+.brand-mark {
+  width: 38px; height: 38px; border-radius: 12px;
+  display: grid; place-items: center;
+  color: #fff8ef; background: linear-gradient(145deg, var(--accent), var(--gold));
+  box-shadow: 0 8px 18px rgba(182,107,63,.24);
+  font-family: "Noto Serif SC","Source Han Serif SC",serif; font-size: 19px;
+  transition: transform .25s cubic-bezier(.22,.61,.36,1);
 }
+.brand:hover .brand-mark { transform: scale(1.06) rotate(-3deg); }
+.brand-body { display: flex; flex-direction: column; line-height: 1.1; text-align: left; }
+.brand-title { font-size: 1.5rem; font-weight: 400; letter-spacing: 0.4em; color: var(--accent); }
+.brand-sub { font-size: 0.7rem; color: var(--text-dim); letter-spacing: 0.18em; margin-top: 3px; }
 .header-btns {
   position: absolute;
   right: 16px;
@@ -525,8 +583,9 @@ header { animation-delay: .05s; }
 .nav-btn:disabled { opacity: .25; }
 
 @media (max-width: 768px) {
-  header { padding: 16px 16px 12px; }
-  header h1 { font-size: 1.35rem; }
+  header { padding: 14px 16px 12px; }
+  .brand-title { font-size: 1.3rem; }
+  .brand-mark { width: 34px; height: 34px; font-size: 17px; }
   .menu-btn { left: 12px; }
   .header-btns { right: 12px; }
   .reader { padding: 20px 16px 30px; }
@@ -543,8 +602,9 @@ header { animation-delay: .05s; }
   .sidebar h3 { font-size: 1rem; }
 }
 @media (max-width: 480px) {
-  header h1 { font-size: 1.2rem; letter-spacing: 0.3em; }
-  header p { font-size: 0.7rem; }
+  .brand-title { font-size: 1.15rem; letter-spacing: 0.3em; }
+  .brand-sub { font-size: 0.65rem; }
+  .brand-mark { width: 32px; height: 32px; font-size: 16px; }
   .icon-btn { width: 34px; height: 34px; font-size: 0.9rem; }
   .reader { padding: 16px 14px 24px; }
   .chapter-content { font-size: 0.9rem; }
@@ -710,10 +770,17 @@ header { animation-delay: .05s; }
 
 <header>
   <button class="icon-btn menu-btn" id="menuBtn" aria-label="打开章节目录" aria-controls="sidebar" aria-expanded="false">☰</button>
-  <h1>知 晓</h1>
-  <p>有声书</p>
+  <a class="brand" href="../index.html" title="返回有声书馆">
+    <span class="brand-mark" aria-hidden="true">听</span>
+    <span class="brand-body">
+      <span class="brand-title">知 晓</span>
+      <span class="brand-sub">有声书馆</span>
+    </span>
+  </a>
   <div class="header-btns">
-    <button class="icon-btn" id="themeBtn" title="切换主题" aria-label="切换明暗主题">🌙</button>
+    <button class="icon-btn" id="helpBtn" title="快捷键帮助" aria-label="键盘快捷键帮助">?</button>
+    <button class="icon-btn" id="installBtn" title="安装应用" aria-label="安装为应用" hidden>⬇</button>
+    <button class="icon-btn" id="themeBtn" title="切换主题" aria-label="切换明暗主题">☀</button>
   </div>
 </header>
 
@@ -745,6 +812,7 @@ header { animation-delay: .05s; }
       <span class="time-label" id="curTime">0:00</span>
       <div class="progress-track" id="progressTrack" role="slider" aria-label="播放进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" tabindex="0">
         <span class="progress-tooltip" id="progressTooltip">0:00</span>
+        <div class="ab-buffer" id="bufferBar" style="color:var(--accent)"></div>
         <div class="progress-fill" id="progressFill"></div>
         <span class="progress-thumb" id="progressThumb"></span>
       </div>
@@ -752,6 +820,7 @@ header { animation-delay: .05s; }
     </div>
   </div>
   <button class="speed-btn" id="speedBtn" aria-label="播放速度">1.0x</button>
+  <button class="font-size-btn" id="timerBtn" aria-label="定时关闭">⏱</button>
   <button class="font-size-btn" id="fontSizeBtn" aria-label="阅读字号">Aa</button>
   <div class="nav-btns">
     <button class="nav-btn" id="prevBtn" title="上一章" aria-label="上一章">⏮</button>
@@ -838,16 +907,18 @@ const overlay = document.getElementById('overlay');
 // ===== 主题 =====
 function initTheme() {
   const saved = safeGetStorage('zhixiao_theme');
-  if (saved === 'light') {
-    document.documentElement.setAttribute('data-theme', 'light');
-    themeBtn.textContent = '☀';
-  } else if (saved === 'dark') {
-    document.documentElement.removeAttribute('data-theme');
+  if (saved === 'dark') {
+    document.documentElement.setAttribute('data-theme', 'dark');
     themeBtn.textContent = '🌙';
+  } else if (saved === 'light') {
+    document.documentElement.removeAttribute('data-theme');
+    themeBtn.textContent = '☀';
   } else {
-    const prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
-    if (prefersLight) {
-      document.documentElement.setAttribute('data-theme', 'light');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    if (prefersDark) {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      themeBtn.textContent = '🌙';
+    } else {
       themeBtn.textContent = '☀';
     }
   }
@@ -855,17 +926,17 @@ function initTheme() {
 function toggleTheme() {
   themeBtn.classList.add('spinning');
   setTimeout(() => themeBtn.classList.remove('spinning'), 380);
-  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
-  if (isLight) {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  if (isDark) {
     document.documentElement.removeAttribute('data-theme');
-    safeSetStorage('zhixiao_theme', 'dark');
-    themeBtn.textContent = '🌙';
-  } else {
-    document.documentElement.setAttribute('data-theme', 'light');
     safeSetStorage('zhixiao_theme', 'light');
     themeBtn.textContent = '☀';
+  } else {
+    document.documentElement.setAttribute('data-theme', 'dark');
+    safeSetStorage('zhixiao_theme', 'dark');
+    themeBtn.textContent = '🌙';
   }
-  announce && announce(isLight ? '已切换到深色主题' : '已切换到浅色主题');
+  announce && announce(isDark ? '已切换到浅色主题' : '已切换到深色主题');
 }
 
 // ===== 阅读字号 =====
@@ -886,12 +957,28 @@ fontSizeBtn.addEventListener('click', () => {
 });
 applyReadingSize();
 
+// ===== 数据格式归一化（兼容 v1 扁平数组 / v2 book+chapters） =====
+function normalizeChapters(data) {
+  if (Array.isArray(data)) {
+    // v1 格式：扁平数组
+    return data;
+  }
+  if (data && typeof data === 'object' && Array.isArray(data.chapters)) {
+    // v2 格式：{ version, book, chapters }
+    // 同时将 book 元数据挂到全局，供后续使用
+    window.BOOK_INFO = data.book || null;
+    return data.chapters;
+  }
+  return [];
+}
+
 // ===== 加载数据 =====
 async function loadData() {
   try {
     const resp = await fetch('data.json');
     if (!resp.ok) throw new Error('HTTP ' + resp.status);
-    CHAPTERS = await resp.json();
+    const raw = await resp.json();
+    CHAPTERS = normalizeChapters(raw);
     document.getElementById('initLoading').style.display = 'none';
     buildTOC();
     const saved = parseInt(safeGetStorage('zhixiao_chapter') || '0', 10);
@@ -1258,42 +1345,314 @@ overlay.addEventListener('click', closeSidebar);
 // 主题
 themeBtn.addEventListener('click', toggleTheme);
 
-// 键盘快捷键
-document.addEventListener('keydown', (e) => {
-  const tag = e.target.tagName;
-  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
-  if (e.metaKey || e.ctrlKey || e.altKey) return;
-  switch(e.key) {
-    case ' ':
-      e.preventDefault(); togglePlay(); break;
-    case 'ArrowLeft':
-      e.preventDefault();
-      if (e.shiftKey) { if (currentIdx > 0) loadChapter(currentIdx - 1, isPlaying); }
-      else { if (audio.duration) audio.currentTime = Math.max(0, audio.currentTime - 15); }
-      break;
-    case 'ArrowRight':
-      e.preventDefault();
-      if (e.shiftKey) { if (currentIdx < CHAPTERS.length - 1) loadChapter(currentIdx + 1, isPlaying); }
-      else { if (audio.duration) audio.currentTime = Math.min(audio.duration, audio.currentTime + 15); }
-      break;
-    case 'Escape':
-      closeSidebar(); break;
-    case 'm': case 'M':
-      e.preventDefault();
-      audio.muted = !audio.muted;
-      showToast && showToast(audio.muted ? '已静音' : '已取消静音');
-      announce && announce(audio.muted ? '已静音' : '已取消静音');
-      break;
-    case 'f': case 'F':
+// ===== 新增功能集成 =====
+(function () {
+  const AB = window.ABCommon;
+  if (!AB) return;
+
+  const BOOK_ID = 'zhixiao';
+  let sleepTimer = null;
+  let virtualList = null;
+
+  // --- 1. 缓冲进度 ---
+  const bufferBar = document.getElementById('bufferBar');
+  if (bufferBar) AB.initBufferProgress(audio, bufferBar);
+
+  // --- 2. 睡眠定时器（带淡出）---
+  const timerBtn = document.getElementById('timerBtn');
+  if (timerBtn) {
+    sleepTimer = AB.createSleepTimer(audio, {
+      fadeDuration: 10000,
+      onTick: function (remaining) {
+        const mins = Math.ceil(remaining / 60000);
+        timerBtn.textContent = mins + '分';
+        timerBtn.classList.add('active');
+      },
+      onEnd: function () {
+        timerBtn.textContent = '⏱';
+        timerBtn.classList.remove('active');
+      }
+    });
+
+    timerBtn.addEventListener('click', function () {
+      if (!sleepTimer) return;
+      const result = sleepTimer.cycle([15, 30, 45, 60, 0]);
+      if (result === 0) {
+        timerBtn.textContent = '⏱';
+        timerBtn.classList.remove('active');
+      }
+    });
+  }
+
+  // 章节结束时检查睡眠定时器（chapter 模式）
+  const origEndedHandler = function () {};
+  audio.addEventListener('ended', function () {
+    if (sleepTimer) sleepTimer.onChapterEnded();
+  });
+
+  // --- 3. 键盘快捷键扩展 ---
+  AB.initKeyboardShortcuts(audio, {
+    seekSmall: 5,
+    seekLarge: 10,
+    onPrevChapter: function () {
+      if (currentIdx > 0) loadChapter(currentIdx - 1, isPlaying);
+    },
+    onNextChapter: function () {
+      if (currentIdx < CHAPTERS.length - 1) loadChapter(currentIdx + 1, isPlaying);
+    },
+    onTogglePlay: togglePlay,
+    onSpeedChange: function (rate) {
+      // 更新速率按钮显示
+      const speedBtn = document.getElementById('speedBtn');
+      if (speedBtn) speedBtn.textContent = rate.toFixed(2).replace(/\.?0+$/, '') + 'x';
+      // 同步到全局 speedIdx
+      const allSpeeds = [0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.5];
+      const idx = allSpeeds.indexOf(rate);
+      if (idx >= 0) { speedIdx = idx % speeds.length; }
+    },
+    onSleepTimer: function () {
+      if (sleepTimer && timerBtn) {
+        const result = sleepTimer.cycle([15, 30, 45, 60, 0]);
+        if (result === 0) {
+          timerBtn.textContent = '⏱';
+          timerBtn.classList.remove('active');
+        }
+      }
+    },
+    extraShortcuts: [
+      { key: 'F', label: '字号调节', description: '调节阅读字号大小' },
+      { key: 'Esc', label: '关闭侧栏', description: '关闭章节目录侧边栏' }
+    ]
+  });
+
+  // 帮助按钮
+  const helpBtn = document.getElementById('helpBtn');
+  if (helpBtn) {
+    helpBtn.addEventListener('click', function () {
+      AB.showShortcutsHelp();
+    });
+  }
+
+  // zhixiao 特有快捷键（F 字号、Esc 关闭侧栏）
+  document.addEventListener('keydown', function (e) {
+    const tag = e.target.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.key === 'Escape') {
+      closeSidebar();
+    }
+    if (e.key === 'f' || e.key === 'F') {
       e.preventDefault();
       if (e.shiftKey) { sizeIdx = Math.max(0, sizeIdx - 1); } else { sizeIdx = Math.min(sizes.length - 1, sizeIdx + 1); }
       safeSetStorage(readingSizeKey, String(sizes[sizeIdx]));
       applyReadingSize();
-      break;
-  }
-});
+    }
+  });
 
-// 恢复播放位置（仅首次加载）
+  // --- 4. PWA 安装 ---
+  const installBtn = document.getElementById('installBtn');
+  if (installBtn) {
+    AB.initPWAInstall(installBtn, {
+      onAvailable: function () {
+        installBtn.hidden = false;
+      },
+      onInstalled: function () {
+        installBtn.hidden = true;
+      }
+    });
+  }
+
+  // --- 5. 播放进度持久化（统一格式）---
+  // 在 timeupdate 中保存进度
+  audio.addEventListener('timeupdate', function () {
+    if (CHAPTERS.length > 0) {
+      AB.saveProgress(BOOK_ID, {
+        chapterId: currentIdx,
+        currentTime: audio.currentTime,
+        volume: audio.volume,
+        playbackRate: audio.playbackRate
+      });
+    }
+  });
+
+  // 页面卸载前保存
+  window.addEventListener('beforeunload', function () {
+    if (CHAPTERS.length > 0) {
+      try {
+        localStorage.setItem(
+          'audiobook-progress-' + BOOK_ID,
+          JSON.stringify({
+            chapterId: currentIdx,
+            currentTime: audio.currentTime,
+            volume: audio.volume,
+            playbackRate: audio.playbackRate,
+            timestamp: Date.now()
+          })
+        );
+      } catch (_) {}
+    }
+  });
+
+  // --- 6. 虚拟滚动（目录）---
+  // 在 buildTOC 被调用后启用虚拟滚动
+  const origBuildTOC = window.buildTOC;
+  // 监听数据加载完成，替换目录渲染为虚拟滚动
+  const tocContainer = document.getElementById('toc');
+  function initVirtualList() {
+    if (!tocContainer || CHAPTERS.length <= 50 || virtualList) return;
+
+    const sidebarEl = document.getElementById('sidebar');
+    // 计算可用高度
+    const sidebarRect = sidebarEl.getBoundingClientRect();
+    const listTop = tocContainer.offsetTop;
+    const visibleHeight = Math.min(sidebarRect.height - listTop - 20, window.innerHeight * 0.7);
+
+    virtualList = AB.createVirtualList(tocContainer, CHAPTERS, {
+      itemHeight: 44,
+      buffer: 8,
+      threshold: 50,
+      renderItem: function (ch, i) {
+        const a = document.createElement('a');
+        a.href = 'javascript:void(0)';
+        a.dataset.idx = i;
+        a.setAttribute('role', 'button');
+        if (i === currentIdx) {
+          a.classList.add('active');
+          a.setAttribute('aria-current', 'true');
+        }
+        a.style.display = 'flex';
+        a.style.justifyContent = 'space-between';
+        a.style.alignItems = 'center';
+        a.style.gap = '10px';
+        a.style.padding = '9px 18px 9px 16px';
+        a.style.color = 'var(--text-dim)';
+        a.style.textDecoration = 'none';
+        a.style.fontSize = '0.85rem';
+        a.style.borderLeft = '3px solid transparent';
+        a.style.borderRadius = '0 8px 8px 0';
+        a.style.boxSizing = 'border-box';
+        a.style.position = 'relative';
+
+        const span = document.createElement('span');
+        span.textContent = ch.title;
+        span.style.flex = '1';
+        span.style.minWidth = '0';
+        span.style.overflow = 'hidden';
+        span.style.textOverflow = 'ellipsis';
+        span.style.whiteSpace = 'nowrap';
+
+        const dur = document.createElement('span');
+        dur.className = 'ch-dur';
+        dur.textContent = fmtTime(ch.dur);
+        dur.style.fontSize = '0.7rem';
+        dur.style.opacity = '0.65';
+        dur.style.fontVariantNumeric = 'tabular-nums';
+        dur.style.flexShrink = '0';
+
+        a.appendChild(span);
+        a.appendChild(dur);
+        return a;
+      },
+      onItemClick: function (ch, i) {
+        loadChapter(i, isPlaying);
+        closeSidebar();
+      }
+    });
+  }
+
+  // 暴露给外部调用
+  window.__zhixiaoInitVirtualList = initVirtualList;
+  window.__zhixiaoUpdateVirtualActive = function () {
+    if (virtualList) virtualList.updateActive(currentIdx);
+  };
+  window.__zhixiaoScrollToCurrent = function () {
+    if (virtualList) virtualList.scrollToIndex(currentIdx);
+  };
+
+  // 监听数据加载完成（通过 MutationObserver 检测目录变化）
+  if (tocContainer && 'MutationObserver' in window) {
+    const observer = new MutationObserver(function () {
+      if (CHAPTERS.length > 50) {
+        observer.disconnect();
+        initVirtualList();
+      }
+    });
+    observer.observe(tocContainer, { childList: true });
+  }
+
+  // 打开侧栏时滚动到当前章节
+  const origOpenSidebar = window.openSidebar;
+  if (typeof origOpenSidebar === 'function') {
+    window.openSidebar = function () {
+      origOpenSidebar.apply(this, arguments);
+      setTimeout(function () {
+        if (virtualList) virtualList.scrollToIndex(currentIdx);
+      }, 350);
+    };
+  }
+
+  // --- 7. 继续播放提示 ---
+  // 在首次加载完成后检查并显示
+  function checkResumeProgress() {
+    if (!CHAPTERS.length) return;
+    const progress = AB.loadProgress(BOOK_ID);
+    if (!progress || progress.chapterId == null) return;
+
+    // 检查进度是否有效（章节在范围内，且时间大于 5 秒，小于章节时长）
+    const chIdx = Number(progress.chapterId);
+    const ch = CHAPTERS[chIdx];
+    if (!ch || !progress.currentTime || progress.currentTime < 5) return;
+    if (progress.currentTime >= (ch.dur || ch.duration) - 5) return;
+
+    // 进度较新（7 天内）才提示
+    const age = Date.now() - (progress.timestamp || 0);
+    if (age > 7 * 24 * 60 * 60 * 1000) return;
+
+    AB.showResumePrompt(progress, {
+      chapterTitle: ch.title,
+      onConfirm: function (p) {
+        const idx = Number(p.chapterId);
+        if (idx !== currentIdx) {
+          loadChapter(idx, false);
+        }
+        // 等音频就绪后 seek
+        const doSeek = function () {
+          if (audio.duration && p.currentTime < audio.duration) {
+            audio.currentTime = p.currentTime;
+          }
+          audio.play().catch(function () {});
+          audio.removeEventListener('canplay', doSeek);
+        };
+        if (audio.readyState >= 1) doSeek();
+        else audio.addEventListener('canplay', doSeek);
+
+        // 恢复音量和速率
+        if (p.volume != null) audio.volume = p.volume;
+        if (p.playbackRate != null) audio.playbackRate = p.playbackRate;
+      },
+      onCancel: function () {
+        // 从头开始，清除进度
+        AB.clearProgress(BOOK_ID);
+      }
+    });
+  }
+
+  // 等数据加载完成后检查
+  const origLoadDataFn = loadData;
+  let _progressChecked = false;
+  const origLoadChapter = loadChapter;
+  loadChapter = function (idx, autoplay) {
+    origLoadChapter.apply(this, arguments);
+    // 首次加载完成后检查进度（延迟一点，确保 UI 就绪）
+    if (!_progressChecked && CHAPTERS.length > 0) {
+      _progressChecked = true;
+      setTimeout(checkResumeProgress, 800);
+    }
+  };
+
+})();
+
+// 恢复播放位置（兼容旧逻辑，仅首次加载）
 audio.addEventListener('canplay', function restoreTime() {
   if (isFirstLoad) {
     isFirstLoad = false;
@@ -1345,7 +1704,7 @@ if ('PerformanceObserver' in window) {
     navigator.serviceWorker.register('sw.js').catch(() => {});
   }
 
-  const CACHE_NAME = 'zhixiao-audiobook-v2';
+  const CACHE_NAME = 'audio-audiobook-hub-zhixiao-v10';
   const cacheToggle = document.getElementById('cacheToggle');
   const cachePopup = document.getElementById('cachePopup');
   const cacheIcon = document.getElementById('cacheIcon');

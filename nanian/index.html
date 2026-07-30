@@ -2,13 +2,65 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#f7f1e8">
-<script>/* 主题前置初始化：避免深色用户先看到浅色闪屏 */
-try{var t=localStorage.getItem('nagao_theme');if(t==='dark'||t==='light')document.documentElement.dataset.theme=t;}catch(e){}document.documentElement.classList.add('js');</script>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📖</text></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>那年高中 · 有声书 | 有声书馆</title>
+<meta name="description" content="《那年高中》完整有声书，免费收听，校园双向暗恋故事。全 40 章，约 2 小时 45 分。支持文本同步高亮、倍速播放、定时关闭。">
+<meta name="keywords" content="那年高中,有声书,有声小说,校园文学,双向暗恋,原创长篇">
+<meta name="author" content="有声书馆">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#efe2cc">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1a1715">
+<meta name="color-scheme" content="light dark">
+<link rel="canonical" href="https://audiobook-hub.site/nanian/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="有声书馆">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:url" content="https://audiobook-hub.site/nanian/">
+<meta property="og:title" content="那年高中 · 有声书 | 有声书馆">
+<meta property="og:description" content="校园双向暗恋长篇有声书，全 40 章。窗外的眼睛，晚自习的风。支持文本同步高亮、倍速播放、定时关闭。">
+<meta property="og:image" content="https://audiobook-hub.site/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="那年高中 · 有声书">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="那年高中 · 有声书 | 有声书馆">
+<meta name="twitter:description" content="校园双向暗恋长篇有声书，全 40 章。窗外的眼睛，晚自习的风。">
+<meta name="twitter:image" content="https://audiobook-hub.site/og-cover.png">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23efe2cc'/><text x='50' y='50' text-anchor='middle' dominant-baseline='central' font-size='56' fill='%23b66b3f' font-family='serif' font-weight='600'>听</text></svg>">
+<link rel="apple-touch-icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect width='180' height='180' rx='40' fill='%23efe2cc'/><text x='90' y='90' text-anchor='middle' dominant-baseline='central' font-size='100' fill='%23b66b3f' font-family='serif' font-weight='600'>听</text></svg>">
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="那年高中">
+<meta name="application-name" content="那年高中有声书">
 <link rel="stylesheet" href="../_shared/audiobook-common.css">
-<title>那年高中 · 有声书</title>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Audiobook",
+  "name": "那年高中",
+  "author": {
+    "@type": "Organization",
+    "name": "有声书馆"
+  },
+  "url": "https://audiobook-hub.site/nanian/",
+  "description": "校园双向暗恋长篇有声书，全 40 章。窗外有一双眼睛，晚自习的风替他传话。",
+  "inLanguage": "zh-CN",
+  "duration": "PT2H45M",
+  "numberOfChapters": "40",
+  "readBy": {
+    "@type": "Person",
+    "name": "苏打"
+  },
+  "isPartOf": {
+    "@type": "WebSite",
+    "name": "有声书馆",
+    "url": "https://audiobook-hub.site/"
+  }
+}
+</script>
+<script>/* 主题前置初始化：避免深色用户先看到浅色闪屏 */
+try{var t=localStorage.getItem('nagao_theme');if(t==='dark'||t==='light')document.documentElement.dataset.theme=t;else if(window.matchMedia('(prefers-color-scheme: dark)').matches)document.documentElement.dataset.theme='dark';}catch(e){}document.documentElement.classList.add('js');</script>
 <style>
 :root {
   color-scheme: light;
@@ -442,6 +494,8 @@ html.js .bottom-player { animation: ng-player-in .55s .55s cubic-bezier(.22,.61,
       <span><span class="brand-title">那年高中</span><span class="brand-subtitle">校园双向暗恋长篇有声书</span></span>
     </a>
     <div class="top-actions">
+      <button class="icon-button" id="helpButton" type="button" title="快捷键帮助" aria-label="键盘快捷键帮助">?</button>
+      <button class="icon-button" id="installButton" type="button" title="安装应用" aria-label="安装为应用" hidden>⬇</button>
       <button class="icon-button menu-toggle" id="menuToggle" type="button" title="章节目录" aria-label="打开章节目录" aria-expanded="false">☰</button>
       <button class="icon-button" id="themeButton" type="button" title="切换明暗主题" aria-label="切换明暗主题">◐</button>
     </div>
@@ -497,7 +551,7 @@ html.js .bottom-player { animation: ng-player-in .55s .55s cubic-bezier(.22,.61,
     <div class="player-chapter"><span class="player-label">正在收听</span><span class="player-name" id="playerTitle">—</span></div>
     <div class="seek-line">
       <span class="time" id="currentTime">0:00</span>
-      <div class="seek" id="seekBar" role="slider" aria-label="播放进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" tabindex="0"><span class="seek-fill" id="seekFill"></span><span class="seek-dot" id="seekDot"></span></div>
+      <div class="seek" id="seekBar" role="slider" aria-label="播放进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" tabindex="0"><div class="ab-buffer" id="bufferBar" style="color:var(--accent)"></div><span class="seek-fill" id="seekFill"></span><span class="seek-dot" id="seekDot"></span></div>
       <span class="time" id="durationTime">0:00</span>
     </div>
     <div class="player-actions">
@@ -611,7 +665,16 @@ html.js .bottom-player { animation: ng-player-in .55s .55s cubic-bezier(.22,.61,
 <script>
 (() => {
   'use strict';
-  const chapters = Array.isArray(window.CHAPTERS) ? window.CHAPTERS : [];
+  // 数据格式归一化：兼容 v1（扁平数组）和 v2（{version, book, chapters}）
+  function normalizeChapters(data) {
+    if (Array.isArray(data)) return data;
+    if (data && typeof data === 'object' && Array.isArray(data.chapters)) {
+      window.BOOK_INFO = data.book || null;
+      return data.chapters;
+    }
+    return [];
+  }
+  const chapters = normalizeChapters(window.CHAPTERS);
   const audio = document.getElementById('audio');
   const chapterList = document.getElementById('chapterList');
   const search = document.getElementById('chapterSearch');
@@ -985,12 +1048,238 @@ html.js .bottom-player { animation: ng-player-in .55s .55s cubic-bezier(.22,.61,
   currentIndex = Math.min(Math.max(Number(localStorage.getItem(chapterKey) || 0), 0), Math.max(0, chapters.length - 1));
   if (chapters.length) { initializeStats(); renderChapterList(''); renderChapter(currentIndex); formatResumeNote(); } else { $('readerTitle').textContent = '章节数据未找到'; readingBody.innerHTML = (window.ABCommon ? ABCommon.errorHTML('请确认 chapters.js 与本页面位于同一目录。', 'retryDataBtn') : '<p class="empty">请确认 chapters.js 与本页面位于同一目录。</p>'); }
 
-  // 直接打开播放器时也注册根 Service Worker，确保音频走 Cache-first。
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('../sw.js').catch(() => {});
+  // ===== 新增功能集成 =====
+  (function () {
+    const AB = window.ABCommon;
+    if (!AB || !chapters.length) return;
+
+    const BOOK_ID = 'nanian';
+
+    // --- 1. 缓冲进度 ---
+    const bufferBar = $('bufferBar');
+    if (bufferBar) AB.initBufferProgress(audio, bufferBar);
+
+    // --- 2. 睡眠定时器增强（淡出效果）---
+    // 用 ABCommon 的睡眠定时器增强原有实现，保留 UI 交互
+    const fadeTimer = AB.createSleepTimer(audio, {
+      fadeDuration: 10000,
+      onTick: function (remaining) {
+        // 同步更新原定时器按钮显示
+        if (timerButton && sleepTimerMode === 'countdown') {
+          const totalSec = Math.ceil(remaining / 1000);
+          timerButton.textContent = formatTimerLabel(totalSec);
+          timerButton.classList.add('timer-badge');
+        }
+      },
+      onEnd: function () {
+        if (timerButton) {
+          timerButton.textContent = '定时';
+          timerButton.classList.remove('timer-badge');
+        }
+        sleepTimerMode = 'off';
+        // 清除原有的 sleepTimer interval
+        if (sleepTimer) { clearInterval(sleepTimer); sleepTimer = null; }
+      },
+      onFadeStart: function () {
+        showToast('即将暂停，音量渐弱中...');
+      }
+    });
+
+    // 包装原有的 startSleepTimer，使用淡出版本
+    const origStartSleepTimer = startSleepTimer;
+    startSleepTimer = function (minutes) {
+      // 先清除原定时器
+      if (sleepTimer) { clearInterval(sleepTimer); sleepTimer = null; }
+      fadeTimer.startCountdown(minutes);
+      sleepTimerMode = 'countdown';
+      // 保留原有的 setInterval 用于 UI 兼容（实际计时由 fadeTimer 处理）
+      sleepTimer = setInterval(function () {
+        // 空转，UI 更新由 fadeTimer 的 onTick 处理
+      }, 1000);
+    };
+
+    const origStartChapterEndTimer = startChapterEndTimer;
+    startChapterEndTimer = function () {
+      if (sleepTimer) { clearInterval(sleepTimer); sleepTimer = null; }
+      fadeTimer.startChapterEnd();
+      sleepTimerMode = 'chapter';
+      timerButton.textContent = '本章后';
+      timerButton.classList.add('timer-badge');
+      showToast('本章播放结束后自动暂停');
+    };
+
+    let chapterEndFading = false; // 章节结束淡出进行中标志
+
+    const origClearSleepTimer = clearSleepTimer;
+    clearSleepTimer = function (silent) {
+      // 如果是章节结束淡出中，不要取消（让它自然完成）
+      if (chapterEndFading) return;
+      fadeTimer.cancel(true); // 静默取消淡出
+      sleepTimerMode = 'off';
+      if (sleepTimer) { clearInterval(sleepTimer); sleepTimer = null; }
+      if (timerButton) {
+        timerButton.textContent = '定时';
+        timerButton.classList.remove('timer-badge');
+      }
+      if (!silent) {
+        showToast('已取消定时关闭');
+      }
+    };
+
+    // 章节结束时触发淡出（chapter 模式）
+    // 使用 capture 确保在原 ended 处理函数之前执行
+    audio.addEventListener('ended', function () {
+      if (sleepTimerMode === 'chapter' && fadeTimer) {
+        chapterEndFading = true;
+        // 启动淡出（较短的淡出时间，因为章节已经结束了）
+        fadeTimer.onChapterEnded();
+        // 淡出结束后重置标志
+        setTimeout(function () {
+          chapterEndFading = false;
+        }, 12000); // 淡出时间 + 2 秒缓冲
+      }
+    }, true);
+
+    // --- 3. 键盘快捷键扩展 ---
+    // 跳过 nanian 已有的快捷键（Space、方向键），只添加新增的
+    AB.initKeyboardShortcuts(audio, {
+      seekSmall: 5,
+      seekLarge: 10,
+      skipKeys: [' ', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'],
+      onPrevChapter: function () {
+        if (currentIndex > 0) loadChapter(currentIndex - 1, !audio.paused);
+      },
+      onNextChapter: function () {
+        if (currentIndex < chapters.length - 1) loadChapter(currentIndex + 1, !audio.paused);
+      },
+      onTogglePlay: function () {
+        if (audio.paused) audio.play().catch(function () {});
+        else audio.pause();
+      },
+      onSpeedChange: function (rate) {
+        const speedBtn = $('speedButton');
+        if (speedBtn) speedBtn.textContent = rate.toFixed(2).replace(/\.?0+$/, '') + 'x';
+        audio.playbackRate = rate;
+      },
+      onSleepTimer: function () {
+        // T 键循环切换定时：off → 15 → 30 → 45 → 60 → 本章 → off
+        if (sleepTimerMode === 'off' || !sleepTimerMode) {
+          startSleepTimer(15);
+        } else if (sleepTimerMode === 'countdown' && fadeTimer) {
+          const remaining = fadeTimer.getRemaining();
+          const minutes = Math.ceil(remaining / 60000);
+          if (minutes <= 15) { startSleepTimer(30); }
+          else if (minutes <= 30) { startSleepTimer(45); }
+          else if (minutes <= 45) { startSleepTimer(60); }
+          else { startChapterEndTimer(); }
+        } else if (sleepTimerMode === 'chapter') {
+          clearSleepTimer();
+        }
+      },
+      extraShortcuts: [
+        { key: 'Space', label: '播放/暂停', description: '已有' },
+        { key: '←/→', label: '快退/快进 15 秒', description: '已有' },
+        { key: '↑/↓', label: '菜单导航', description: '菜单打开时' },
+        { key: 'Esc', label: '关闭菜单/抽屉', description: '关闭打开的菜单或侧边栏' }
+      ]
+    });
+
+    // 帮助按钮
+    const helpBtn = $('helpButton');
+    if (helpBtn) {
+      helpBtn.addEventListener('click', function () {
+        AB.showShortcutsHelp();
+      });
+    }
+
+    // --- 4. PWA 安装 ---
+    const installBtn = $('installButton');
+    if (installBtn) {
+      AB.initPWAInstall(installBtn, {
+        onAvailable: function () {
+          installBtn.hidden = false;
+        },
+        onInstalled: function () {
+          installBtn.hidden = true;
+        }
+      });
+    }
+
+    // --- 5. 播放进度持久化（统一格式）---
+    audio.addEventListener('timeupdate', function () {
+      AB.saveProgress(BOOK_ID, {
+        chapterId: currentIndex,
+        currentTime: audio.currentTime,
+        volume: audio.volume,
+        playbackRate: audio.playbackRate
+      });
+    });
+
+    window.addEventListener('beforeunload', function () {
+      try {
+        localStorage.setItem(
+          'audiobook-progress-' + BOOK_ID,
+          JSON.stringify({
+            chapterId: currentIndex,
+            currentTime: audio.currentTime,
+            volume: audio.volume,
+            playbackRate: audio.playbackRate,
+            timestamp: Date.now()
+          })
+        );
+      } catch (_) {}
+    });
+
+    // --- 6. 继续播放提示 ---
+    const progress = AB.loadProgress(BOOK_ID);
+    if (progress && progress.chapterId != null && progress.currentTime > 5) {
+      const chIdx = Number(progress.chapterId);
+      const ch = chapters[chIdx];
+      if (ch && progress.currentTime < (ch.dur || ch.duration) - 5) {
+        const age = Date.now() - (progress.timestamp || 0);
+        if (age < 7 * 24 * 60 * 60 * 1000) {
+          setTimeout(function () {
+            AB.showResumePrompt(progress, {
+              chapterTitle: ch.title,
+              onConfirm: function (p) {
+                const idx = Number(p.chapterId);
+                if (idx !== currentIndex) {
+                  loadChapter(idx, false);
+                }
+                const doSeek = function () {
+                  if (audio.duration && p.currentTime < audio.duration) {
+                    audio.currentTime = p.currentTime;
+                  }
+                  audio.play().catch(function () {});
+                  audio.removeEventListener('canplay', doSeek);
+                };
+                if (audio.readyState >= 1) doSeek();
+                else audio.addEventListener('canplay', doSeek);
+
+                if (p.volume != null) audio.volume = p.volume;
+                if (p.playbackRate != null) audio.playbackRate = p.playbackRate;
+              },
+              onCancel: function () {
+                AB.clearProgress(BOOK_ID);
+              }
+            });
+          }, 1000);
+        }
+      }
+    }
+
+    // --- 7. 虚拟滚动（章节列表，可选，>50 章时启用）---
+    // nanian 只有 40 章，默认不启用虚拟滚动
+    // 如果后续章节数增加，会自动启用
+
+  })();
+
+  // 注册本书 Service Worker（scope 限定在 nanian/ 目录下）
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 
   // ===== 离线缓存功能 =====
   (() => {
-    const AUDIO_CACHE_NAME = 'audio-audiobook-hub-v8';
+    const AUDIO_CACHE_NAME = 'audio-audiobook-hub-nanian-v10';
     const cacheToggle = $('cacheToggle');
     const cachePopup = $('cachePopup');
     const cacheIcon = $('cacheIcon');
