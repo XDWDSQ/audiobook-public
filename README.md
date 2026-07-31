@@ -15,13 +15,27 @@
 
 ## 同步方法
 
-先在源码目录完成修改与本地验证，再同步到本镜像。
+先在源码目录完成修改与本地验证，再同步到本镜像。**不要用整目录覆盖复制**——《知晓》播放器
+源码区（`novel1/audiobook/`）与镜像（`zhixiao/`）对 `_shared/` 的引用写法不同（前者 `_shared/`，
+后者 `../_shared/`），请使用仓库根的同步脚本：
 
-```powershell
-Copy-Item novel1\audiobook\* site-dist\zhixiao\ -Recurse -Force
+```bash
+python scripts/sync_zhixiao.py            # 同步 + 校验
+python scripts/sync_zhixiao.py --check    # 只检查漂移（有差异退出码 1）
 ```
 
 着陆页应从生产源码复制，不从草稿或 UI 探索目录发布。
+
+## 发布到生产
+
+本目录内容即公开部署仓库 `XDWDSQ/audiobook-public` 的**根目录**。发布时，把本地 `site-dist/`
+的变更同步到该仓库的工作副本并推送，GitHub Pages 会自动构建：
+
+```bash
+cd <audiobook-public 工作副本>   # git clone https://github.com/XDWDSQ/audiobook-public.git
+# 用本地 site-dist/ 内容覆盖对应文件（保留 CNAME 与 .nojekyll）
+git add -A && git commit -m "deploy: 描述" && git push origin main
+```
 
 ## 禁止事项
 
@@ -41,4 +55,4 @@ Copy-Item novel1\audiobook\* site-dist\zhixiao\ -Recurse -Force
 - [ ] Console 无错误
 - [ ] Git diff 只包含预期产物
 
-完整流程见[顶层部署指南](../docs/DEPLOYMENT.md)，故障处理见[排错指南](../docs/TROUBLESHOOTING.md)。
+部署与发布流程见 [ARCHITECTURE.md](../ARCHITECTURE.md) 第 3 节，排障见 [CLAUDE.md](../CLAUDE.md) 排障速查。
