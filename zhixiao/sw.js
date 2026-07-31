@@ -37,7 +37,6 @@ const SHELL_ASSETS = [
   './',
   './index.html',
   './data.json',
-  './chapters.js',
   '../_shared/audiobook-common.js',
   '../_shared/audiobook-common.css'
 ];
