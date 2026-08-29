@@ -1,10 +1,13 @@
-/* sw.js — 知晓有声书 Service Worker (v10)
+/* sw.js — 知晓有声书 Service Worker (v11)
  *
  * 统一缓存策略：
- *   page-cache   — HTML 页面 / 章节数据：network-first，离线回退缓存
+ *   page-cache   — HTML 页面：network-first，离线回退缓存
+ *                  章节数据 data.json：stale-while-revalidate（安装时预缓存，
+ *                  运行时先回缓存再后台更新，首屏不再等网络）
  *   static-cache — CSS / JS / 图片：stale-while-revalidate
  *   font-cache   — 字体文件：cache-first，长期缓存
- *   audio-cache  — 音频文件：cache-first，容量上限 + LRU 淘汰
+ *   audio-cache  — 音频文件：cache-first，容量上限（650MB）+ LRU 淘汰；
+ *                  播放器侧 URL 带 ?v=hash，文件变化时自动失效
  *
  * 命名空间前缀：audiobook-hub-
  * 本书标识：zhixiao
@@ -12,14 +15,15 @@
  *
  * 消息 API：
  *   SKIP_WAITING              — 立即激活新 SW
- *   PREFETCH_AUDIO  {urls}    — 预下载音频
+ *   PREFETCH_AUDIO  {urls,runId} — 串行预下载音频，完成后广播 PREFETCH_DONE
+ *   PREFETCH_STOP             — 中止当前预取轮次
  *   QUERY_CACHED_AUDIO        — 查询已缓存音频列表
  *   CLEAR_AUDIO_CACHE         — 清空音频缓存
  *   GET_CACHE_INFO            — 获取缓存统计信息
  */
 
 const SW_ID = 'zhixiao';
-const VERSION = 10;
+const VERSION = 11;
 const CACHE_PREFIX = 'audiobook-hub-';
 
 const PAGE_CACHE   = `page-${CACHE_PREFIX}${SW_ID}-v${VERSION}`;
@@ -29,17 +33,14 @@ const AUDIO_CACHE  = `audio-${CACHE_PREFIX}${SW_ID}-v${VERSION}`;
 
 const ALL_CACHES = [PAGE_CACHE, STATIC_CACHE, FONT_CACHE, AUDIO_CACHE];
 
-// 音频缓存容量上限（字节）：默认 500MB
-const AUDIO_CACHE_LIMIT = 500 * 1024 * 1024;
+// 音频缓存容量上限（字节）：650MB
+const AUDIO_CACHE_LIMIT = 650 * 1024 * 1024;
 
-// 安装时预缓存的外壳资源
-const SHELL_ASSETS = [
-  './',
-  './index.html',
-  './data.json',
-  '../_shared/audiobook-common.js',
-  '../_shared/audiobook-common.css'
-];
+// 安装时预缓存的外壳资源（按运行策略分仓，避免与页面 fetch 重复写入）
+const SHELL_ASSETS = {
+  page: ['./', './index.html', './data.json'],
+  static: ['../_shared/audiobook-common.js', '../_shared/audiobook-common.css']
+};
 
 /* ---------- 工具函数 ---------- */
 
@@ -52,8 +53,8 @@ function isFontRequest(pathname) {
 }
 
 function isPageRequest(pathname) {
-  // HTML 页面、目录路径、章节数据
-  return /(\.html$|\/$|data\.json$|chapters\.js$|\/sitemap\.xml$)/i.test(pathname);
+  // HTML 页面、目录路径（data.json 单独走 SWR，不在此列）
+  return /(\.html$|\/$|\/sitemap\.xml$)/i.test(pathname);
 }
 
 function isStaticRequest(pathname) {
@@ -198,25 +199,83 @@ function getAudioStats() {
 
 /* ---------- 缓存策略实现 ---------- */
 
+// 从缓存响应构造 206 切片（浏览器 Range 请求；缓存匹配会忽略 Range 头，
+// 若直接返回整包 200，媒体元素会判定资源不可寻址，进度条无法拖动）
+function serveRange(cached, request) {
+  const range = request.headers.get('range');
+  if (!range) return null;
+  const m = String(range).trim().match(/^bytes=(\d*)-(\d*)$/);
+  if (!m) return null;
+  const size = Number(cached.headers.get('content-length')) || 0;
+  if (!size) return null;
+  const ct = cached.headers.get('content-type') || 'audio/mpeg';
+  let start = m[1] === '' ? null : parseInt(m[1], 10);
+  let end = m[2] === '' ? null : parseInt(m[2], 10);
+  if (start == null) { // 后缀范围（bytes=-N）：取最后 N 字节
+    const suffix = end == null ? 0 : end;
+    start = Math.max(0, size - suffix);
+    end = size - 1;
+  } else if (end == null) {
+    end = size - 1;
+  }
+  end = Math.min(end, size - 1);
+  if (start > end || start >= size) {
+    return Promise.resolve(new Response('', {
+      status: 416,
+      headers: { 'Content-Range': 'bytes */' + size }
+    }));
+  }
+  return cached.arrayBuffer().then((buf) => new Response(new Uint8Array(buf.slice(start, end + 1)), {
+    status: 206,
+    statusText: 'Partial Content',
+    headers: {
+      'Content-Type': ct,
+      'Content-Range': 'bytes ' + start + '-' + end + '/' + size,
+      'Content-Length': String(end - start + 1),
+      'Accept-Ranges': 'bytes'
+    }
+  }));
+}
+
+// CORS 过滤会剥掉 Accept-Ranges / Content-Length 等头，缓存前重建，
+// 保证缓存命中时媒体元素仍可 seek。
+function buildAudioResponse(resp) {
+  return resp.arrayBuffer().then((buf) => new Response(new Uint8Array(buf), {
+    status: 200,
+    statusText: 'OK',
+    headers: {
+      'Content-Type': resp.headers.get('content-type') || 'audio/mpeg',
+      'Content-Length': String(buf.byteLength),
+      'Accept-Ranges': 'bytes'
+    }
+  }));
+}
+
 // 策略 1: cache-first（音频、字体）
 function cacheFirst(cacheName, request, trackAudio) {
   return caches.open(cacheName).then((cache) =>
     cache.match(request).then((cached) => {
       if (cached) {
         if (trackAudio) touchAudioMeta(request.url);
+        const ranged = trackAudio ? serveRange(cached, request) : null;
+        if (ranged) return ranged;
         return cached;
       }
       return fetch(request).then((resp) => {
         if (resp && resp.status === 200) {
-          const copy = resp.clone();
           if (trackAudio) {
-            // 估算大小并更新元数据
+            // 估算大小并更新元数据；以重建头的响应入缓存
             resp.clone().arrayBuffer().then((buf) => {
               updateAudioMeta(request.url, buf.byteLength);
               evictAudioIfNeeded();
             }).catch(() => {});
+            buildAudioResponse(resp.clone()).then((audioCopy) =>
+              cache.put(request, audioCopy).catch(() => {})
+            ).catch(() => {});
+          } else {
+            const copy = resp.clone();
+            cache.put(request, copy).catch(() => {});
           }
-          cache.put(request, copy).catch(() => {});
         }
         return resp;
       }).catch(() => new Response('', { status: 503, statusText: 'Offline' }));
@@ -224,7 +283,7 @@ function cacheFirst(cacheName, request, trackAudio) {
   );
 }
 
-// 策略 2: network-first（页面、章节数据）
+// 策略 2: network-first（页面）
 function networkFirst(cacheName, request) {
   return fetch(request).then((resp) => {
     if (resp && resp.status === 200) {
@@ -242,7 +301,8 @@ function networkFirst(cacheName, request) {
   );
 }
 
-// 策略 3: stale-while-revalidate（静态资源）
+// 策略 3: stale-while-revalidate（静态资源、data.json）
+// 离线且无缓存时返回 503 占位响应，避免 respondWith(undefined) 抛错。
 function staleWhileRevalidate(cacheName, request) {
   return caches.open(cacheName).then((cache) =>
     cache.match(request).then((cached) => {
@@ -252,8 +312,8 @@ function staleWhileRevalidate(cacheName, request) {
           cache.put(request, copy).catch(() => {});
         }
         return resp;
-      }).catch(() => cached);
-      return cached || networkPromise;
+      }).catch(() => cached || null);
+      return cached || networkPromise || new Response('', { status: 503, statusText: 'Offline' });
     })
   );
 }
@@ -262,9 +322,10 @@ function staleWhileRevalidate(cacheName, request) {
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(PAGE_CACHE)
-      .then((cache) => cache.addAll(SHELL_ASSETS).catch(() => {}))
-      .then(() => self.skipWaiting())
+    Promise.all([
+      caches.open(PAGE_CACHE).then((cache) => cache.addAll(SHELL_ASSETS.page).catch(() => {})),
+      caches.open(STATIC_CACHE).then((cache) => cache.addAll(SHELL_ASSETS.static).catch(() => {}))
+    ]).then(() => self.skipWaiting())
   );
 });
 
@@ -282,6 +343,8 @@ self.addEventListener('activate', (event) => {
 
 /* ---------- 消息处理 ---------- */
 
+let prefetchStopFlag = false;
+
 self.addEventListener('message', (event) => {
   if (event.data === 'SKIP_WAITING') {
     self.skipWaiting();
@@ -290,33 +353,54 @@ self.addEventListener('message', (event) => {
 
   const data = event.data || {};
 
-  // 预下载音频
+  // 中止当前预取轮次（页面点击"暂停"时发出）
+  if (data.type === 'PREFETCH_STOP') {
+    prefetchStopFlag = true;
+    return;
+  }
+
+  // 串行预下载音频（120ms 间隔留给网络栈与渲染；PREFETCH_STOP 可中止）
   if (data.type === 'PREFETCH_AUDIO') {
     const urls = data.urls || [];
+    const runId = data.runId || 0;
+    prefetchStopFlag = false;
     event.waitUntil(
-      caches.open(AUDIO_CACHE).then((cache) =>
-        Promise.allSettled(urls.map((url) =>
-          cache.match(url).then((hit) => {
-            if (hit) return Promise.resolve(); // 已缓存，跳过
-            return fetch(url, { mode: 'cors' }).then((resp) => {
-              if (resp && resp.status === 200) {
-                const copy = resp.clone();
-                resp.clone().arrayBuffer().then((buf) => {
-                  updateAudioMeta(url, buf.byteLength);
-                }).catch(() => {});
-                return cache.put(url, copy);
+      caches.open(AUDIO_CACHE).then((cache) => (async () => {
+        for (const url of urls) {
+          if (prefetchStopFlag) break;
+          const hit = await cache.match(url).catch(() => null);
+          if (hit) continue; // 已缓存，跳过
+          try {
+            const resp = await fetch(url, { mode: 'cors' });
+            if (resp && resp.status === 200) {
+              // 重建响应头（Accept-Ranges/Content-Length），保证缓存命中可 seek
+              const buf = await resp.arrayBuffer().catch(() => null);
+              if (buf) {
+                updateAudioMeta(url, buf.byteLength);
+                const audioCopy = new Response(new Uint8Array(buf), {
+                  status: 200,
+                  statusText: 'OK',
+                  headers: {
+                    'Content-Type': resp.headers.get('content-type') || 'audio/mpeg',
+                    'Content-Length': String(buf.byteLength),
+                    'Accept-Ranges': 'bytes'
+                  }
+                });
+                await cache.put(url, audioCopy).catch(() => {});
               }
-            }).catch(() => {});
-          })
-        ))
-      ).then(() => {
+            }
+          } catch (_) {
+            /* 单章失败不阻塞队列；断网时由 online 事件重发 */
+          }
+          await new Promise((resolve) => setTimeout(resolve, 120));
+        }
         // 缓存完成后执行淘汰
-        evictAudioIfNeeded();
-        // 通知所有客户端
+        await evictAudioIfNeeded();
+        // 通知所有客户端（带回 runId，页面据此忽略过期轮次）
         self.clients.matchAll().then((clients) => {
-          clients.forEach((c) => c.postMessage({ type: 'PREFETCH_DONE', urls }));
+          clients.forEach((c) => c.postMessage({ type: 'PREFETCH_DONE', urls, runId }));
         });
-      })
+      })())
     );
     return;
   }
@@ -386,7 +470,7 @@ self.addEventListener('fetch', (event) => {
 
   const path = url.pathname;
 
-  // 1. 音频：cache-first + LRU
+  // 1. 音频：cache-first + LRU（URL 带 ?v=hash，文件更新后自动换新条目）
   if (isAudioRequest(path)) {
     event.respondWith(cacheFirst(AUDIO_CACHE, req, true));
     return;
@@ -398,18 +482,24 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 3. 页面 + 章节数据：network-first
+  // 3. 章节数据 data.json：stale-while-revalidate
+  if (/data\.json$/.test(path)) {
+    event.respondWith(staleWhileRevalidate(PAGE_CACHE, req));
+    return;
+  }
+
+  // 4. 页面：network-first
   if (isPageRequest(path)) {
     event.respondWith(networkFirst(PAGE_CACHE, req));
     return;
   }
 
-  // 4. 静态资源（CSS/JS/图片）：stale-while-revalidate
+  // 5. 静态资源（CSS/JS/图片）：stale-while-revalidate
   if (isStaticRequest(path)) {
     event.respondWith(staleWhileRevalidate(STATIC_CACHE, req));
     return;
   }
 
-  // 5. 其他请求：stale-while-revalidate 兜底
+  // 6. 其他请求：stale-while-revalidate 兜底
   event.respondWith(staleWhileRevalidate(STATIC_CACHE, req));
 });

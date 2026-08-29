@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>那年高中 · 有声书 | 有声书馆</title>
-<meta name="description" content="《那年高中》完整有声书，免费收听，校园双向暗恋故事。全 40 章，约 2 小时 45 分。支持文本同步高亮、倍速播放、定时关闭。">
+<meta name="description" content="《那年高中》完整有声书，免费收听，校园双向暗恋故事。全 40 章，约 8 小时 31 分。支持文本同步高亮、倍速播放、定时关闭。">
 <meta name="keywords" content="那年高中,有声书,有声小说,校园文学,双向暗恋,原创长篇">
 <meta name="author" content="有声书馆">
 <meta name="robots" content="index,follow,max-image-preview:large">
@@ -46,7 +46,7 @@
   "url": "https://audiobook-hub.site/nanian/",
   "description": "校园双向暗恋长篇有声书，全 40 章。窗外有一双眼睛，晚自习的风替他传话。",
   "inLanguage": "zh-CN",
-  "duration": "PT2H45M",
+  "duration": "PT8H31M",
   "numberOfChapters": "40",
   "readBy": {
     "@type": "Person",
@@ -59,544 +59,821 @@
   }
 }
 </script>
-<script>/* 主题前置初始化：避免深色用户先看到浅色闪屏 */
-try{var t=localStorage.getItem('nagao_theme');if(t==='dark'||t==='light')document.documentElement.dataset.theme=t;else if(window.matchMedia('(prefers-color-scheme: dark)').matches)document.documentElement.dataset.theme='dark';}catch(e){}document.documentElement.classList.add('js');</script>
+<script>/* 主题前置初始化：统一键 audiobook-theme（与着陆页/404 共享），旧按书键兜底，避免深色用户先看到浅色闪屏 */
+try{var t=localStorage.getItem('audiobook-theme');if(t==null)t=localStorage.getItem('nanian_theme');if(t==='dark'||(t!=='light'&&window.matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.dataset.theme='dark';}catch(e){}document.documentElement.classList.add('js');</script>
 <style>
 :root {
   color-scheme: light;
   --bg: #f7f1e8;
-  --bg-deep: #efe4d5;
-  --panel: rgba(255, 252, 247, .88);
-  --panel-solid: #fffaf4;
-  --ink: #2f2923;
-  --muted: #8b7d70;
-  --line: #e5d8c9;
+  --surface: #fffaf4;
+  --surface-light: #efe4d5;
+  --text: #2f2923;
+  --text-dim: #8b7d70;
   --accent: #b66b3f;
   --accent-deep: #8f4f2c;
-  --accent-soft: #f3dfcf;
+  --accent-glow: rgba(182,107,63,0.12);
+  --highlight: rgba(182,107,63,0.10);
   --gold: #c7954f;
-  --shadow: 0 18px 50px rgba(85, 58, 35, .10);
-  --radius-lg: 24px;
-  --radius-md: 15px;
-  --font-serif: "Noto Serif SC", "Source Han Serif SC", "Songti SC", SimSun, serif;
-  --font-sans: "PingFang SC", "Microsoft YaHei", sans-serif;
+  --border: #e5d8c9;
 }
 [data-theme="dark"] {
   color-scheme: dark;
   --bg: #211b18;
-  --bg-deep: #30241e;
-  --panel: rgba(49, 39, 33, .92);
-  --panel-solid: #312721;
-  --ink: #f3e9dd;
-  --muted: #b4a294;
-  --line: #55443a;
+  --surface: #312721;
+  --surface-light: #30241e;
+  --text: #f3e9dd;
+  --text-dim: #b4a294;
   --accent: #dc9968;
   --accent-deep: #f0b184;
-  --accent-soft: #4a3429;
+  --accent-glow: rgba(220,153,104,0.16);
+  --highlight: rgba(220,153,104,0.12);
   --gold: #d8ad68;
-  --shadow: 0 18px 50px rgba(0, 0, 0, .24);
+  --border: #55443a;
 }
-* { box-sizing: border-box; }
+* { margin:0; padding:0; box-sizing:border-box; }
 html { scroll-behavior: smooth; }
 body {
-  margin: 0;
-  min-width: 320px;
-  overflow-x: hidden;
-  color: var(--ink);
   background:
     radial-gradient(circle at 10% 0%, rgba(199,149,79,.15), transparent 34rem),
     radial-gradient(circle at 100% 20%, rgba(182,107,63,.11), transparent 30rem),
     var(--bg);
-  font-family: var(--font-sans);
-  transition: background .25s ease, color .25s ease;
-}
-button, input { font: inherit; }
-button { color: inherit; }
-button:focus-visible, input:focus-visible, .segment:focus-visible {
-  outline: 3px solid color-mix(in srgb, var(--accent) 55%, transparent);
-  outline-offset: 3px;
-}
-.app { min-height: 100vh; padding-bottom: 124px; }
-.container { width: min(1220px, calc(100vw - 40px)); margin: 0 auto; }
-.topbar {
-  height: 74px;
+  color: var(--text);
+  font-family: "Noto Serif SC","Source Han Serif SC","Songti SC","SimSun",serif;
+  /* 定高 + 隐藏溢出：构成 app-shell 布局，正文在 .reader 内部滚动、播放栏常驻底部 */
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  border-bottom: 1px solid var(--line);
+  flex-direction: column;
+  transition: background 0.3s, color 0.3s;
+  -webkit-tap-highlight-color: transparent;
+  contain: layout style;
 }
-.brand { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--ink); }
+header {
+  text-align: center;
+  padding: 16px 20px 14px;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  flex-shrink: 0;
+}
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: var(--text);
+}
 .brand-mark {
-  width: 38px; height: 38px; border-radius: 12px;
+  width: 38px; height: 38px; border-radius: 14px;
   display: grid; place-items: center;
   color: #fff8ef; background: linear-gradient(145deg, var(--accent), var(--gold));
   box-shadow: 0 8px 18px rgba(182,107,63,.24);
-  font-family: var(--font-serif); font-size: 19px;
+  font-family: "Noto Serif SC","Source Han Serif SC",serif; font-size: 19px;
+  transition: transform .25s cubic-bezier(.22,.61,.36,1);
 }
-.brand-title { font-family: var(--font-serif); font-size: 19px; letter-spacing: .12em; font-weight: 700; }
-.brand-subtitle { color: var(--muted); font-size: 11px; letter-spacing: .12em; margin-top: 3px; }
-.top-actions { display: flex; align-items: center; gap: 10px; }
-.icon-button, .outline-button {
-  border: 1px solid var(--line); background: var(--panel); cursor: pointer;
-  transition: transform .22s cubic-bezier(.22,.61,.36,1), border-color .22s ease, background .22s ease, color .22s ease, box-shadow .22s ease;
-}
-.icon-button { width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; font-size: 16px; }
-.outline-button { padding: 9px 13px; border-radius: 11px; font-size: 12px; }
-.icon-button:hover, .outline-button:hover { transform: translateY(-2px); border-color: var(--accent); background: var(--accent-soft); box-shadow: 0 8px 18px -12px color-mix(in srgb, var(--accent) 60%, transparent); }
-.icon-button:active, .outline-button:active { transform: translateY(0) scale(.96); transition: transform .12s ease; }
-.hero { padding: 58px 0 35px; display: grid; grid-template-columns: 1.15fr .85fr; gap: 44px; align-items: end; }
-.hero > * { min-width: 0; }
-.kicker { color: var(--accent); font-size: 12px; letter-spacing: .25em; font-weight: 700; }
-.hero h1 { margin: 13px 0 16px; font-family: var(--font-serif); font-size: clamp(40px, 6vw, 78px); line-height: 1.06; letter-spacing: .08em; font-weight: 700; }
-.hero h1 em { color: var(--accent); font-style: normal; }
-.hero-intro { max-width: 560px; margin: 0; color: var(--muted); line-height: 1.9; font-family: var(--font-serif); font-size: 15px; }
-.hero-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 11px; width: 100%; max-width: 100%; min-width: 0; }
-.stat { width: 100%; min-width: 0; overflow: hidden; padding: 17px 15px; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--panel); box-shadow: var(--shadow); }
-.stat-value { display: block; overflow: hidden; color: var(--accent); font-family: var(--font-serif); font-size: clamp(16px, 2.2vw, 23px); font-weight: 700; white-space: nowrap; text-overflow: ellipsis; }
-.stat-label { display: block; margin-top: 5px; color: var(--muted); font-size: 11px; }
-.progress-card { margin: 4px 0 28px; padding: 18px 20px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius-lg); box-shadow: var(--shadow); }
-.progress-head { display: flex; justify-content: space-between; align-items: center; gap: 15px; font-size: 12px; }
-.progress-head strong { color: var(--accent); }
-.book-progress { height: 8px; margin-top: 11px; border-radius: 99px; overflow: hidden; background: var(--bg-deep); position: relative; }
-.book-progress > span {
-  display: block; height: 100%; width: 0; border-radius: inherit;
-  background: linear-gradient(90deg, var(--accent), var(--gold));
-  transition: width .35s ease;
-  position: relative;
-}
-.book-progress > span::after {
-  content: "";
-  position: absolute; inset: 0;
-  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,.45) 50%, transparent 100%);
-  transform: translateX(-100%);
-  animation: ng-book-shimmer 3s ease-in-out infinite;
-  pointer-events: none;
-}
-@keyframes ng-book-shimmer {
-  0%   { transform: translateX(-100%); }
-  60%  { transform: translateX(120%); }
-  100% { transform: translateX(120%); }
-}
-.resume-note { margin: 11px 0 0; color: var(--muted); font-size: 11px; }
-.resume-note strong { color: var(--accent); font-weight: 600; }
-.workspace { display: grid; grid-template-columns: 330px minmax(0, 1fr); gap: 22px; align-items: start; }
-.panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius-lg); box-shadow: var(--shadow); backdrop-filter: blur(10px); }
-.library { position: sticky; top: 18px; max-height: calc(100vh - 36px); overflow: hidden; display: flex; flex-direction: column; }
-.library-head { padding: 20px 20px 16px; border-bottom: 1px solid var(--line); }
-.section-title { margin: 0; font-family: var(--font-serif); font-size: 18px; letter-spacing: .12em; }
-.section-caption { margin: 6px 0 0; color: var(--muted); font-size: 12px; }
-.search { position: relative; margin-top: 15px; display: block; }
-.search input { width: 100%; border: 1px solid var(--line); border-radius: 11px; padding: 11px 12px 11px 35px; outline: none; color: var(--ink); background: var(--bg); font-size: 12px; }
-.search input:focus { border-color: var(--accent); }
-.search::before { content: "⌕"; position: absolute; left: 13px; top: 8px; z-index: 1; color: var(--muted); font-size: 18px; }
-.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
-.chapter-list { list-style: none; margin: 0; padding: 10px 8px 14px; overflow-y: auto; min-height: 0; }
-.chapter-list::-webkit-scrollbar, .reading-body::-webkit-scrollbar { width: 7px; }
-.chapter-list::-webkit-scrollbar-thumb, .reading-body::-webkit-scrollbar-thumb { background: var(--line); border-radius: 99px; }
-.menu-toggle { display: none; }
-.drawer-overlay { display: none; }
-.drawer-close { display: none; }
-.chapter-item { margin: 2px 0; animation: ng-toc-in .5s ease both; animation-delay: calc(min(var(--toc-i, 0), 24) * 14ms); }
-@keyframes ng-toc-in {
-  from { opacity: 0; transform: translateY(6px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-.chapter-button {
-  width: 100%; display: flex; align-items: center; gap: 11px;
-  padding: 11px 12px; border: 0; border-radius: 12px; cursor: pointer;
-  text-align: left; background: transparent;
-  position: relative;
-  transition: background .22s ease, color .22s ease, transform .25s cubic-bezier(.22,.61,.36,1), padding-left .25s cubic-bezier(.22,.61,.36,1), box-shadow .25s ease;
-}
-.chapter-button::before {
-  content: ""; position: absolute; left: 0; top: 50%;
-  width: 3px; height: 0; border-radius: 0 3px 3px 0;
-  background: var(--accent);
+.brand:hover .brand-mark { transform: scale(1.06) rotate(-3deg); }
+.brand-body { display: flex; flex-direction: column; line-height: 1.1; text-align: left; }
+.brand-title { font-size: 1.5rem; font-weight: 400; letter-spacing: 0.4em; color: var(--accent); }
+.brand-sub { font-size: 0.7rem; color: var(--text-dim); letter-spacing: 0.18em; margin-top: 3px; }
+.header-btns {
+  position: absolute;
+  right: 16px;
+  top: 50%;
   transform: translateY(-50%);
-  transition: height .25s cubic-bezier(.22,.61,.36,1);
+  display: flex;
+  gap: 8px;
+}
+.icon-btn {
+  background: var(--surface-light);
+  border: 1px solid var(--border);
+  color: var(--text);
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+  touch-action: manipulation;
+}
+.icon-btn:hover { background: var(--accent-glow); border-color: var(--accent); }
+.menu-btn {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* 侧边目录 */
+.sidebar {
+  position: fixed;
+  left: -320px;
+  top: 0;
+  width: 300px;
+  height: 100vh;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  transition: left 0.3s ease;
+  z-index: 200;
+  padding: 20px 0;
+  contain: layout style;
+}
+.sidebar.open { left: 0; }
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 150;
+  display: none;
+}
+.sidebar-overlay.show { display: block; }
+.sidebar h3 {
+  font-size: 0.9rem;
+  color: var(--accent);
+  letter-spacing: 0.2em;
+  padding: 0 20px 16px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 8px;
+}
+.sidebar a {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 18px 9px 16px;
+  color: var(--text-dim);
+  text-decoration: none;
+  font-size: 0.85rem;
+  transition: background 0.22s ease, color 0.22s ease, border-left-color 0.22s ease, padding-left 0.22s ease;
+  border-left: 3px solid transparent;
+  border-radius: 0 14px 14px 0;
+  margin: 1px 0;
+  position: relative;
+  animation: ab-toc-in 0.5s ease both;
+}
+.sidebar a::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 6px; bottom: 6px;
+  width: 3px;
+  background: var(--accent);
+  border-radius: 0 3px 3px 0;
+  transform: scaleY(0);
+  transform-origin: center;
+  transition: transform 0.25s cubic-bezier(0.22, 0.61, 0.36, 1);
   pointer-events: none;
 }
-.chapter-button:hover { background: var(--accent-soft); transform: translateX(3px); padding-left: 14px; }
-.chapter-button:hover::before { height: 22px; }
-.chapter-button:active { transform: translateX(2px) scale(.99); transition: transform .12s ease; }
-.chapter-button.active {
-  background: var(--accent);
-  color: #fff9f2;
-  box-shadow: 0 6px 18px -8px color-mix(in srgb, var(--accent) 60%, transparent);
+.sidebar a:hover {
+  color: var(--text);
+  background: var(--accent-glow);
+  padding-left: 19px;
 }
-.chapter-button.active::before { height: 26px; background: #fff0e1; box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 60%, transparent); }
-.chapter-number {
-  width: 28px; height: 28px; flex: 0 0 28px; display: grid; place-items: center;
-  border-radius: 9px; background: var(--bg-deep); color: var(--accent); font-size: 11px; font-weight: 700;
-  transition: transform .22s cubic-bezier(.22,.61,.36,1), background .22s ease, color .22s ease;
+.sidebar a:hover::before {
+  transform: scaleY(0.65);
 }
-.chapter-button:hover .chapter-number { transform: scale(1.08) rotate(-3deg); }
-.chapter-button.active .chapter-number { color: var(--accent-deep); background: #fff0e1; }
-.chapter-button.active .chapter-number { animation: ng-num-pulse 2.4s ease-out infinite; }
-@keyframes ng-num-pulse {
-  0%   { box-shadow: 0 0 0 0 rgba(255,240,225,.65); }
-  70%  { box-shadow: 0 0 0 8px rgba(255,240,225,0); }
-  100% { box-shadow: 0 0 0 0 rgba(255,240,225,0); }
+.sidebar a.active {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  border-left-color: var(--accent);
+  font-weight: 600;
 }
-.chapter-copy { min-width: 0; flex: 1; }
-.chapter-name { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-serif); font-size: 13px; }
-.chapter-duration { display: block; margin-top: 3px; opacity: .65; font-size: 10px; }
-.empty { padding: 35px 14px; color: var(--muted); text-align: center; font-size: 12px; }
-.reader-panel { min-width: 0; overflow: hidden; }
-.reader-head { padding: 28px 32px 22px; border-bottom: 1px solid var(--line); }
-.reader-eyebrow { display: flex; align-items: center; justify-content: space-between; gap: 15px; color: var(--muted); font-size: 11px; letter-spacing: .12em; }
-.reader-title { margin: 10px 0 0; font-family: var(--font-serif); font-size: clamp(25px, 4vw, 38px); letter-spacing: .06em; }
-.reader-subtitle { margin: 9px 0 0; color: var(--muted); font-size: 12px; }
-.reading-body { height: min(610px, calc(100vh - 240px)); min-height: 390px; padding: 35px clamp(22px, 5vw, 72px) 70px; overflow-y: auto; }
-.segment { display: inline-block; color: var(--ink); border-radius: 5px; padding: 2px 3px; margin: 0 1px; cursor: pointer; font-family: var(--font-serif); font-size: clamp(17px, 1.8vw, 20px); line-height: 2.25; transition: background .18s ease, color .18s ease, text-decoration-color .18s ease, transform .18s ease; text-decoration: underline transparent 2px; text-underline-offset: 4px; }
-.segment:hover { background: var(--accent-soft); transform: translateY(-1px); }
-.segment.active { color: var(--accent-deep); background: color-mix(in srgb, var(--accent-soft) 76%, transparent); text-decoration-color: var(--accent); }
-.segment.flash { animation: ng-seg-flash .75s ease; }
-@keyframes ng-seg-flash {
-  0%   { background: var(--accent); color: #fff9f2; transform: scale(1.05); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 30%, transparent); }
-  100% { background: color-mix(in srgb, var(--accent-soft) 76%, transparent); color: var(--accent-deep); transform: scale(1); box-shadow: 0 0 0 0 transparent; }
+.sidebar a.active::before {
+  transform: scaleY(1);
+  box-shadow: 0 0 12px var(--accent);
 }
-.reader-foot { padding: 15px 25px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; gap: 12px; color: var(--muted); font-size: 11px; }
-.reader-foot span:last-child { color: var(--accent); }
-.bottom-player { position: fixed; z-index: 20; left: 0; right: 0; bottom: 0; padding: 13px 0 15px; border-top: 1px solid var(--line); background: color-mix(in srgb, var(--panel-solid) 92%, transparent); box-shadow: 0 -10px 35px rgba(70, 46, 28, .12); backdrop-filter: blur(16px); }
-.player-grid { display: grid; grid-template-columns: auto minmax(150px, .8fr) minmax(220px, 1.5fr) auto; gap: 17px; align-items: center; }
-.main-play {
-  width: 49px; height: 49px; border: 0; border-radius: 50%; color: #fff9f2;
-  background: var(--accent); cursor: pointer; display: grid; place-items: center;
-  padding: 0; box-shadow: 0 7px 16px rgba(182,107,63,.28);
-  position: relative;
-  transition: transform .22s cubic-bezier(.22,.61,.36,1), background .22s ease, box-shadow .22s ease;
+.sidebar a .ch-dur {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  opacity: 0.65;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+  transition: opacity 0.22s ease, color 0.22s ease;
 }
-.main-play::before {
-  content: ""; position: absolute; inset: -4px; border-radius: 50%;
-  border: 2px solid var(--accent); opacity: 0; pointer-events: none;
+.sidebar a:hover .ch-dur {
+  opacity: 1;
+  color: var(--accent);
 }
-.main-play:hover { transform: scale(1.06); background: var(--accent-deep); box-shadow: 0 10px 24px rgba(182,107,63,.38); }
-.main-play:active { transform: scale(.96); }
-.main-play.playing::before { animation: ng-play-pulse 2.4s ease-out infinite; }
-@keyframes ng-play-pulse {
-  0%   { transform: scale(.92); opacity: .55; }
-  70%  { transform: scale(1.22); opacity: 0; }
-  100% { transform: scale(1.22); opacity: 0; }
+@keyframes ab-toc-in {
+  from { opacity: 0; transform: translateX(-8px); }
+  to { opacity: 1; transform: translateX(0); }
 }
-.main-play svg { display: block; transition: transform .3s cubic-bezier(.22,.61,.36,1); }
-.main-play:hover svg { transform: scale(1.08); }
-.main-play .icon-pause { display: none; }
-.main-play.playing .icon-play { display: none; }
-.main-play.playing .icon-pause { display: block; }
-.player-chapter { min-width: 0; }
-.player-label { color: var(--muted); font-size: 10px; letter-spacing: .1em; }
-.player-name { display: block; margin-top: 5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-serif); font-size: 13px; }
-.seek-line { display: flex; align-items: center; gap: 9px; }
-.time { color: var(--muted); font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 10px; min-width: 34px; }
-.time:last-child { text-align: right; }
-.seek { height: 8px; flex: 1; position: relative; border-radius: 99px; cursor: pointer; background: var(--bg-deep); overflow: hidden; transition: height .22s ease; }
-.seek:hover { height: 11px; }
-.seek-fill {
-  position: absolute; inset: 0 auto 0 0; width: 0; border-radius: inherit;
-  background: linear-gradient(90deg, var(--accent), var(--gold)); pointer-events: none;
+
+/* 主内容区 */
+.main-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
 }
-.seek-fill::after {
-  content: "";
-  position: absolute; inset: 0;
-  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,.45) 50%, transparent 100%);
-  transform: translateX(-100%);
-  animation: ng-seek-shimmer 2.4s ease-in-out infinite;
+.reader {
+  flex: 1;
+  overflow-y: auto;
+  max-width: 680px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 32px 24px 40px;
+  -webkit-overflow-scrolling: touch;
+}
+.chapter-title {
+  font-size: 1.4rem;
+  font-weight: 400;
+  color: var(--accent);
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+  letter-spacing: 0.05em;
+}
+.chapter-content {
+  font-size: 1.05rem;
+  line-height: 2;
+  letter-spacing: 0.02em;
+}
+.seg {
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease;
+  padding: 1px 3px;
+}
+.seg:hover { background: var(--surface-light); color: var(--text); transform: translateY(-1px); }
+.seg.active {
+  background: var(--highlight);
+  color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
+  transition: background .15s ease, box-shadow .25s ease, color .15s ease;
+}
+.seg.flash {
+  animation: ab-seg-flash .7s ease;
+}
+@keyframes ab-seg-flash {
+  0%   { background: var(--accent); color: #fff; box-shadow: 0 0 0 4px var(--accent); transform: scale(1.04); }
+  100% { background: var(--highlight); color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); transform: scale(1); }
+}
+
+/* 底部播放栏 */
+.player-bar {
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+.play-btn {
+  background: var(--accent);
+  border: none;
+  color: var(--bg);
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1.1rem;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s;
+  touch-action: manipulation;
+}
+.play-btn:hover { opacity: 0.85; }
+.play-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.player-info {
+  flex: 1;
+  min-width: 0;
+}
+.player-title {
+  font-size: 0.8rem;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 4px;
+}
+.progress-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.time-label {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  font-family: monospace;
+  flex-shrink: 0;
+  min-width: 36px;
+  text-align: center;
+}
+.progress-track {
+  flex: 1;
+  height: 6px;
+  background: var(--surface-light);
+  border-radius: 3px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: height .22s ease;
+}
+.progress-track:hover { height: 9px; }
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 60%, transparent));
+  border-radius: 3px;
+  width: 0%;
+  transition: width 0.1s linear;
+  position: relative;
+}
+.progress-track:hover .progress-fill { opacity: 0.95; }
+.progress-tooltip {
+  position: absolute;
+  top: -22px;
+  left: 0;
+  transform: translateX(-50%);
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--bg);
+  font-size: 0.65rem;
+  font-family: monospace;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .15s ease;
+}
+.progress-tooltip.show { opacity: 1; }
+.speed-btn, .font-size-btn {
+  background: var(--surface-light);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-family: inherit;
+  flex-shrink: 0;
+  transition: all 0.2s;
+  touch-action: manipulation;
+}
+.speed-btn:hover, .font-size-btn:hover { border-color: var(--accent); color: var(--accent); }
+.font-size-btn.active { color: var(--accent); border-color: var(--accent); background: var(--accent-glow); }
+
+/* 导航按钮 */
+.nav-btns {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.nav-btn {
+  background: var(--surface-light);
+  border: 1px solid var(--border);
+  color: var(--text);
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+  touch-action: manipulation;
+}
+.nav-btn:hover { background: var(--accent-glow); border-color: var(--accent); }
+.nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+/* 加载态 */
+.loading {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-dim);
+}
+.loading p { animation: pulse 1.4s ease infinite; }
+@keyframes pulse { 0%, 100% { opacity: .5; } 50% { opacity: 1; } }
+.loading .spinner {
+  display: inline-block;
+  width: 32px; height: 32px;
+  border: 3px solid var(--surface-light);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 12px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* 顶部进度条 */
+.top-progress {
+  position: fixed;
+  top: 0; left: 0;
+  height: 3px;
+  background: var(--accent);
+  z-index: 300;
+  transition: width .55s cubic-bezier(.22,.61,.36,1);
+}
+
+/* 章节搜索 */
+.sidebar-search {
+  padding: 12px 20px 8px;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+}
+.sidebar-search input {
+  width: 100%;
+  background: var(--surface-light);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 8px 12px 8px 32px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color .15s;
+}
+.sidebar-search input:focus { border-color: var(--accent); }
+.sidebar-search::before {
+  content: "⌕";
+  position: absolute;
+  left: 32px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-dim);
+  font-size: 0.95rem;
   pointer-events: none;
 }
-@keyframes ng-seek-shimmer {
-  0%   { transform: translateX(-100%); }
-  60%  { transform: translateX(120%); }
-  100% { transform: translateX(120%); }
+
+/* 阅读字号变量 */
+.reader { font-size: calc(1rem * var(--reading-size, 1)); }
+.reader .chapter-content { font-size: calc(1.05rem * var(--reading-size, 1)); }
+
+/* 主题图标动效 */
+#themeBtn { transition: transform .35s cubic-bezier(.22,.61,.36,1); }
+#themeBtn.spinning { transform: rotate(180deg); }
+
+/* 入场动画 */
+@keyframes ab-fade-up { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+header, .reader, .player-bar { animation: ab-fade-up .55s ease both; }
+header { animation-delay: .05s; }
+.reader { animation-delay: .15s; }
+.player-bar { animation-delay: .25s; }
+
+/* 章节标题：带渐显 + 下划线扫过 */
+.chapter-title {
+  position: relative;
+  animation: ab-title-in .55s cubic-bezier(.22,.61,.36,1) both;
 }
-.seek-dot { position: absolute; top: 50%; left: 0; width: 14px; height: 14px; border: 3px solid var(--panel-solid); border-radius: 50%; background: var(--accent); transform: translate(-50%, -50%); box-shadow: 0 1px 5px rgba(0,0,0,.2); pointer-events: none; transition: transform .18s cubic-bezier(.22,.61,.36,1), box-shadow .18s ease; }
-.seek:hover .seek-dot { transform: translate(-50%, -50%) scale(1.15); box-shadow: 0 2px 8px rgba(0,0,0,.25); }
-.player-actions { display: flex; align-items: center; gap: 8px; }
-.timer-wrap, .jump-wrap { position: relative; }
-.timer-menu, .jump-menu { position: absolute; right: 0; bottom: 50px; display: none; z-index: 30; }
-.timer-menu { width: 168px; padding: 8px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel-solid); box-shadow: var(--shadow); }
-.timer-menu.open { display: grid; gap: 4px; }
-.jump-menu { width: 260px; padding: 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel-solid); box-shadow: var(--shadow); gap: 11px; }
-.jump-menu.open { display: grid; }
-.jump-title { color: var(--muted); font-size: 10px; letter-spacing: .14em; }
-.jump-controls { display: grid; grid-template-columns: 36px minmax(0, 1fr) 36px; gap: 6px; }
-.jump-controls select, .jump-actions button { border: 1px solid var(--line); border-radius: 10px; background: var(--panel); color: var(--ink); font-family: inherit; font-size: 12px; }
-.jump-controls select { width: 100%; padding: 8px 8px; }
-.jump-controls select:focus { outline: 2px solid var(--accent); }
-.jump-prev, .jump-next { width: 36px; height: 36px; border: 1px solid var(--line); border-radius: 50%; background: var(--panel); cursor: pointer; }
-.jump-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.jump-confirm { padding: 9px 0; cursor: pointer; background: var(--accent); color: #fff9f2; border-color: var(--accent); }
-.jump-cancel { padding: 9px 0; cursor: pointer; }
-.timer-option { width: 100%; padding: 8px 9px; border: 0; border-radius: 8px; cursor: pointer; color: var(--ink); background: transparent; text-align: left; font-size: 11px; }
-.timer-option:hover { color: var(--accent-deep); background: var(--accent-soft); }
-.timer-option.cancel { color: var(--muted); border-top: 1px solid var(--line); margin-top: 3px; padding-top: 10px; }
-.timer-badge { color: var(--accent); font-variant-numeric: tabular-nums; }
-.player-actions button {
-  min-width: 40px; height: 40px; padding: 0; border: 1px solid var(--line); border-radius: 50%;
-  cursor: pointer; background: var(--panel); font-size: 13px; display: inline-grid; place-items: center;
-  transition: transform .18s cubic-bezier(.22,.61,.36,1), color .18s ease, border-color .18s ease, background .18s ease, box-shadow .18s ease;
+.chapter-title::after {
+  content: "";
+  position: absolute;
+  left: 0; bottom: -1px;
+  width: 0; height: 1px;
+  background: linear-gradient(90deg, var(--accent), transparent);
+  animation: ab-underline .9s .25s cubic-bezier(.22,.61,.36,1) forwards;
 }
-.player-actions button:hover { color: var(--accent); border-color: var(--accent); transform: translateY(-1px); }
-.player-actions button:active { transform: scale(.9); }
-.player-actions button.active { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 30%, transparent); }
-.volume { display: none; }
-.toast { position: fixed; z-index: 50; left: 50%; bottom: 102px; transform: translate(-50%, 14px); padding: 10px 15px; border-radius: 10px; color: #fff9f2; background: #3e3028; opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; font-size: 12px; }
-.toast.show { opacity: 1; transform: translate(-50%, 0); }
-@media (max-width: 900px) {
-  .hero { grid-template-columns: 1fr; gap: 24px; }
-  .workspace { grid-template-columns: 270px minmax(0, 1fr); }
-  .player-grid { grid-template-columns: auto minmax(110px, .7fr) minmax(150px, 1.3fr); }
-  .player-actions { grid-column: 2 / -1; justify-content: flex-end; margin-top: -5px; }
+@keyframes ab-title-in {
+  from { opacity: 0; transform: translateY(8px); letter-spacing: .12em; }
+  to { opacity: 1; transform: translateY(0); letter-spacing: .05em; }
 }
-@media (max-width: 700px) {
-  .container { width: calc(100vw - 24px); max-width: calc(100vw - 24px); }
-  .topbar { height: 66px; }
-  .brand-subtitle { display: none; }
-  .hero { width: 100%; min-width: 0; grid-template-columns: minmax(0, 1fr); padding: 39px 0 24px; }
-  .hero h1 { font-size: 43px; }
-  .hero-stats { width: 100%; min-width: 0; gap: 7px; }
-  .stat { width: 100%; min-width: 0; padding: 13px 8px; }
-  .stat-value { font-size: 18px; }
-  .progress-card, .workspace, .library, .reader-panel { width: 100%; min-width: 0; }
-  .menu-toggle { display: inline-flex; align-items: center; justify-content: center; }
-  .drawer-overlay { position: fixed; inset: 0; background: rgba(40, 28, 18, .55); z-index: 150; display: none; }
-  .drawer-overlay.show { display: block; }
-  .library { position: fixed; left: -100vw; top: 0; width: 100vw; max-width: none; height: 100vh; max-height: 100vh; z-index: 200; border-radius: 0; border-left: 0; border-right: 0; transition: left .3s ease; }
-  .library.open { left: 0; }
-  .library-head { padding: 24px 22px 18px; }
-  .library-head .search { display: none; }
-  .library-head .section-title { font-size: 22px; }
-  .library-head .drawer-close { display: inline-flex; align-items: center; justify-content: center; position: absolute; right: 16px; top: 16px; width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--line); background: var(--panel-solid); font-size: 18px; cursor: pointer; color: var(--ink); }
-  .library { padding-top: 0; }
-  .library-head { position: relative; }
-  .workspace { grid-template-columns: minmax(0, 1fr); }
-  .chapter-list, .chapter-button { min-width: 0; }
-  .chapter-list { padding: 6px 0 30px; }
-  .chapter-button { padding: 16px 22px; gap: 14px; border-radius: 0; border: 0; border-bottom: 1px solid var(--line); align-items: center; }
-  .chapter-button .chapter-index { width: 40px; height: 40px; font-size: 14px; }
-  .chapter-button .chapter-meta { flex: 1; min-width: 0; }
-  .chapter-button .chapter-name { font-size: 16px; }
-  .chapter-button .chapter-duration { font-size: 12px; }
-  .chapter-button.playing { background: var(--accent-soft); }
-  .reading-body { height: 55vh; min-height: 360px; padding: 25px 21px 48px; }
-  .reader-head { padding: 21px 20px 17px; }
-  .reader-foot { padding: 12px 18px; }
-  .bottom-player { padding: 10px 0 12px; }
-  .player-grid { grid-template-columns: auto minmax(0, 1fr); gap: 8px 12px; }
-  .player-chapter { align-self: center; }
-  .seek-line { grid-column: 1 / -1; grid-row: 2; }
-  .player-actions { grid-column: 1 / -1; grid-row: 3; justify-content: center; gap: 10px; margin: 0; }
-  .player-actions button { min-width: 42px; height: 42px; }
-  .app { padding-bottom: 175px; }
+@keyframes ab-underline { to { width: 56px; } }
+
+/* 侧边栏切换图标动效 */
+.menu-btn { transition: transform .35s cubic-bezier(.22,.61,.36,1), background .22s ease, border-color .22s ease; }
+.menu-btn:hover { transform: rotate(90deg) translateY(0); }
+
+/* icon-btn：统一提升 */
+.icon-btn { transition: background .22s ease, border-color .22s ease, color .22s ease, transform .22s cubic-bezier(.22,.61,.36,1); }
+.icon-btn:active { transform: scale(.9); }
+
+/* 主题按钮：日/月图标随 data-theme 切换（纯 CSS，无 JS 文本替换） */
+#themeBtn .icon-sun { display: block; }
+#themeBtn .icon-moon { display: none; }
+[data-theme="dark"] #themeBtn .icon-sun { display: none; }
+[data-theme="dark"] #themeBtn .icon-moon { display: block; }
+
+/* 缓存按钮：下载/旋转图标随预取状态切换 */
+.cache-icon .icon-dl { display: block; }
+.cache-icon .icon-sync { display: none; }
+.cache-icon.prefetching .icon-dl { display: none; }
+.cache-icon.prefetching .icon-sync { display: block; animation: spin 1.2s linear infinite; }
+
+/* 播放按钮：状态切换（去掉无限脉冲，保留按压缩放） */
+.play-btn { position: relative; transition: transform .2s cubic-bezier(.22,.61,.36,1), background .2s ease, box-shadow .2s ease; }
+.play-btn .icon-play, .play-btn .icon-pause {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  transition: opacity .22s ease, transform .28s cubic-bezier(.22,.61,.36,1);
 }
-/* 触屏：禁用持续动画与 hover 提升（避免移动端性能开销） */
+.play-btn .icon-pause { opacity: 0; transform: translate(-50%,-50%) scale(.5); }
+.play-btn.playing .icon-play { opacity: 0; transform: translate(-50%,-50%) scale(.5); }
+.play-btn.playing .icon-pause { opacity: 1; transform: translate(-50%,-50%) scale(1); }
+.play-btn:hover:not(:disabled) { transform: scale(1.05); box-shadow: 0 6px 16px color-mix(in srgb, var(--accent) 30%, transparent); }
+.play-btn:active:not(:disabled) { transform: scale(.96); }
+
+/* speed-btn / font-size-btn：按下反馈 */
+.speed-btn, .font-size-btn { transition: background .18s ease, border-color .18s ease, color .18s ease, transform .18s cubic-bezier(.22,.61,.36,1); }
+.speed-btn:active, .font-size-btn:active { transform: scale(.92); }
+
+/* nav-btn：章节翻页按钮 */
+.nav-btn { transition: background .18s ease, border-color .18s ease, color .18s ease, transform .2s cubic-bezier(.22,.61,.36,1); }
+.nav-btn:hover:not(:disabled) { transform: translateY(-1px); }
+.nav-btn:active:not(:disabled) { transform: scale(.9); }
+.nav-btn:disabled { opacity: .25; }
+
+@media (max-width: 768px) {
+  header { padding: 14px 16px 12px; }
+  .brand-title { font-size: 1.3rem; }
+  .brand-mark { width: 34px; height: 34px; font-size: 17px; }
+  .menu-btn { left: 12px; }
+  .header-btns { right: 12px; }
+  .reader { padding: 20px 16px 30px; }
+  .chapter-title { font-size: 1.2rem; }
+  .chapter-content { font-size: 0.95rem; line-height: 1.9; }
+  .player-bar { padding: 8px 12px; gap: 8px; }
+  .play-btn { width: 44px; height: 44px; font-size: 1rem; }
+  .speed-btn, .font-size-btn { padding: 4px 8px; font-size: 0.72rem; }
+  .nav-btn { width: 38px; height: 38px; font-size: 0.8rem; }
+  .player-title { font-size: 0.75rem; }
+  .sidebar { width: 85vw; max-width: 320px; left: -85vw; }
+  .sidebar.open { left: 0; }
+  .sidebar a { padding: 12px 20px; font-size: 0.9rem; }
+  .sidebar h3 { font-size: 1rem; }
+}
+@media (max-width: 480px) {
+  .brand-title { font-size: 1.15rem; letter-spacing: 0.3em; }
+  .brand-sub { font-size: 0.65rem; }
+  .brand-mark { width: 32px; height: 32px; font-size: 16px; }
+  .icon-btn { width: 34px; height: 34px; font-size: 0.9rem; }
+  .reader { padding: 16px 14px 24px; }
+  .chapter-content { font-size: 0.9rem; }
+  .player-bar { padding: 6px 10px; gap: 6px; flex-wrap: wrap; }
+  .player-bar .nav-btns { order: 10; width: 100%; justify-content: center; }
+  .player-bar .speed-btn, .player-bar .font-size-btn { font-size: 0.68rem; }
+  .time-label { font-size: 0.65rem; min-width: 32px; }
+}
+
+/* 触摸设备优化 */
 @media (hover: none) and (pointer: coarse) {
-  .chapter-button:hover { transform: none; padding-left: 12px; }
-  .chapter-button:hover::before { height: 0; }
-  .chapter-button:active { transform: scale(.99); }
-  .icon-button:hover, .outline-button:hover { transform: none; box-shadow: none; }
-  .icon-button:active, .outline-button:active { transform: scale(.94); }
-  .main-play:hover { transform: none; box-shadow: 0 7px 16px rgba(182,107,63,.28); }
-  .main-play:active { transform: scale(.94); }
-  .main-play.playing::before { animation: none; opacity: 0; }
-  .player-actions button:hover { transform: none; }
-  .player-actions button:active { transform: scale(.88); }
-  .chapter-button.active .chapter-number { animation: none; }
-  .seek-fill::after, .book-progress > span::after { animation: none; transform: translateX(120%); }
-  .seek:hover { height: 8px; }
-  .seek:hover .seek-dot { transform: translate(-50%, -50%); }
+  .icon-btn:hover, .nav-btn:hover, .speed-btn:hover, .font-size-btn:hover {
+    background: var(--surface-light); border-color: var(--border); color: var(--text);
+  }
+  .icon-btn:active, .nav-btn:active { transform: scale(0.92); }
+  .sidebar a:hover { background: transparent; border-left-color: transparent; padding-left: 16px; }
+  .sidebar a:hover::before { transform: scaleY(0); }
+  .sidebar a:active { background: var(--surface-light); }
+  /* 触屏禁用菜单按钮 90° 旋转 + 标题下划线扫过，节电 */
+  .menu-btn:hover { transform: none; }
+  .chapter-title::after { animation: none; width: 56px; }
+  .progress-track:hover { height: 6px; }
 }
+
+/* 离线缓存浮动面板（持续自动缓存） */
+.cache-panel {
+  position: fixed; z-index: 25; right: 16px; bottom: 100px;
+}
+.cache-toggle {
+  width: 42px; height: 42px; border-radius: 50%;
+  border: 1px solid var(--border); background: var(--surface-light);
+  color: var(--text-dim); cursor: pointer;
+  display: grid; place-items: center; font-size: 18px; position: relative;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+  transition: all .2s;
+}
+.cache-toggle:hover { border-color: var(--accent); color: var(--accent); }
+.cache-toggle.active { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.cache-badge {
+  position: absolute; top: -4px; right: -4px; min-width: 18px; height: 18px;
+  border-radius: 9px; background: var(--accent); color: var(--bg);
+  font-size: 10px; font-weight: 700;
+  display: grid; place-items: center; padding: 0 4px;
+}
+.cache-popup {
+  display: none; position: absolute; right: 0; bottom: 52px;
+  width: 280px; padding: 16px; border-radius: 20px;
+  border: 1px solid var(--border); background: var(--surface);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.28);
+}
+.cache-popup.open { display: block; }
+.cache-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.cache-title { font-size: 14px; font-weight: 700; color: var(--accent); }
+.cache-status { font-size: 11px; color: var(--text-dim); }
+.cache-status.online { color: #2f7d4a; }
+.cache-status.offline { color: var(--accent); }
+.cache-progress-wrap { margin-bottom: 8px; }
+.cache-progress { height: 6px; border-radius: 99px; background: var(--surface-light); overflow: hidden; }
+.cache-progress > span {
+  display: block; height: 100%; width: 0; border-radius: inherit;
+  background: var(--accent); transition: width .3s;
+}
+.cache-count { display: block; margin-top: 5px; font-size: 11px; color: var(--text-dim); text-align: right; }
+.cache-hint { margin: 0 0 12px; font-size: 11px; color: var(--text-dim); line-height: 1.5; }
+.cache-actions { display: flex; gap: 8px; }
+.cache-btn {
+  flex: 1; padding: 8px 0; border: 1px solid var(--border); border-radius: 10px;
+  background: var(--surface-light); color: var(--text); cursor: pointer;
+  font-size: 12px; font-family: inherit;
+  transition: all .15s;
+}
+.cache-btn:hover { border-color: var(--accent); color: var(--accent); }
+.cache-btn.primary { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.cache-btn.primary:hover { opacity: 0.85; }
+.cache-btn:disabled { opacity: .45; cursor: not-allowed; }
+/* 移动端：避让底部播放器，移到导航条下方 */
+@media (max-width: 480px) {
+  .cache-panel { right: 12px; bottom: 130px; }
+  .cache-toggle { width: 40px; height: 40px; }
+  .cache-popup { width: calc(100vw - 24px); max-width: 320px; }
+}
+
+/* 安全区域适配（刘海屏/底部横条） */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  header { padding-top: calc(16px + env(safe-area-inset-top)); }
+  .player-bar { padding-bottom: calc(10px + env(safe-area-inset-bottom)); }
+}
+
+/* 高对比度模式 */
+@media (prefers-contrast: more) {
+  .seg.active { box-shadow: 0 0 0 2px var(--accent); }
+  .icon-btn, .nav-btn, .speed-btn, .font-size-btn { border-width: 2px; }
+}
+
 /* ===== 交互动效升级 ===== */
-/* 页面入场编排（html.js 门控，无 JS 时直出） */
-@keyframes ng-hero-in { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
-html.js .kicker, html.js .hero h1, html.js .hero-intro { opacity: 0; animation: ng-hero-in .7s cubic-bezier(.22,.61,.36,1) forwards; }
-html.js .hero h1 { animation-delay: .08s; }
-html.js .hero-intro { animation-delay: .18s; }
-html.js .hero-stats .stat { opacity: 0; animation: ng-hero-in .6s cubic-bezier(.22,.61,.36,1) forwards; }
-html.js .hero-stats .stat:nth-child(1) { animation-delay: .22s; }
-html.js .hero-stats .stat:nth-child(2) { animation-delay: .3s; }
-html.js .hero-stats .stat:nth-child(3) { animation-delay: .38s; }
-html.js .progress-card { opacity: 0; animation: ng-hero-in .7s .3s cubic-bezier(.22,.61,.36,1) forwards; }
-html.js .library { opacity: 0; animation: ng-hero-in .7s .4s cubic-bezier(.22,.61,.36,1) forwards; }
-html.js .reader-panel { opacity: 0; animation: ng-hero-in .7s .48s cubic-bezier(.22,.61,.36,1) forwards; }
-html.js .bottom-player { animation: ng-player-in .55s .55s cubic-bezier(.22,.61,.36,1) both; }
-@keyframes ng-player-in { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+/* 章节内容入场（节点随章节切换重建，动画自动重放） */
+.chapter-content { animation: ab-content-in .5s cubic-bezier(.22,.61,.36,1) both; }
+@keyframes ab-content-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 
-/* 统计卡 hover 微浮 */
-.stat { transition: transform .3s ease, border-color .3s ease, box-shadow .3s ease; }
-.stat:hover { transform: translateY(-3px); border-color: var(--accent); }
-@media (hover: none) and (pointer: coarse) { .stat:hover { transform: none; border-color: var(--line); } }
-
-/* 章节正文入场（节点随章节切换重建，动画自动重放） */
-.reading-body > div { animation: ng-content-in .45s cubic-bezier(.22,.61,.36,1) both; }
-@keyframes ng-content-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
-
-/* 章节标题切换渐显（JS 重触发） */
-.reader-title.title-in { animation: ng-title-in .5s cubic-bezier(.22,.61,.36,1) both; }
-@keyframes ng-title-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-
-/* 定时 / 跳转菜单：弹性弹入 */
-.timer-menu, .jump-menu { display: grid; opacity: 0; visibility: hidden; transform: translateY(10px) scale(.96); transform-origin: bottom right; transition: opacity .22s ease, transform .28s cubic-bezier(.22,.61,.36,1), visibility 0s linear .28s; }
-.timer-menu.open, .jump-menu.open { opacity: 1; visibility: visible; transform: none; transition: opacity .22s ease, transform .28s cubic-bezier(.22,.61,.36,1); }
-
-/* 移动端抽屉遮罩淡入淡出 */
-@media (max-width: 700px) {
-  .drawer-overlay { display: block; opacity: 0; visibility: hidden; transition: opacity .3s ease, visibility 0s linear .32s; }
-  .drawer-overlay.show { opacity: 1; visibility: visible; transition: opacity .3s ease; }
-}
-
-/* 主题切换按钮旋转 */
-#themeButton.spin { animation: ng-spin .5s cubic-bezier(.22,.61,.36,1); }
-@keyframes ng-spin { to { transform: rotate(360deg); } }
-
-/* 减少动态偏好：补齐 animation 关停（原有仅关 transition） */
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; animation-delay: 0s !important; }
-  html.js .kicker, html.js .hero h1, html.js .hero-intro, html.js .hero-stats .stat, html.js .progress-card, html.js .library, html.js .reader-panel { opacity: 1 !important; }
-}
-@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; } }
-
-/* 骨架屏加载 */
+/* 骨架屏加载（替代 spinner） */
 .skeleton-wrap { padding: 4px 0; }
-.skeleton { position: relative; overflow: hidden; background: var(--bg-deep); border-radius: 6px; }
+.skeleton { position: relative; overflow: hidden; background: var(--surface-light); border-radius: 10px; }
 .skeleton::after {
   content: ""; position: absolute; inset: 0;
-  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--ink) 8%, transparent), transparent);
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--text) 9%, transparent), transparent);
   transform: translateX(-100%);
-  animation: ng-sk 1.4s ease-in-out infinite;
+  animation: ab-sk 1.4s ease-in-out infinite;
 }
-@keyframes ng-sk { 60% { transform: translateX(100%); } 100% { transform: translateX(100%); } }
+@keyframes ab-sk { 60% { transform: translateX(100%); } 100% { transform: translateX(100%); } }
 .sk-title { width: 44%; height: 26px; margin-bottom: 30px; }
 .sk-line { height: 15px; margin-bottom: 20px; }
-@media (prefers-reduced-motion: reduce) { .skeleton::after { animation: none !important; } }
 
-/* 内联错误条 */
-.ab-inline-error {
-  position: absolute; left: 50%; bottom: 100%; transform: translate(-50%, 8px);
-  margin-bottom: 8px; padding: 8px 16px; border-radius: 10px;
-  background: rgba(224, 82, 82, .92); color: #fff; font-size: 12px;
-  white-space: nowrap; max-width: calc(100vw - 32px); overflow: hidden; text-overflow: ellipsis;
-  opacity: 0; pointer-events: none;
-  transition: opacity .25s ease, transform .25s cubic-bezier(.22,.61,.36,1);
-  backdrop-filter: blur(6px); box-shadow: 0 6px 18px rgba(224,82,82,.25);
+/* 侧栏遮罩淡入淡出 */
+.sidebar-overlay { display: block; opacity: 0; visibility: hidden; transition: opacity .3s ease, visibility 0s linear .32s; }
+.sidebar-overlay.show { opacity: 1; visibility: visible; transition: opacity .3s ease; }
+
+/* 侧栏滑动缓动升级 */
+.sidebar { transition: left .38s cubic-bezier(.22,.61,.36,1); }
+
+/* 目录条目：打开侧栏时才播 stagger（配合 JS 逐项 delay） */
+.sidebar a { animation: none; }
+.sidebar.open a { animation: ab-toc-in .45s cubic-bezier(.22,.61,.36,1) both; }
+
+/* 进度条拇指：悬停/拖拽时浮现 */
+.progress-thumb {
+  position: absolute; top: 50%; left: 0; z-index: 2;
+  width: 13px; height: 13px; border-radius: 50%;
+  background: var(--accent); border: 2.5px solid var(--surface);
+  box-shadow: 0 1px 5px rgba(0,0,0,.35);
+  transform: translate(-50%,-50%) scale(0);
+  transition: transform .18s cubic-bezier(.22,.61,.36,1);
+  pointer-events: none;
 }
-.ab-inline-error.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
-@media (max-width: 480px) { .ab-inline-error { white-space: normal; text-align: center; font-size: 11px; } }
+.progress-track:hover .progress-thumb,
+.progress-track.is-dragging .progress-thumb { transform: translate(-50%,-50%) scale(1); }
+
+/* 播放键状态切换弹跳 */
+.play-btn.is-pop { animation: ab-pop .3s cubic-bezier(.22,.61,.36,1); }
+@keyframes ab-pop { 0% { transform: scale(.84); } 60% { transform: scale(1.07); } 100% { transform: scale(1); } }
+
+/* 缓存弹层：弹入 */
+.cache-popup {
+  display: block; opacity: 0; visibility: hidden;
+  transform: translateY(10px) scale(.97); transform-origin: bottom right;
+  transition: opacity .24s ease, transform .3s cubic-bezier(.22,.61,.36,1), visibility 0s linear .3s;
+}
+.cache-popup.open { opacity: 1; visibility: visible; transform: none; transition: opacity .24s ease, transform .3s cubic-bezier(.22,.61,.36,1); }
+
+/* 减少动态偏好：新增动画直出 */
+@media (prefers-reduced-motion: reduce) {
+  .chapter-content, .sidebar.open a, .skeleton::after { animation: none !important; }
+  .play-btn .icon-play, .play-btn .icon-pause { transition: none !important; }
+}
+
+/* 宽屏常驻目录：≥1024px 时目录固定在左侧（吸收 nanian 版经验），不再用抽屉 */
+@media (min-width: 1024px) {
+  body {
+    display: grid;
+    grid-template-columns: 300px minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    height: 100vh;
+    height: 100dvh;
+  }
+  header { grid-column: 1 / -1; grid-row: 1; }
+  .menu-btn { display: none; }
+  .sidebar-overlay { display: none !important; }
+  .sidebar {
+    grid-column: 1; grid-row: 2;
+    position: static;
+    left: auto; top: auto;
+    width: auto; height: auto;
+    min-height: 0;
+    padding: 12px 0 20px;
+    border-top: none;
+    transition: none;
+    z-index: auto;
+  }
+  /* 打开/关闭类不再影响布局（无遮罩、无动画） */
+  .sidebar.open a { animation: none; }
+  .main-wrap { grid-column: 2; grid-row: 2; min-height: 0; }
+  .reader { padding: 36px 40px 48px; }
+}
+
+/* 进度跳转按钮（桌面显示；移动端靠进度条拖拽与长按） */
+.skip-btn {
+  background: var(--surface-light);
+  border: 1px solid var(--border);
+  color: var(--text);
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: background .18s ease, border-color .18s ease, transform .18s cubic-bezier(.22,.61,.36,1);
+  touch-action: manipulation;
+}
+.skip-btn:hover { background: var(--accent-glow); border-color: var(--accent); }
+.skip-btn:active { transform: scale(.9); }
+@media (max-width: 767px) { .skip-btn { display: none; } }
+
+/* 图标按钮：SVG 图标统一尺寸 */
+.icon-btn svg, .nav-btn svg, .skip-btn svg { display: block; }
+
+/* 内联错误条（播放器上方） */
+.player-bar { position: relative; }
 </style>
 </head>
 <body>
-<div class="app">
-  <header class="topbar container">
-    <a class="brand" href="../index.html" aria-label="返回有声书首页">
-      <span class="brand-mark">声</span>
-      <span><span class="brand-title">那年高中</span><span class="brand-subtitle">校园双向暗恋长篇有声书</span></span>
-    </a>
-    <div class="top-actions">
-      <button class="icon-button" id="helpButton" type="button" title="快捷键帮助" aria-label="键盘快捷键帮助">?</button>
-      <button class="icon-button" id="installButton" type="button" title="安装应用" aria-label="安装为应用" hidden>⬇</button>
-      <button class="icon-button menu-toggle" id="menuToggle" type="button" title="章节目录" aria-label="打开章节目录" aria-expanded="false">☰</button>
-      <button class="icon-button" id="themeButton" type="button" title="切换明暗主题" aria-label="切换明暗主题">◐</button>
-    </div>
-  </header>
+<a class="skip-link" href="#reader">跳转到正文</a>
+<div class="top-progress" id="topProgress" style="width:0%"></div>
 
-  <main class="container">
-    <section class="hero">
-      <div>
-        <div class="kicker">THE AUDIOBOOK ARCHIVE</div>
-        <h1>把那段青春，<br><em>重新听一遍。</em></h1>
-        <p class="hero-intro">窗外的眼睛、晚自习的风、没有说出口的心事，都藏在四十章声音里。选一章，坐下来，从故事发生的地方开始。</p>
-      </div>
-      <div class="hero-stats" aria-label="有声书统计">
-        <div class="stat"><span class="stat-value" id="chapterCount">40</span><span class="stat-label">章节</span></div>
-        <div class="stat"><span class="stat-value" id="durationStat">2h 45m</span><span class="stat-label">总时长</span></div>
-        <div class="stat"><span class="stat-value" id="segmentCount">2923</span><span class="stat-label">段落</span></div>
-      </div>
-    </section>
-
-    <section class="progress-card" aria-label="阅读进度">
-      <div class="progress-head"><span>你的阅读进度</span><strong id="progressText">第 1 / 40 章</strong></div>
-      <div class="book-progress" aria-hidden="true"><span id="bookProgress"></span></div>
-      <p class="resume-note" id="resumeNote">正在读取上次播放记录…</p>
-    </section>
-
-    <div class="drawer-overlay" id="drawerOverlay" aria-hidden="true"></div>
-    <section class="workspace">
-      <aside class="panel library" aria-label="章节目录">
-        <div class="library-head">
-          <button class="drawer-close" id="drawerClose" type="button" title="关闭" aria-label="关闭章节目录">×</button>
-          <h2 class="section-title">章节目录</h2>
-          <p class="section-caption">共 40 章 · 点击章节开始播放</p>
-          <label class="search"><span class="sr-only">搜索章节</span><input id="chapterSearch" type="search" placeholder="搜索章节标题" autocomplete="off"></label>
-        </div>
-        <ol class="chapter-list" id="chapterList"></ol>
-      </aside>
-
-      <article class="panel reader-panel" aria-live="polite">
-        <header class="reader-head">
-          <div class="reader-eyebrow"><span id="readerIndex">CHAPTER 01</span><span id="readerDuration">—</span></div>
-          <h2 class="reader-title" id="readerTitle">正在加载章节…</h2>
-          <p class="reader-subtitle">点击任意段落，可从该处开始听</p>
-        </header>
-        <div class="reading-body" id="readingBody"><div class="skeleton-wrap"><div class="skeleton sk-title"></div><div class="skeleton sk-line" style="width:96%"></div><div class="skeleton sk-line" style="width:91%"></div><div class="skeleton sk-line" style="width:95%"></div><div class="skeleton sk-line" style="width:88%"></div><div class="skeleton sk-line" style="width:93%"></div><div class="skeleton sk-line" style="width:55%"></div></div></div>
-        <footer class="reader-foot"><span id="segmentHint">声音会跟随文字自动高亮</span><span id="chapterStatus">未播放</span></footer>
-      </article>
-      </section>
+<header>
+  <button class="icon-btn menu-btn" id="menuBtn" aria-label="打开章节目录" aria-controls="sidebar" aria-expanded="false"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg></button>
+  <a class="brand" href="../index.html" title="返回有声书馆">
+    <span class="brand-mark" aria-hidden="true">听</span>
+    <span class="brand-body">
+      <span class="brand-title">那 年 高 中</span>
+      <span class="brand-sub">有声书馆</span>
+    </span>
+  </a>
+  <div class="header-btns">
+    <button class="icon-btn" id="helpBtn" title="快捷键帮助" aria-label="键盘快捷键帮助"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9.2"/><path d="M9.4 9.2a2.7 2.7 0 0 1 5.2 1c0 1.8-2.6 2.2-2.6 3.6"/><circle cx="12" cy="17.2" r="0.4" fill="currentColor"/></svg></button>
+    <button class="icon-btn" id="installBtn" title="安装应用" aria-label="安装为应用" hidden><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m0 0 4.5-4.5M12 15l-4.5-4.5M5 19h14"/></svg></button>
+    <button class="icon-btn" id="themeBtn" title="切换主题" aria-label="切换明暗主题"><svg class="icon-sun" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5 5l1.6 1.6M17.4 17.4 19 19M19 5l-1.6 1.6M6.6 17.4 5 19"/></svg><svg class="icon-moon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 14.2A8.8 8.8 0 1 1 9.8 3.4a7 7 0 0 0 10.8 10.8z"/></svg></button>
   </div>
+</header>
 
-<div class="bottom-player" role="region" aria-label="音频播放器">
-  <div class="container player-grid">
-    <button class="main-play" id="playButton" type="button" aria-label="播放" disabled><svg class="icon-play" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg><svg class="icon-pause" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg></button>
-    <div class="player-chapter"><span class="player-label">正在收听</span><span class="player-name" id="playerTitle">—</span></div>
-    <div class="seek-line">
-      <span class="time" id="currentTime">0:00</span>
-      <div class="seek" id="seekBar" role="slider" aria-label="播放进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" tabindex="0"><div class="ab-buffer" id="bufferBar" style="color:var(--accent)"></div><span class="seek-fill" id="seekFill"></span><span class="seek-dot" id="seekDot"></span></div>
-      <span class="time" id="durationTime">0:00</span>
-    </div>
-    <div class="player-actions">
-      <button id="rewindButton" type="button" title="快退 15 秒" aria-label="快退 15 秒">−15s</button>
-      <button id="forwardButton" type="button" title="快进 15 秒" aria-label="快进 15 秒">+15s</button>
-      <div class="timer-wrap">
-        <button id="timerButton" type="button" title="定时关闭" aria-haspopup="true" aria-expanded="false">定时</button>
-        <div class="timer-menu" id="timerMenu" role="menu" aria-label="定时关闭选项">
-          <button class="timer-option" type="button" data-minutes="15" role="menuitem">15 分钟后关闭</button>
-          <button class="timer-option" type="button" data-minutes="30" role="menuitem">30 分钟后关闭</button>
-          <button class="timer-option" type="button" data-minutes="45" role="menuitem">45 分钟后关闭</button>
-          <button class="timer-option" type="button" data-minutes="60" role="menuitem">60 分钟后关闭</button>
-          <button class="timer-option" type="button" data-minutes="0" role="menuitem">播放完本章关闭</button>
-          <button class="timer-option cancel" type="button" data-minutes="cancel" role="menuitem">取消定时</button>
-        </div>
+<div class="sidebar-overlay" id="overlay" aria-hidden="true"></div>
+<nav class="sidebar" id="sidebar" aria-label="章节目录">
+  <h3>目 录</h3>
+  <div class="sidebar-search"><input id="tocSearch" type="search" placeholder="搜索章节标题" autocomplete="off" aria-label="搜索章节"></div>
+  <div id="toc"><p class="loading"><span class="spinner"></span><br>加载中...</p></div>
+  <div id="tocEmpty" hidden></div>
+</nav>
+
+<main class="main-wrap">
+<article class="reader" id="reader">
+  <div class="skeleton-wrap" id="initLoading" role="status" aria-label="章节加载中">
+    <div class="skeleton sk-title"></div>
+    <div class="skeleton sk-line" style="width:97%"></div>
+    <div class="skeleton sk-line" style="width:92%"></div>
+    <div class="skeleton sk-line" style="width:96%"></div>
+    <div class="skeleton sk-line" style="width:89%"></div>
+    <div class="skeleton sk-line" style="width:94%"></div>
+    <div class="skeleton sk-line" style="width:58%"></div>
+  </div>
+</article>
+
+<div class="player-bar" role="region" aria-label="播放控制">
+  <button class="play-btn" id="playBtn" aria-label="播放" disabled><svg class="icon-play" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg><svg class="icon-pause" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg></button>
+  <div class="player-info">
+    <div class="player-title" id="playerTitle">—</div>
+    <div class="progress-row">
+      <span class="time-label" id="curTime">0:00</span>
+      <div class="progress-track" id="progressTrack" role="slider" aria-label="播放进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" tabindex="0">
+        <span class="progress-tooltip" id="progressTooltip">0:00</span>
+        <div class="ab-buffer" id="bufferBar" style="color:var(--accent)"></div>
+        <div class="progress-fill" id="progressFill"></div>
+        <span class="progress-thumb" id="progressThumb"></span>
       </div>
-      <div class="jump-wrap">
-        <button id="jumpButton" type="button" title="跳转章节" aria-haspopup="true" aria-expanded="false">跳转</button>
-        <div class="jump-menu" id="jumpMenu" role="dialog" aria-label="跳转章节">
-          <div class="jump-title">跳转章节</div>
-          <div class="jump-controls">
-            <button class="jump-prev" id="jumpPrev" type="button" aria-label="上一章">⏮</button>
-            <select id="jumpSelect" aria-label="选择章节"></select>
-            <button class="jump-next" id="jumpNext" type="button" aria-label="下一章">⏭</button>
-          </div>
-          <div class="jump-actions">
-            <button class="jump-confirm" id="jumpConfirm" type="button">开始播放</button>
-            <button class="jump-cancel" id="jumpCancel" type="button">收起</button>
-          </div>
-        </div>
-      </div>
-      <button id="speedButton" type="button" title="播放速度">1.0x</button>
+      <span class="time-label" id="durTime">0:00</span>
     </div>
+  </div>
+  <button class="skip-btn" id="back15Btn" title="后退 15 秒" aria-label="后退 15 秒"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 9.5A9 9 0 1 1 3 13"/><path d="M3 4v5.5h5.5"/></svg></button>
+  <button class="skip-btn" id="fwd15Btn" title="前进 15 秒" aria-label="前进 15 秒"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 9.5A9 9 0 1 0 21 13"/><path d="M21 4v5.5h-5.5"/></svg></button>
+  <button class="speed-btn" id="speedBtn" aria-label="播放速度">1.0x</button>
+  <button class="font-size-btn" id="timerBtn" aria-label="定时关闭">定时</button>
+  <button class="font-size-btn" id="fontSizeBtn" aria-label="阅读字号">Aa</button>
+  <div class="nav-btns">
+    <button class="nav-btn" id="prevBtn" title="上一章" aria-label="上一章"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 5h2.4v14H7zM20 5.8v12.4a.8.8 0 0 1-1.3.6l-8-6.2a.8.8 0 0 1 0-1.2l8-6.2a.8.8 0 0 1 1.3.6z"/></svg></button>
+    <button class="nav-btn" id="nextBtn" title="下一章" aria-label="下一章"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M14.6 5H17v14h-2.4zM4 5.8v12.4a.8.8 0 0 0 1.3.6l8-6.2a.8.8 0 0 0 0-1.2l-8-6.2A.8.8 0 0 0 4 5.8z"/></svg></button>
   </div>
 </div>
-<div class="toast" id="toast" role="status"></div>
-<audio id="audio" preload="metadata"></audio>
+</main>
 
-<!-- 离线缓存面板 -->
+<!-- 离线缓存面板（持续自动缓存：有网时从当前章节向后顺序下载，直到全书完成） -->
 <div class="cache-panel" id="cachePanel">
-  <button class="cache-toggle" id="cacheToggle" type="button" title="离线缓存" aria-label="离线缓存">
-    <span class="cache-icon" id="cacheIcon">⬇</span>
+  <button class="cache-toggle" id="cacheToggle" type="button" title="离线缓存" aria-label="离线缓存管理" aria-expanded="false">
+    <span class="cache-icon" id="cacheIcon"><svg class="icon-dl" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m0 0 4.5-4.5M12 15l-4.5-4.5M5 19h14"/></svg><svg class="icon-sync" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11.5A8 8 0 1 0 18.9 16"/><path d="M20 5v6h-6"/></svg></span>
     <span class="cache-badge" id="cacheBadge" hidden>0</span>
   </button>
-  <div class="cache-popup" id="cachePopup">
+  <div class="cache-popup" id="cachePopup" role="dialog" aria-label="离线缓存状态">
     <div class="cache-head">
       <span class="cache-title">离线缓存</span>
       <span class="cache-status" id="cacheStatusText">检测中…</span>
@@ -613,614 +890,707 @@ html.js .bottom-player { animation: ng-player-in .55s .55s cubic-bezier(.22,.61,
     </div>
   </div>
 </div>
-<style>
-.cache-panel { position: fixed; z-index: 25; right: 16px; bottom: 140px; }
-.cache-toggle {
-  width: 42px; height: 42px; border-radius: 50%; border: 1px solid var(--line);
-  background: var(--panel-solid); color: var(--muted); cursor: pointer;
-  display: grid; place-items: center; font-size: 18px; position: relative;
-  box-shadow: 0 4px 14px rgba(0,0,0,.12); transition: all .2s;
-}
-.cache-toggle:hover { border-color: var(--accent); color: var(--accent); }
-.cache-toggle.active { background: var(--accent); color: #fff; border-color: var(--accent); }
-.cache-badge {
-  position: absolute; top: -4px; right: -4px; min-width: 18px; height: 18px;
-  border-radius: 9px; background: var(--accent); color: #fff; font-size: 10px;
-  font-weight: 700; display: grid; place-items: center; padding: 0 4px;
-}
-.cache-popup {
-  display: none; position: absolute; right: 0; bottom: 52px;
-  width: 280px; padding: 16px; border-radius: 16px;
-  border: 1px solid var(--line); background: var(--panel-solid);
-  box-shadow: 0 12px 40px rgba(0,0,0,.18);
-}
-.cache-popup.open { display: block; }
-.cache-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-.cache-title { font-family: var(--font-serif); font-size: 14px; font-weight: 700; }
-.cache-status { font-size: 11px; color: var(--muted); }
-.cache-status.online { color: #2f7d4a; }
-.cache-status.offline { color: var(--accent); }
-.cache-progress-wrap { margin-bottom: 8px; }
-.cache-progress { height: 6px; border-radius: 3px; background: var(--bg-deep); overflow: hidden; }
-.cache-progress > span { display: block; height: 100%; width: 0; border-radius: inherit; background: linear-gradient(90deg, var(--accent), var(--gold)); transition: width .3s; }
-.cache-count { display: block; margin-top: 5px; font-size: 11px; color: var(--muted); text-align: right; }
-.cache-hint { margin: 0 0 12px; font-size: 11px; color: var(--muted); line-height: 1.5; }
-.cache-actions { display: flex; gap: 8px; }
-.cache-btn {
-  flex: 1; padding: 8px 0; border: 1px solid var(--line); border-radius: 10px;
-  background: var(--panel); color: var(--ink); cursor: pointer; font-size: 12px;
-  transition: all .15s;
-}
-.cache-btn:hover { border-color: var(--accent); }
-.cache-btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
-.cache-btn.primary:hover { background: var(--accent-deep); }
-.cache-btn:disabled { opacity: .5; cursor: not-allowed; }
-@media (max-width: 700px) { .cache-panel { right: 12px; bottom: 185px; } }
-/* 缓存弹层：弹性弹入（覆盖上方 display 切换，同优先级后写生效） */
-.cache-popup { display: block; opacity: 0; visibility: hidden; transform: translateY(10px) scale(.97); transform-origin: bottom right; transition: opacity .24s ease, transform .3s cubic-bezier(.22,.61,.36,1), visibility 0s linear .3s; }
-.cache-popup.open { opacity: 1; visibility: visible; transform: none; transition: opacity .24s ease, transform .3s cubic-bezier(.22,.61,.36,1); }
-</style>
+
+<audio id="audio" preload="metadata"></audio>
+
 <script src="../_shared/audiobook-common.js"></script>
-<script src="chapters.js"></script>
+
 <script>
-(() => {
-  'use strict';
-  // 数据格式归一化：兼容 v1（扁平数组）和 v2（{version, book, chapters}）
-  function normalizeChapters(data) {
-    if (Array.isArray(data)) return data;
-    if (data && typeof data === 'object' && Array.isArray(data.chapters)) {
-      window.BOOK_INFO = data.book || null;
-      return data.chapters;
-    }
-    return [];
-  }
-  const chapters = normalizeChapters(window.CHAPTERS);
-  const audio = document.getElementById('audio');
-  const chapterList = document.getElementById('chapterList');
-  const search = document.getElementById('chapterSearch');
-  const readingBody = document.getElementById('readingBody');
-  const playButton = document.getElementById('playButton');
-  const rewindButton = document.getElementById('rewindButton');
-  const forwardButton = document.getElementById('forwardButton');
-  const speedButton = document.getElementById('speedButton');
-  const timerButton = document.getElementById('timerButton');
-  const timerMenu = document.getElementById('timerMenu');
-  const timerOptions = [...document.querySelectorAll('.timer-option')];
-  const jumpButton = document.getElementById('jumpButton');
-  const jumpMenu = document.getElementById('jumpMenu');
-  const jumpSelect = document.getElementById('jumpSelect');
-  const jumpPrev = document.getElementById('jumpPrev');
-  const jumpNext = document.getElementById('jumpNext');
-  const jumpConfirm = document.getElementById('jumpConfirm');
-  const jumpCancel = document.getElementById('jumpCancel');
-  const seekBar = document.getElementById('seekBar');
-  const seekFill = document.getElementById('seekFill');
-  const seekDot = document.getElementById('seekDot');
-  const currentTime = document.getElementById('currentTime');
-  const durationTime = document.getElementById('durationTime');
-  const activeSegmentKey = 'nagao_active_segment';
-  const chapterKey = 'nagao_chapter';
-  const timeKey = 'nagao_times';
-  let currentIndex = 0;
-  let segmentNodes = [];
-  let saveTimer = 0;
-  let speeds = [1, 1.25, 1.5, 1.75, 2];
-  let speedIndex = 0;
-  let times = readJson(timeKey, {});
-  let sleepTimer = null;
-  let sleepTimerMode = null;
-  let pendingSeek = null;
-  let restoreListener = null;
-  let seekToken = 0;
-  let lastActiveSegment = -1;
-  let isFirstRender = true;
+'use strict';
 
-  const $ = (id) => document.getElementById(id);
-  const fmtTime = (value) => {
-    const seconds = Math.max(0, Math.floor(Number(value) || 0));
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const rest = seconds % 60;
-    if (hours) return hours + ':' + String(minutes).padStart(2, '0') + ':' + String(rest).padStart(2, '0');
-    return minutes + ':' + String(rest).padStart(2, '0');
-  };
-  const fmtTotal = (value) => {
-    const hours = Math.floor(value / 3600);
-    const minutes = Math.round((value % 3600) / 60);
-    return hours ? hours + 'h ' + String(minutes).padStart(2, '0') + 'm' : minutes + 'm';
-  };
-  function readJson(key, fallback) { try { return JSON.parse(localStorage.getItem(key) || '') || fallback; } catch (_) { return fallback; } }
-  function saveProgress() { try { localStorage.setItem(chapterKey, String(currentIndex)); localStorage.setItem(timeKey, JSON.stringify(times)); } catch (_) {} }
-  function showToast(message) { const toast = $('toast'); toast.textContent = message; toast.classList.add('show'); window.clearTimeout(showToast.timer); showToast.timer = window.setTimeout(() => toast.classList.remove('show'), 2200); }
+const AB = window.ABCommon;
+if (!AB) { document.body.insertAdjacentHTML('beforeend', '<p style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;color:#000;padding:16px;border-radius:8px;z-index:99999">共享脚本未加载</p>'); }
+const {
+  fmtTime, findActiveSeg, normalizeChapters: ABNormalize, audioSrc: ABAudioSrc,
+  applyHashRoute: ABHashRoute, updateHash: ABUpdateHash,
+  updateMediaSession: ABUpdateMediaSession, updateMediaSessionPosition: ABUpdatePosition,
+  showToast, announce
+} = AB || {};
+const SPEED_STEPS = (AB && AB.SPEED_STEPS) || [0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.5];
+const BOOK_ID = 'nanian';
+const SPEED_KEY = 'audiobook-speed-' + BOOK_ID;
 
-  function formatResumeNote() {
-    const savedChapter = Number(localStorage.getItem(chapterKey));
-    const savedTime = savedChapter >= 0 ? Number(times[savedChapter] || 0) : 0;
-    if (!Number.isInteger(savedChapter) || savedChapter < 0 || savedChapter >= chapters.length || savedTime < 1) {
-      $('resumeNote').textContent = '播放进度会自动保存在本机，下次打开可继续收听';
-      return;
-    }
-    $('resumeNote').innerHTML = '上次听到：<strong>第 ' + String(savedChapter + 1).padStart(2, '0') + ' 章 · ' + fmtTime(savedTime) + '</strong>，已自动恢复';
-  }
+let CHAPTERS = [];
+let currentIdx = 0;
+let isPlaying = false;
+let speedIdx = 0;
+let segElements = [];
+let autoPlayNext = true;
+let userScrolling = false;
+let scrollResumeTimer = null;
+let lastActiveSegIdx = -1;
+let sleepTimer = null; // 集成节赋值；章节结束处理需要
+let virtualList = null; // 目录虚拟滚动实例
 
-  function formatTimerLabel(seconds) {
-    const minutes = Math.max(0, Math.ceil(seconds / 60));
-    return minutes >= 60 ? '定时 ' + Math.floor(minutes / 60) + 'h' + (minutes % 60 ? minutes % 60 + 'm' : '') : '定时 ' + minutes + 'm';
-  }
-  function clearSleepTimer(showMessage = false) {
-    if (sleepTimer) window.clearInterval(sleepTimer);
-    sleepTimer = null; sleepTimerMode = null; timerButton.textContent = '定时'; timerButton.classList.remove('timer-badge');
-    if (showMessage) showToast('已取消定时关闭');
-  }
-  function startSleepTimer(minutes) {
-    clearSleepTimer();
-    const deadline = Date.now() + minutes * 60 * 1000;
-    sleepTimerMode = 'countdown';
-    const tick = () => {
-      const remaining = Math.max(0, deadline - Date.now());
-      timerButton.textContent = formatTimerLabel(remaining / 1000); timerButton.classList.add('timer-badge');
-      if (!remaining) { clearSleepTimer(); audio.pause(); showToast('定时结束，已暂停播放'); }
-    };
-    tick(); sleepTimer = window.setInterval(tick, 1000); showToast(minutes + ' 分钟后自动暂停');
-  }
-  function startChapterEndTimer() {
-    clearSleepTimer(); sleepTimerMode = 'chapter'; timerButton.textContent = '本章后'; timerButton.classList.add('timer-badge'); showToast('本章播放结束后自动暂停');
-  }
+let isFirstRender = true;
 
-  function initializeStats() {
-    const totalSeconds = chapters.reduce((sum, chapter) => sum + Number(chapter.dur || 0), 0);
-    const totalSegments = chapters.reduce((sum, chapter) => sum + (chapter.segs || []).length, 0);
-    $('chapterCount').textContent = chapters.length;
-    $('durationStat').textContent = fmtTotal(totalSeconds);
-    $('segmentCount').textContent = totalSegments.toLocaleString('zh-CN');
-    $('progressText').textContent = '第 ' + String(currentIndex + 1).padStart(2, '0') + ' / ' + String(chapters.length).padStart(2, '0') + ' 章';
-    const bookWidth = chapters.length ? Math.min(100, ((currentIndex + 1) / chapters.length * 100)) : 0;
-    $('bookProgress').style.width = bookWidth.toFixed(1) + '%';
-  }
+const audio = document.getElementById('audio');
+const playBtn = document.getElementById('playBtn');
+const prevBtn = document.getElementById('prevBtn');
+const nextBtn = document.getElementById('nextBtn');
+const back15Btn = document.getElementById('back15Btn');
+const fwd15Btn = document.getElementById('fwd15Btn');
+const speedBtn = document.getElementById('speedBtn');
+const themeBtn = document.getElementById('themeBtn');
+const fontSizeBtn = document.getElementById('fontSizeBtn');
+const menuBtn = document.getElementById('menuBtn');
+const progressTrack = document.getElementById('progressTrack');
+const progressFill = document.getElementById('progressFill');
+const progressThumb = document.getElementById('progressThumb');
+const progressTooltip = document.getElementById('progressTooltip');
+const curTimeLabel = document.getElementById('curTime');
+const durTimeLabel = document.getElementById('durTime');
+const playerTitle = document.getElementById('playerTitle');
+const topProgress = document.getElementById('topProgress');
+const sidebar = document.getElementById('sidebar');
+const overlay = document.getElementById('overlay');
 
-  function renderChapterList(keyword = '') {
-    const normalized = keyword.trim().toLowerCase();
-    chapterList.innerHTML = '';
-    const visible = chapters.map((chapter, index) => ({ chapter, index })).filter(({ chapter, index }) => !normalized || chapter.title.toLowerCase().includes(normalized) || String(index + 1).padStart(2, '0').includes(normalized));
-    if (!visible.length) { chapterList.innerHTML = (window.ABCommon ? ABCommon.emptyHTML('没有找到匹配章节', '清除搜索', 'clearSearchBtn') : '<li class="empty">没有找到匹配章节</li>'); var cb = document.getElementById('clearSearchBtn'); if (cb) cb.addEventListener('click', function() { search.value = ''; renderChapterList(''); }); return; }
-    visible.forEach(({ chapter, index }, i) => {
-      const item = document.createElement('li'); item.className = 'chapter-item';
-      item.style.setProperty('--toc-i', String(i));
-      const button = document.createElement('button'); button.className = 'chapter-button' + (index === currentIndex ? ' active' : ''); button.type = 'button'; button.dataset.index = index;
-      button.innerHTML = '<span class="chapter-number">' + String(index + 1).padStart(2, '0') + '</span><span class="chapter-copy"><span class="chapter-name"></span><span class="chapter-duration">' + fmtTime(chapter.dur) + '</span></span>';
-      button.querySelector('.chapter-name').textContent = chapter.title.replace(/^第\d+章\s*/, '');
-      button.addEventListener('click', () => { loadChapter(index, true); closeDrawer(); });
-      item.appendChild(button); chapterList.appendChild(item);
+// ===== 主题（共享逻辑，存储键按书参数化） =====
+AB.initTheme && AB.initTheme({
+  key: 'nanian_theme',
+  button: themeBtn,
+  iconFor: function () { return ''; }, /* 图标由 CSS 按 data-theme 切换（日/月 SVG） */
+  onToggle: () => {
+    themeBtn.classList.add('spinning');
+    setTimeout(() => themeBtn.classList.remove('spinning'), 380);
+  }
+});
+
+// ===== 阅读字号（共享逻辑，存储键按书参数化） =====
+const readingCtrl = AB.initReadingSize && AB.initReadingSize({
+  key: 'nanian_reading_size',
+  button: fontSizeBtn,
+  apply: (size) => document.documentElement.style.setProperty('--reading-size', String(size))
+});
+
+// ===== 加载数据 =====
+async function loadData() {
+  try {
+    const resp = await fetch('data.json');
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const raw = await resp.json();
+    CHAPTERS = ABNormalize ? ABNormalize(raw) : ((raw && raw.chapters) || raw || []);
+    document.getElementById('initLoading').style.display = 'none';
+    buildTOC();
+    initVirtualList();
+    // 单一进度源决定起始章节（含旧键一次性迁移）
+    const progress = AB && AB.loadProgress(BOOK_ID);
+    let startIdx = progress && Number.isInteger(progress.chapterId) ? Number(progress.chapterId) : 0;
+    currentIdx = Math.min(Math.max(startIdx, 0), CHAPTERS.length - 1);
+    applyHashRoute();
+    loadChapter(currentIdx, false);
+    if (typeof checkResumeProgress === 'function') setTimeout(checkResumeProgress, 800);
+    window.__nanianStartCache && window.__nanianStartCache();
+  } catch(e) {
+    document.getElementById('initLoading').innerHTML = AB.errorHTML('加载失败: ' + (e && e.message || e), 'retryLoadBtn');
+    var retryBtn = document.getElementById('retryLoadBtn');
+    if (retryBtn) retryBtn.addEventListener('click', function() {
+      document.getElementById('initLoading').innerHTML = '<div class="skeleton sk-title"></div><div class="skeleton sk-line" style="width:97%"></div><div class="skeleton sk-line" style="width:92%"></div><div class="skeleton sk-line" style="width:96%"></div>';
+      loadData();
     });
   }
+}
 
-  function renderChapter(index, autoplay = false) {
-    const chapter = chapters[index]; if (!chapter) return;
-    segmentNodes = [];
-    $('readerIndex').textContent = 'CHAPTER ' + String(index + 1).padStart(2, '0');
-    $('readerTitle').textContent = chapter.title;
-    $('readerTitle').classList.remove('title-in'); void $('readerTitle').offsetWidth; $('readerTitle').classList.add('title-in');
-    $('readerDuration').textContent = fmtTime(chapter.dur);
-    $('playerTitle').textContent = chapter.title;
-    $('chapterStatus').textContent = '准备播放';
+// ===== 目录（普通列表 / 虚拟滚动 + 搜索） =====
+let tocKeyword = '';
+let tocSearchTimer = 0;
+let tocBreakpointBound = false; // 断点监听只绑一次，重建虚拟列表时不叠加
 
-    const doRender = function () {
-      readingBody.innerHTML = '';
-      const text = document.createElement('div');
-      (chapter.segs || []).forEach((segment, segmentIndex) => {
-        const span = document.createElement('span');
-        span.className = 'segment'; span.tabIndex = 0; span.dataset.segment = segmentIndex; span.textContent = segment.t;
-        span.addEventListener('click', () => {
-          seekToSegment(segmentIndex, true);
+function tocItemHeight() {
+  // 移动端行高更大（padding 12px 20px + 0.9rem 字号）
+  return window.matchMedia('(max-width: 768px)').matches ? 46 : 44;
+}
+
+function filterChapters(keyword) {
+  const kw = String(keyword || '').trim().toLowerCase();
+  if (!kw) return CHAPTERS;
+  return CHAPTERS.filter((ch) => (ch.title || '').toLowerCase().includes(kw));
+}
+
+function buildTOC(keyword) {
+  const toc = document.getElementById('toc');
+  toc.innerHTML = '';
+  const kw = String(keyword || '').trim().toLowerCase();
+  const frag = document.createDocumentFragment();
+  let count = 0;
+  CHAPTERS.forEach((ch, i) => {
+    if (kw && !(ch.title || '').toLowerCase().includes(kw)) return;
+    count++;
+    const a = document.createElement('a');
+    a.dataset.idx = i;
+    /* 目录入场 stagger：仅完整列表启用；搜索过滤时直出 */
+    if (!kw) { a.style.animationDelay = Math.min(count - 1, 24) * 14 + 'ms'; } else { a.style.animation = 'none'; }
+    a.setAttribute('role', 'button');
+    a.tabIndex = 0;
+    if (i === currentIdx) a.setAttribute('aria-current', 'true');
+    const span = document.createElement('span');
+    span.textContent = ch.title;
+    const dur = document.createElement('span');
+    dur.className = 'ch-dur';
+    dur.textContent = fmtTime(ch.duration);
+    a.appendChild(span);
+    a.appendChild(dur);
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      loadChapter(i, isPlaying);
+      closeSidebar();
+    });
+    a.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); a.click(); }
+    });
+    frag.appendChild(a);
+  });
+  toc.appendChild(frag);
+  updateTOCActive();
+}
+
+function initVirtualList() {
+  const tocContainer = document.getElementById('toc');
+  if (virtualList || !tocContainer || CHAPTERS.length <= 50) return;
+  virtualList = AB.createVirtualList(tocContainer, CHAPTERS, {
+    itemHeight: tocItemHeight(),
+    buffer: 8,
+    threshold: 50,
+    renderItem: function (ch, i) {
+      const realIdx = CHAPTERS.indexOf(ch);
+      const a = document.createElement('a');
+      a.dataset.idx = realIdx;
+      a.setAttribute('role', 'button');
+      a.tabIndex = 0;
+      if (realIdx === currentIdx) {
+        a.classList.add('active');
+        a.setAttribute('aria-current', 'true');
+      }
+      a.style.display = 'flex';
+      a.style.justifyContent = 'space-between';
+      a.style.alignItems = 'center';
+      a.style.gap = '10px';
+      a.style.padding = '9px 18px 9px 16px';
+      a.style.color = 'var(--text-dim)';
+      a.style.textDecoration = 'none';
+      a.style.fontSize = '0.85rem';
+      a.style.borderLeft = '3px solid transparent';
+      a.style.borderRadius = '0 8px 8px 0';
+      a.style.boxSizing = 'border-box';
+      a.style.position = 'relative';
+
+      const span = document.createElement('span');
+      span.textContent = ch.title;
+      span.style.flex = '1';
+      span.style.minWidth = '0';
+      span.style.overflow = 'hidden';
+      span.style.textOverflow = 'ellipsis';
+      span.style.whiteSpace = 'nowrap';
+
+      const dur = document.createElement('span');
+      dur.className = 'ch-dur';
+      dur.textContent = fmtTime(ch.duration);
+      dur.style.fontSize = '0.7rem';
+      dur.style.opacity = '0.65';
+      dur.style.fontVariantNumeric = 'tabular-nums';
+      dur.style.flexShrink = '0';
+
+      a.appendChild(span);
+      a.appendChild(dur);
+      return a;
+    },
+    onItemClick: function (ch) {
+      loadChapter(CHAPTERS.indexOf(ch), isPlaying);
+      closeSidebar();
+    }
+  });
+  // 断点切换时重建行高（移动端行高更大）；监听器只注册一次
+  if (!tocBreakpointBound) {
+    tocBreakpointBound = true;
+    window.matchMedia('(max-width: 768px)').addEventListener('change', function () {
+      if (!virtualList) return;
+      const kw = tocKeyword;
+      virtualList.destroy();
+      virtualList = null;
+      initVirtualList();
+      renderTOC(kw);
+    });
+  }
+}
+
+// 搜索 / 过滤统一入口：虚拟列表走 refresh 增量渲染，普通列表走 buildTOC
+function renderTOC(keyword) {
+  tocKeyword = String(keyword || '');
+  const filtered = filterChapters(tocKeyword);
+  const toc = document.getElementById('toc');
+  const emptyEl = document.getElementById('tocEmpty');
+  if (!filtered.length) {
+    emptyEl.innerHTML = AB.emptyHTML('没有找到匹配章节', '清除搜索', 'clearSearchBtn');
+    emptyEl.hidden = false;
+    toc.hidden = true;
+    const cb = document.getElementById('clearSearchBtn');
+    if (cb) cb.addEventListener('click', function () {
+      document.getElementById('tocSearch').value = '';
+      renderTOC('');
+    });
+    return;
+  }
+  emptyEl.hidden = true;
+  toc.hidden = false;
+  if (virtualList) {
+    virtualList.refresh(filtered);
+    updateTOCActive();
+  } else {
+    buildTOC(tocKeyword);
+  }
+}
+
+function updateTOCActive() {
+  document.querySelectorAll('.sidebar a').forEach((a) => {
+    const active = Number(a.dataset.idx) === currentIdx;
+    a.classList.toggle('active', active);
+    if (active) a.setAttribute('aria-current', 'true'); else a.removeAttribute('aria-current');
+  });
+}
+
+document.getElementById('tocSearch').addEventListener('input', (e) => {
+  clearTimeout(tocSearchTimer);
+  tocSearchTimer = setTimeout(() => renderTOC(e.target.value), 200);
+});
+
+// ===== 侧边栏 =====
+function openSidebar() {
+  sidebar.classList.add('open');
+  overlay.classList.add('show');
+  overlay.setAttribute('aria-hidden', 'false');
+  menuBtn.setAttribute('aria-expanded', 'true');
+  AB.trapFocus(sidebar, menuBtn);
+  setTimeout(function () {
+    if (virtualList && !tocKeyword) virtualList.scrollToIndex(currentIdx);
+  }, 350);
+}
+function closeSidebar() {
+  sidebar.classList.remove('open');
+  overlay.classList.remove('show');
+  overlay.setAttribute('aria-hidden', 'true');
+  menuBtn.setAttribute('aria-expanded', 'false');
+  AB.releaseFocus();
+}
+
+// ===== 章节渲染 =====
+function loadChapter(idx, autoplay) {
+  if (idx < 0 || idx >= CHAPTERS.length) return;
+  currentIdx = idx;
+  const ch = CHAPTERS[idx];
+  const reader = document.getElementById('reader');
+
+  // 使用 crossFade 过渡（首次加载直接渲染）
+  const doRender = function () {
+    reader.innerHTML = '';
+    const titleEl = document.createElement('div');
+    titleEl.className = 'chapter-title';
+    titleEl.textContent = ch.title;
+    reader.appendChild(titleEl);
+
+    const contentEl = document.createElement('div');
+    contentEl.className = 'chapter-content';
+    segElements = [];
+    const frag = document.createDocumentFragment();
+    ch.segments.forEach((seg, si) => {
+      const span = document.createElement('span');
+      span.className = 'seg';
+      span.dataset.idx = si;
+      span.tabIndex = 0;
+      span.setAttribute('role', 'button');
+      span.textContent = seg.t;
+      span.addEventListener('click', () => {
+        if (audio.duration) {
+          audio.currentTime = seg.s + 0.01;
+          if (!isPlaying) { audio.play().catch(() => {}); }
+          highlightSeg(si);
           span.classList.remove('flash');
+          // 使用 animationend 清 class，避免强制重排
           span.addEventListener('animationend', function onEnd() { span.classList.remove('flash'); span.removeEventListener('animationend', onEnd); });
           span.classList.add('flash');
-        });
-        span.addEventListener('keydown', (event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); seekToSegment(segmentIndex, true); } });
-        text.appendChild(span); segmentNodes.push(span);
+        }
       });
-      readingBody.appendChild(text);
-      lastActiveSegment = -1;
-      userScrolling = false;
-      clearTimeout(scrollResumeTimer);
-      readingBody.scrollTop = 0;
-      updateSegment(-1);
-    };
-
-    if (isFirstRender) { isFirstRender = false; doRender(); }
-    else { (window.ABCommon || {}).crossFade ? ABCommon.crossFade(readingBody, doRender) : doRender(); }
-    const savedTime = Number(times[index] || 0);
-    if (restoreListener) audio.removeEventListener('loadedmetadata', restoreListener);
-    restoreListener = function restore() {
-      if (!pendingSeek && savedTime > 1 && savedTime < audio.duration - 1) audio.currentTime = savedTime;
-      audio.removeEventListener('loadedmetadata', restore);
-      restoreListener = null;
-    };
-    audio.addEventListener('loadedmetadata', restoreListener);
-    audio.playbackRate = speeds[speedIndex];
-    audio.src = chapter.file;
-    audio.load();
-    playButton.disabled = false;
-    currentTime.textContent = fmtTime(savedTime);
-    durationTime.textContent = fmtTime(chapter.dur);
-    if (autoplay) audio.play().catch(() => showToast('浏览器阻止了自动播放，请点击播放按钮'));
-    if (jumpSelect) { jumpSelect.value = String(index); }
-    updateChapterListActive();
-    initializeStats();
-  }
-
-  function loadChapter(index, autoplay = false) {
-    if (index < 0 || index >= chapters.length) return;
-    if (currentIndex !== index) audio.pause();
-    seekToken++;
-    currentIndex = index; localStorage.setItem(chapterKey, String(index)); saveProgress(); renderChapter(index, autoplay);
-  }
-  function seekToSegment(index, play = false) {
-    const segment = chapters[currentIndex]?.segs?.[index];
-    if (!segment) return;
-    const targetTime = Number(segment.s) || 0;
-    const myToken = ++seekToken;
-    const chapterIndex = currentIndex;
-    pendingSeek = { time: targetTime, segmentIndex: index };
-    const finish = () => {
-      if (myToken !== seekToken || chapterIndex !== currentIndex) return;
-      updateTime();
-      updateSegment(index);
-      if (play) audio.play().catch(() => showToast('浏览器阻止了自动播放，请点击播放按钮'));
-      pendingSeek = null;
-    };
-    const apply = () => {
-      if (myToken !== seekToken || chapterIndex !== currentIndex) return;
-      try { audio.currentTime = targetTime; } catch (_) {}
-      const onSeeked = () => { finish(); audio.removeEventListener('seeked', onSeeked); };
-      audio.addEventListener('seeked', onSeeked, { once: true });
-      // 兜底:某些浏览器不触发 seeked(如 audio 没真正 seek),200ms 后强制完成
-      setTimeout(() => { if (myToken === seekToken) { finish(); audio.removeEventListener('seeked', onSeeked); } }, 200);
-    };
-    if (audio.readyState >= 1) {
-      apply();
-    } else {
-      audio.addEventListener('loadedmetadata', apply, { once: true });
-    }
-  }
-  function updateChapterListActive() {
-    chapterList.querySelectorAll('.chapter-button').forEach((btn) => {
-      btn.classList.toggle('active', Number(btn.dataset.index) === currentIndex);
+      span.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); span.click(); }
+      });
+      frag.appendChild(span);
+      segElements.push(span);
     });
-  }
-  let userScrolling = false;
-  let scrollResumeTimer = null;
-  readingBody.addEventListener('touchmove', () => { userScrolling = true; clearTimeout(scrollResumeTimer); scrollResumeTimer = setTimeout(() => { userScrolling = false; }, 3000); }, { passive: true });
-  readingBody.addEventListener('wheel', () => { userScrolling = true; clearTimeout(scrollResumeTimer); scrollResumeTimer = setTimeout(() => { userScrolling = false; }, 3000); }, { passive: true });
+    contentEl.appendChild(frag);
+    reader.appendChild(contentEl);
+    userScrolling = false;
+    clearTimeout(scrollResumeTimer);
+    reader.scrollTop = 0;
+    lastActiveSegIdx = -1;
+    highlightSeg(0);
+  };
 
-  function updateSegment(index) {
-    segmentNodes.forEach((node, nodeIndex) => node.classList.toggle('active', nodeIndex === index));
-    if (index >= 0) localStorage.setItem(activeSegmentKey, currentIndex + ':' + index);
-    if (index >= 0 && !userScrolling && segmentNodes[index]) {
-      const node = segmentNodes[index];
-      const rect = node.getBoundingClientRect();
-      const containerRect = readingBody.getBoundingClientRect();
-      if (rect.top < containerRect.top + 80 || rect.bottom > containerRect.bottom - 80) {
-        node.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-    }
-  }
-  function updateTime() {
-    const duration = audio.duration || Number(chapters[currentIndex]?.dur || 0);
-    const position = audio.currentTime || 0;
-    const ratio = duration > 0 ? Math.min(1, Math.max(0, position / duration)) : 0;
-    seekFill.style.width = (ratio * 100) + '%'; seekDot.style.left = (ratio * 100) + '%';
-    seekBar.setAttribute('aria-valuenow', String(Math.round(ratio * 100))); currentTime.textContent = fmtTime(position); durationTime.textContent = fmtTime(duration);
-    times[currentIndex] = position;
-    const segments = chapters[currentIndex]?.segs || []; let active = -1;
-    for (let i = 0; i < segments.length; i += 1) if (position >= segments[i].s && position < segments[i].e) { active = i; break; }
-    if (active >= 0) updateSegment(active);
-    if (Date.now() - saveTimer > 4000) { saveTimer = Date.now(); saveProgress(); }
-  }
-  function seekFromPointer(event) {
-    const rect = seekBar.getBoundingClientRect();
-    const duration = audio.duration || Number(chapters[currentIndex]?.dur || 0);
-    if (!rect.width || !duration) return;
-    const clientX = event.touches?.[0]?.clientX ?? event.clientX;
-    const ratio = Math.min(1, Math.max(0, (clientX - rect.left) / rect.width));
-    const target = ratio * duration;
-    if (audio.readyState >= 1) { audio.currentTime = target; updateTime(); }
-  }
-  function setPlayingUI() {
-    const playing = !audio.paused;
-    playButton.classList.toggle('playing', playing); playButton.setAttribute('aria-label', playing ? '暂停' : '播放'); $('chapterStatus').textContent = playing ? '正在播放' : '已暂停';
-  }
+  if (isFirstRender) { isFirstRender = false; doRender(); }
+  else { AB.crossFade(reader, doRender); }
 
-  playButton.addEventListener('click', () => { if (audio.paused) audio.play().catch(() => showToast('音频暂时无法播放')); else audio.pause(); });
-  function nudgeSeconds(delta) {
-    const duration = audio.duration || Number(chapters[currentIndex]?.dur || 0);
-    if (!duration) { showToast('请先选中章节'); return; }
-    const current = audio.currentTime || 0;
-    const target = Math.max(0, Math.min(duration, current + delta));
-    if (audio.readyState >= 1) {
-      audio.currentTime = target; updateTime();
-    } else {
-      audio.addEventListener('loadedmetadata', () => { audio.currentTime = target; updateTime(); }, { once: true });
-    }
-  }
-  rewindButton.addEventListener('click', () => nudgeSeconds(-15));
-  forwardButton.addEventListener('click', () => nudgeSeconds(15));
-  speedButton.addEventListener('click', () => { speedIndex = (speedIndex + 1) % speeds.length; audio.playbackRate = speeds[speedIndex]; speedButton.textContent = speeds[speedIndex].toFixed(2).replace(/0$/, '') + 'x'; showToast('播放速度：' + speedButton.textContent); });
-  search.addEventListener('input', () => renderChapterList(search.value));
-  seekBar.addEventListener('click', seekFromPointer);
-  seekBar.addEventListener('keydown', (event) => {
-    const duration = audio.duration || Number(chapters[currentIndex]?.dur || 0);
-    if (!duration) return;
-    if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
-      event.preventDefault();
-      const target = Math.max(0, Math.min(duration, (audio.currentTime || 0) + (event.key === 'ArrowLeft' ? -5 : 5)));
-      if (audio.readyState >= 1) { audio.currentTime = target; updateTime(); }
-    }
-  });
-  document.addEventListener('keydown', (event) => {
-    const tag = event.target.tagName;
-    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
-    if (event.target === seekBar) return;
-    if (event.key === ' ') { event.preventDefault(); playButton.click(); }
-    if (event.key === 'ArrowLeft' && !event.shiftKey && !event.altKey) { event.preventDefault(); nudgeSeconds(-15); }
-    if (event.key === 'ArrowRight' && !event.shiftKey && !event.altKey) { event.preventDefault(); nudgeSeconds(15); }
-    // 菜单键盘支持：Escape 关闭，ArrowUp/Down 循环
-    if (event.key === 'Escape') {
-      if (timerMenu.classList.contains('open')) toggleMenu(timerMenu, timerButton, false);
-      if (jumpMenu.classList.contains('open')) toggleMenu(jumpMenu, jumpButton, false);
-    }
-    if ((event.key === 'ArrowDown' || event.key === 'ArrowUp') && (timerMenu.classList.contains('open') || jumpMenu.classList.contains('open'))) {
-      const menu = timerMenu.classList.contains('open') ? timerMenu : jumpMenu;
-      const items = [...menu.querySelectorAll('button:not([disabled]), select')];
-      if (!items.length) return;
-      event.preventDefault();
-      const cur = items.indexOf(document.activeElement);
-      let nextIdx;
-      if (event.key === 'ArrowDown') nextIdx = cur < items.length - 1 ? cur + 1 : 0;
-      else nextIdx = cur > 0 ? cur - 1 : items.length - 1;
-      items[nextIdx].focus();
-    }
-  });
+  // 更新播放器
+  playerTitle.textContent = ch.title;
+  audio.src = ABAudioSrc ? ABAudioSrc(ch) : ch.audio;
+  audio.playbackRate = SPEED_STEPS[speedIdx];
+  playBtn.disabled = false;
+  prevBtn.disabled = (idx === 0);
+  nextBtn.disabled = (idx === CHAPTERS.length - 1);
 
-  function toggleMenu(menu, button, force) {
-    const next = typeof force === 'boolean' ? force : !menu.classList.contains('open');
-    [timerMenu, jumpMenu].forEach((other) => { if (other !== menu) other.classList.remove('open'); });
-    menu.classList.toggle('open', next);
-    if (button) button.setAttribute('aria-expanded', String(next));
-    // 焦点管理：打开时陷阱焦点，关闭时归还
-    if (window.ABCommon) {
-      if (next) { ABCommon.trapFocus(menu, button); }
-      else { ABCommon.releaseFocus(); }
-    }
-  }
-  timerButton.addEventListener('click', (event) => { event.stopPropagation(); toggleMenu(timerMenu, timerButton); });
-  timerOptions.forEach((option) => option.addEventListener('click', () => {
-    const minutes = option.dataset.minutes;
-    if (minutes === 'cancel') clearSleepTimer(true); else if (minutes === '0') startChapterEndTimer(); else startSleepTimer(Number(minutes) || 15);
-    toggleMenu(timerMenu, timerButton, false);
+  // 更新顶部进度条（带动画）
+  topProgress.style.width = '0';
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    const bookProgress = ((idx + 1) / CHAPTERS.length * 100).toFixed(1);
+    topProgress.style.width = bookProgress + '%';
   }));
 
-  function refreshJumpMenu() {
-    if (!jumpSelect || jumpSelect.dataset.filled === '1') return;
-    const fragment = document.createDocumentFragment();
-    chapters.forEach((chapter, index) => {
-      const opt = document.createElement('option'); opt.value = String(index); opt.textContent = String(index + 1).padStart(2, '0') + ' · ' + chapter.title.replace(/^第\d+章\s*/, '');
-      fragment.appendChild(opt);
+  // 更新目录高亮
+  updateTOCActive();
+
+  updateMediaSession();
+  updateHash();
+
+  // 屏幕阅读器播报
+  announce && announce('已加载第 ' + (idx + 1) + ' 章：' + ch.title);
+
+  // 自动播放：等待音频就绪后再 play()，避免移动浏览器（iOS Safari / Chrome Android）
+  // 在 src 改变后立即 play() 时因未加载完抛 NotAllowedError 被 catch 静默吞掉，
+  // 导致章节末尾跳转后听不见声音。
+  if (autoplay) tryPlayAfterReady();
+}
+
+/* 在 canplay / loadeddata 时再尝试播放；带过期保护避免事件链断裂。
+ * 仅在自动连播时使用，避免打断用户手动暂停的意图。 */
+function tryPlayAfterReady() {
+  const a = audio;
+  let done = false;
+  const tryOnce = () => {
+    if (done) return;
+    done = true;
+    a.removeEventListener('canplay', tryOnce);
+    a.removeEventListener('loadeddata', tryOnce);
+    a.play().catch(() => {
+      /* 兜底：play() 被拒绝时（极少数浏览器的 autoplay 策略），提示用户手动点击 */
+      showToast && showToast('请点击播放按钮继续收听');
     });
-    jumpSelect.appendChild(fragment); jumpSelect.dataset.filled = '1';
+  };
+  a.addEventListener('canplay', tryOnce);
+  a.addEventListener('loadeddata', tryOnce);
+  /* 兜底：若 canplay 始终未触发（SW 已缓存完整文件时可能不触发 loadeddata），
+   * 最多等 1.2s 直接播放，避免用户感知"卡顿"或"跳章后无声"。 */
+  setTimeout(() => { if (!done) tryOnce(); }, 1200);
+}
+
+// ===== 播放控制 =====
+function togglePlay() {
+  if (audio.paused) {
+    audio.play().catch(() => {});
+  } else {
+    audio.pause();
   }
-  jumpButton.addEventListener('click', (event) => { event.stopPropagation(); refreshJumpMenu(); jumpSelect.value = String(currentIndex); toggleMenu(jumpMenu, jumpButton); });
-  jumpPrev.addEventListener('click', () => { jumpSelect.value = String(Math.max(0, currentIndex - 1)); });
-  jumpNext.addEventListener('click', () => { jumpSelect.value = String(Math.min(chapters.length - 1, currentIndex + 1)); });
-  jumpConfirm.addEventListener('click', () => { const idx = Math.min(Math.max(Number(jumpSelect.value) || 0, 0), chapters.length - 1); loadChapter(idx, !audio.paused); toggleMenu(jumpMenu, jumpButton, false); });
-  jumpCancel.addEventListener('click', () => toggleMenu(jumpMenu, jumpButton, false));
-  document.addEventListener('click', (event) => {
-    if (timerMenu.classList.contains('open') && !event.target.closest('.timer-wrap')) toggleMenu(timerMenu, timerButton, false);
-    if (jumpMenu.classList.contains('open') && !event.target.closest('.jump-wrap')) toggleMenu(jumpMenu, jumpButton, false);
+}
+
+playBtn.addEventListener('click', togglePlay);
+
+audio.addEventListener('play', () => {
+  isPlaying = true;
+  playBtn.classList.add('playing');
+  playBtn.setAttribute('aria-label', '暂停');
+});
+audio.addEventListener('pause', () => {
+  isPlaying = false;
+  playBtn.classList.remove('playing');
+  playBtn.setAttribute('aria-label', '播放');
+});
+
+audio.addEventListener('error', () => {
+  /* 网络或解码失败：清晰提示用户，避免沉默。 */
+  showToast && showToast('音频加载失败，请检查网络后重试', null, 'error');
+  // 内联错误条
+  var bar = document.querySelector('.player-bar');
+  if (bar) {
+    var existing = bar.querySelector('.ab-inline-error');
+    if (existing) existing.remove();
+    var errEl = document.createElement('div');
+    errEl.className = 'ab-inline-error';
+    errEl.textContent = '音频加载失败，请检查网络';
+    errEl.setAttribute('role', 'alert');
+    bar.appendChild(errEl);
+    requestAnimationFrame(() => errEl.classList.add('show'));
+    setTimeout(() => { errEl.classList.remove('show'); setTimeout(() => errEl.remove(), 300); }, 3000);
+  }
+});
+
+// 自动连播核心：章节结束 → 播放下一章（「播完本章暂停」模式下让淡出接管）
+audio.addEventListener('ended', () => {
+  if (sleepTimer && sleepTimer.getMode() === 'chapter') {
+    sleepTimer.onChapterEnded();
+    return;
+  }
+  if (autoPlayNext && currentIdx < CHAPTERS.length - 1) {
+    loadChapter(currentIdx + 1, true);
+  }
+});
+
+audio.addEventListener('loadedmetadata', () => {
+  durTimeLabel.textContent = fmtTime(audio.duration);
+  progressTrack.setAttribute('aria-valuemax', String(Math.round(audio.duration)));
+});
+
+// 统一的 timeupdate 监听器：进度条 + 文本高亮 + 节流保存 + 锁屏位置同步
+audio.addEventListener('timeupdate', () => {
+  const cur = audio.currentTime;
+  const dur = audio.duration;
+  if (dur > 0) {
+    const ratio = cur / dur;
+    progressFill.style.width = (ratio * 100) + '%';
+    progressThumb.style.left = (ratio * 100) + '%';
+    progressTrack.setAttribute('aria-valuenow', String(Math.round(ratio * 100)));
+  }
+  curTimeLabel.textContent = fmtTime(cur);
+
+  // 文本高亮跟随（二分查找）
+  const ch = CHAPTERS[currentIdx];
+  if (ch && ch.segments) {
+    const activeIdx = findActiveSeg(ch.segments, cur);
+    if (activeIdx >= 0) highlightSeg(activeIdx);
+  }
+
+  // 节流保存（单一进度源，每 5s 一次）
+  AB && AB.saveProgress(BOOK_ID, {
+    chapterId: currentIdx,
+    currentTime: cur,
+    volume: audio.volume,
+    playbackRate: audio.playbackRate
   });
-  audio.addEventListener('play', setPlayingUI); audio.addEventListener('pause', setPlayingUI); audio.addEventListener('timeupdate', updateTime); audio.addEventListener('loadedmetadata', updateTime);
-  audio.addEventListener('error', () => { $('chapterStatus').textContent = '音频加载失败'; showToast('当前音频加载失败，请确认章节文件仍在 chapters 文件夹'); var bp = document.querySelector('.bottom-player'); if (bp) { var ex = bp.querySelector('.ab-inline-error'); if (ex) ex.remove(); var errEl = document.createElement('div'); errEl.className = 'ab-inline-error'; errEl.textContent = '音频加载失败，请检查网络'; errEl.setAttribute('role', 'alert'); bp.appendChild(errEl); requestAnimationFrame(() => errEl.classList.add('show')); setTimeout(() => { errEl.classList.remove('show'); setTimeout(() => errEl.remove(), 300); }, 3000); } });
-  $('themeButton').addEventListener('click', () => { const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'; document.documentElement.dataset.theme = next; localStorage.setItem('nagao_theme', next); const tb = $('themeButton'); tb.textContent = next === 'dark' ? '◑' : '◐'; tb.classList.remove('spin'); void tb.offsetWidth; tb.classList.add('spin'); });
 
-  // ===== 移动端章节抽屉 =====
-  const menuToggle = $('menuToggle');
-  const drawerOverlay = $('drawerOverlay');
-  const drawerClose = $('drawerClose');
-  const library = document.querySelector('.library');
-  function openDrawer() { library.classList.add('open'); drawerOverlay.classList.add('show'); menuToggle.setAttribute('aria-expanded', 'true'); document.body.style.overflow = 'hidden'; if (window.ABCommon) ABCommon.trapFocus(library, menuToggle); }
-  function closeDrawer() { library.classList.remove('open'); drawerOverlay.classList.remove('show'); menuToggle.setAttribute('aria-expanded', 'false'); document.body.style.overflow = ''; if (window.ABCommon) ABCommon.releaseFocus(); }
-  menuToggle.addEventListener('click', () => { library.classList.contains('open') ? closeDrawer() : openDrawer(); });
-  drawerOverlay.addEventListener('click', closeDrawer);
-  if (drawerClose) drawerClose.addEventListener('click', closeDrawer);
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && library.classList.contains('open')) closeDrawer(); });
+  // 锁屏 / 系统媒体中心进度同步
+  ABUpdatePosition && ABUpdatePosition(audio);
+});
 
-  window.addEventListener('beforeunload', saveProgress);
+// 进度条拖拽
+let isDragging = false;
+function seekFromEvent(e) {
+  const rect = progressTrack.getBoundingClientRect();
+  const x = (e.clientX || (e.touches && e.touches[0].clientX)) - rect.left;
+  const ratio = Math.max(0, Math.min(1, x / rect.width));
+  if (audio.duration) {
+    audio.currentTime = ratio * audio.duration;
+    progressFill.style.width = (ratio * 100) + '%';
+    progressThumb.style.left = (ratio * 100) + '%';
+  }
+}
+progressTrack.addEventListener('mousedown', (e) => { isDragging = true; progressTrack.classList.add('is-dragging'); seekFromEvent(e); });
+document.addEventListener('mousemove', (e) => { if (isDragging) seekFromEvent(e); });
+document.addEventListener('mouseup', () => { isDragging = false; progressTrack.classList.remove('is-dragging'); });
+progressTrack.addEventListener('touchstart', (e) => { isDragging = true; progressTrack.classList.add('is-dragging'); seekFromEvent(e); }, { passive: true });
+progressTrack.addEventListener('touchmove', (e) => { if (isDragging) seekFromEvent(e); }, { passive: true });
+progressTrack.addEventListener('touchend', () => { isDragging = false; progressTrack.classList.remove('is-dragging'); });
 
-  audio.addEventListener('ended', () => {
-    saveProgress();
-    if (sleepTimerMode === 'chapter') { clearSleepTimer(true); showToast('本章播放结束，已暂停'); return; }
-    if (currentIndex < chapters.length - 1) loadChapter(currentIndex + 1, true);
-    else { $('chapterStatus').textContent = '全书播放完成'; showToast('全书播放完成'); }
-  });
+// 进度条悬停气泡
+function showTooltip(e) {
+  const rect = progressTrack.getBoundingClientRect();
+  const dur = audio.duration;
+  if (!dur) { progressTooltip.classList.remove('show'); return; }
+  const x = (e.clientX || (e.touches && e.touches[0].clientX)) - rect.left;
+  const ratio = Math.max(0, Math.min(1, x / rect.width));
+  progressTooltip.style.left = (ratio * 100) + '%';
+  progressTooltip.textContent = fmtTime(ratio * dur) + ' / ' + fmtTime(dur);
+  progressTooltip.classList.add('show');
+}
+progressTrack.addEventListener('mousemove', showTooltip);
+progressTrack.addEventListener('mouseleave', () => progressTooltip.classList.remove('show'));
 
-  const savedTheme = localStorage.getItem('nagao_theme'); if (savedTheme === 'dark' || savedTheme === 'light') document.documentElement.dataset.theme = savedTheme;
-  $('themeButton').textContent = document.documentElement.dataset.theme === 'dark' ? '◑' : '◐';
-  currentIndex = Math.min(Math.max(Number(localStorage.getItem(chapterKey) || 0), 0), Math.max(0, chapters.length - 1));
-  if (chapters.length) { initializeStats(); renderChapterList(''); renderChapter(currentIndex); formatResumeNote(); } else { $('readerTitle').textContent = '章节数据未找到'; readingBody.innerHTML = (window.ABCommon ? ABCommon.errorHTML('请确认 chapters.js 与本页面位于同一目录。', 'retryDataBtn') : '<p class="empty">请确认 chapters.js 与本页面位于同一目录。</p>'); }
+// 键盘控制进度条
+progressTrack.addEventListener('keydown', (e) => {
+  if (!audio.duration) return;
+  const delta = e.shiftKey ? 30 : 5;
+  if (e.key === 'ArrowLeft') { e.preventDefault(); audio.currentTime = Math.max(0, audio.currentTime - delta); }
+  if (e.key === 'ArrowRight') { e.preventDefault(); audio.currentTime = Math.min(audio.duration, audio.currentTime + delta); }
+});
 
-  // ===== 新增功能集成 =====
-  (function () {
-    const AB = window.ABCommon;
-    if (!AB || !chapters.length) return;
+// 高亮段（仅更新变化的节点，避免每帧遍历整章，减少重绘/回流）
+function highlightSeg(idx) {
+  if (idx < 0 || idx >= segElements.length) return;
+  if (idx === lastActiveSegIdx) return;
+  const prev = segElements[lastActiveSegIdx];
+  if (prev) { prev.classList.remove('active'); prev.removeAttribute('aria-current'); }
+  const node = segElements[idx];
+  node.classList.add('active');
+  node.setAttribute('aria-current', 'true');
+  lastActiveSegIdx = idx;
+  // 播放中自动滚动跟随；用户手动滚动时暂停跟随
+  if (!userScrolling) {
+    const readerEl = document.getElementById('reader');
+    const rect = node.getBoundingClientRect();
+    const containerRect = readerEl.getBoundingClientRect();
+    if (rect.top < containerRect.top + 80 || rect.bottom > containerRect.bottom - 80) {
+      node.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }
+}
 
-    const BOOK_ID = 'nanian';
+// 用户滚动检测：滑动时暂停跟随，停止 3 秒后恢复
+(function() {
+  const readerEl = document.getElementById('reader');
+  if (!readerEl) return;
+  const markScrolling = () => {
+    userScrolling = true;
+    clearTimeout(scrollResumeTimer);
+    scrollResumeTimer = setTimeout(() => { userScrolling = false; }, 3000);
+  };
+  readerEl.addEventListener('touchmove', markScrolling, { passive: true });
+  readerEl.addEventListener('wheel', markScrolling, { passive: true });
+})();
 
-    // --- 1. 缓冲进度 ---
-    const bufferBar = $('bufferBar');
-    if (bufferBar) AB.initBufferProgress(audio, bufferBar);
+// 上一章/下一章
+prevBtn.addEventListener('click', () => {
+  if (currentIdx > 0) loadChapter(currentIdx - 1, isPlaying);
+});
+nextBtn.addEventListener('click', () => {
+  if (currentIdx < CHAPTERS.length - 1) loadChapter(currentIdx + 1, isPlaying);
+});
 
-    // --- 2. 睡眠定时器增强（淡出效果）---
-    // 用 ABCommon 的睡眠定时器增强原有实现，保留 UI 交互
-    const fadeTimer = AB.createSleepTimer(audio, {
+// ±15 秒快退/快进（与键盘 J/K 同步长）
+function seekBy(delta) {
+  if (!audio.duration) return;
+  audio.currentTime = Math.max(0, Math.min(audio.duration, audio.currentTime + delta));
+}
+back15Btn.addEventListener('click', () => seekBy(-15));
+fwd15Btn.addEventListener('click', () => seekBy(15));
+
+// 倍速（8 档，与键盘快捷键共用 SPEED_STEPS，持久化；默认 1.0x）
+(function initSpeed() {
+  speedIdx = SPEED_STEPS.indexOf(1.0); // 默认 1.0x
+  try {
+    const saved = Number(localStorage.getItem(SPEED_KEY));
+    const i = SPEED_STEPS.indexOf(saved);
+    if (i >= 0) speedIdx = i;
+  } catch (_) {}
+  speedBtn.textContent = SPEED_STEPS[speedIdx].toFixed(2).replace(/\.?0+$/, '') + 'x';
+})();
+function applySpeed(rate, silent) {
+  speedIdx = SPEED_STEPS.indexOf(rate);
+  if (speedIdx < 0) { speedIdx = 2; rate = SPEED_STEPS[2]; }
+  audio.playbackRate = rate;
+  speedBtn.textContent = rate.toFixed(2).replace(/\.?0+$/, '') + 'x';
+  try { localStorage.setItem(SPEED_KEY, String(rate)); } catch (_) {}
+  if (!silent) announce && announce('播放速度 ' + speedBtn.textContent + ' 倍');
+}
+speedBtn.addEventListener('click', () => {
+  applySpeed(SPEED_STEPS[(speedIdx + 1) % SPEED_STEPS.length]);
+});
+
+// 侧边栏
+menuBtn.addEventListener('click', openSidebar);
+overlay.addEventListener('click', closeSidebar);
+
+// ===== 新增功能集成 =====
+(function () {
+  const AB = window.ABCommon;
+  if (!AB) return;
+
+  // --- 1. 缓冲进度 ---
+  const bufferBar = document.getElementById('bufferBar');
+  if (bufferBar) AB.initBufferProgress(audio, bufferBar);
+
+  // --- 2. 睡眠定时器（带淡出；含「播完本章暂停」档）---
+  const timerBtn = document.getElementById('timerBtn');
+  const TIMER_CYCLE = [15, 30, 45, 60, 'chapter', 0];
+  function updateTimerBtn(result) {
+    if (!timerBtn) return;
+    if (result === 0) {
+      timerBtn.textContent = '定时';
+      timerBtn.classList.remove('active');
+    } else if (result === 'chapter') {
+      timerBtn.textContent = '本章';
+      timerBtn.classList.add('active');
+    }
+  }
+  if (timerBtn) {
+    sleepTimer = AB.createSleepTimer(audio, {
       fadeDuration: 10000,
       onTick: function (remaining) {
-        // 同步更新原定时器按钮显示
-        if (timerButton && sleepTimerMode === 'countdown') {
-          const totalSec = Math.ceil(remaining / 1000);
-          timerButton.textContent = formatTimerLabel(totalSec);
-          timerButton.classList.add('timer-badge');
-        }
+        const mins = Math.ceil(remaining / 60000);
+        timerBtn.textContent = mins + '分';
+        timerBtn.classList.add('active');
       },
       onEnd: function () {
-        if (timerButton) {
-          timerButton.textContent = '定时';
-          timerButton.classList.remove('timer-badge');
-        }
-        sleepTimerMode = 'off';
-        // 清除原有的 sleepTimer interval
-        if (sleepTimer) { clearInterval(sleepTimer); sleepTimer = null; }
-      },
-      onFadeStart: function () {
-        showToast('即将暂停，音量渐弱中...');
+        timerBtn.textContent = '定时';
+        timerBtn.classList.remove('active');
       }
     });
 
-    // 包装原有的 startSleepTimer，使用淡出版本
-    const origStartSleepTimer = startSleepTimer;
-    startSleepTimer = function (minutes) {
-      // 先清除原定时器
-      if (sleepTimer) { clearInterval(sleepTimer); sleepTimer = null; }
-      fadeTimer.startCountdown(minutes);
-      sleepTimerMode = 'countdown';
-      // 保留原有的 setInterval 用于 UI 兼容（实际计时由 fadeTimer 处理）
-      sleepTimer = setInterval(function () {
-        // 空转，UI 更新由 fadeTimer 的 onTick 处理
-      }, 1000);
-    };
-
-    const origStartChapterEndTimer = startChapterEndTimer;
-    startChapterEndTimer = function () {
-      if (sleepTimer) { clearInterval(sleepTimer); sleepTimer = null; }
-      fadeTimer.startChapterEnd();
-      sleepTimerMode = 'chapter';
-      timerButton.textContent = '本章后';
-      timerButton.classList.add('timer-badge');
-      showToast('本章播放结束后自动暂停');
-    };
-
-    let chapterEndFading = false; // 章节结束淡出进行中标志
-
-    const origClearSleepTimer = clearSleepTimer;
-    clearSleepTimer = function (silent) {
-      // 如果是章节结束淡出中，不要取消（让它自然完成）
-      if (chapterEndFading) return;
-      fadeTimer.cancel(true); // 静默取消淡出
-      sleepTimerMode = 'off';
-      if (sleepTimer) { clearInterval(sleepTimer); sleepTimer = null; }
-      if (timerButton) {
-        timerButton.textContent = '定时';
-        timerButton.classList.remove('timer-badge');
-      }
-      if (!silent) {
-        showToast('已取消定时关闭');
-      }
-    };
-
-    // 章节结束时触发淡出（chapter 模式）
-    // 使用 capture 确保在原 ended 处理函数之前执行
-    audio.addEventListener('ended', function () {
-      if (sleepTimerMode === 'chapter' && fadeTimer) {
-        chapterEndFading = true;
-        // 启动淡出（较短的淡出时间，因为章节已经结束了）
-        fadeTimer.onChapterEnded();
-        // 淡出结束后重置标志
-        setTimeout(function () {
-          chapterEndFading = false;
-        }, 12000); // 淡出时间 + 2 秒缓冲
-      }
-    }, true);
-
-    // --- 3. 键盘快捷键扩展 ---
-    // 跳过 nanian 已有的快捷键（Space、方向键），只添加新增的
-    AB.initKeyboardShortcuts(audio, {
-      seekSmall: 5,
-      seekLarge: 10,
-      skipKeys: [' ', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'],
-      onPrevChapter: function () {
-        if (currentIndex > 0) loadChapter(currentIndex - 1, !audio.paused);
-      },
-      onNextChapter: function () {
-        if (currentIndex < chapters.length - 1) loadChapter(currentIndex + 1, !audio.paused);
-      },
-      onTogglePlay: function () {
-        if (audio.paused) audio.play().catch(function () {});
-        else audio.pause();
-      },
-      onSpeedChange: function (rate) {
-        const speedBtn = $('speedButton');
-        if (speedBtn) speedBtn.textContent = rate.toFixed(2).replace(/\.?0+$/, '') + 'x';
-        audio.playbackRate = rate;
-      },
-      onSleepTimer: function () {
-        // T 键循环切换定时：off → 15 → 30 → 45 → 60 → 本章 → off
-        if (sleepTimerMode === 'off' || !sleepTimerMode) {
-          startSleepTimer(15);
-        } else if (sleepTimerMode === 'countdown' && fadeTimer) {
-          const remaining = fadeTimer.getRemaining();
-          const minutes = Math.ceil(remaining / 60000);
-          if (minutes <= 15) { startSleepTimer(30); }
-          else if (minutes <= 30) { startSleepTimer(45); }
-          else if (minutes <= 45) { startSleepTimer(60); }
-          else { startChapterEndTimer(); }
-        } else if (sleepTimerMode === 'chapter') {
-          clearSleepTimer();
-        }
-      },
-      extraShortcuts: [
-        { key: 'Space', label: '播放/暂停', description: '已有' },
-        { key: '←/→', label: '快退/快进 15 秒', description: '已有' },
-        { key: '↑/↓', label: '菜单导航', description: '菜单打开时' },
-        { key: 'Esc', label: '关闭菜单/抽屉', description: '关闭打开的菜单或侧边栏' }
-      ]
+    timerBtn.addEventListener('click', function () {
+      if (!sleepTimer) return;
+      updateTimerBtn(sleepTimer.cycle(TIMER_CYCLE));
     });
+  }
 
-    // 帮助按钮
-    const helpBtn = $('helpButton');
-    if (helpBtn) {
-      helpBtn.addEventListener('click', function () {
-        AB.showShortcutsHelp();
-      });
+  // --- 3. 键盘快捷键扩展 ---
+  AB.initKeyboardShortcuts(audio, {
+    seekSmall: 5,
+    seekLarge: 10,
+    onPrevChapter: function () {
+      if (currentIdx > 0) loadChapter(currentIdx - 1, isPlaying);
+    },
+    onNextChapter: function () {
+      if (currentIdx < CHAPTERS.length - 1) loadChapter(currentIdx + 1, isPlaying);
+    },
+    onTogglePlay: togglePlay,
+    onSpeedChange: function (rate) {
+      applySpeed(rate, true); // 键盘快捷键内部已播报
+    },
+    onSleepTimer: function () {
+      if (sleepTimer && timerBtn) updateTimerBtn(sleepTimer.cycle(TIMER_CYCLE));
+    },
+    extraShortcuts: [
+      { key: 'F', label: '字号调节', description: '调节阅读字号大小' },
+      { key: 'Esc', label: '关闭侧栏', description: '关闭章节目录侧边栏' }
+    ]
+  });
+
+  // 帮助按钮
+  const helpBtn = document.getElementById('helpBtn');
+  if (helpBtn) {
+    helpBtn.addEventListener('click', function () {
+      AB.showShortcutsHelp();
+    });
+  }
+
+  // nanian 特有快捷键（F 字号、Esc 关闭侧栏）
+  document.addEventListener('keydown', function (e) {
+    const tag = e.target.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.key === 'Escape') {
+      closeSidebar();
     }
-
-    // --- 4. PWA 安装 ---
-    const installBtn = $('installButton');
-    if (installBtn) {
-      AB.initPWAInstall(installBtn, {
-        onAvailable: function () {
-          installBtn.hidden = false;
-        },
-        onInstalled: function () {
-          installBtn.hidden = true;
-        }
-      });
+    if (e.key === 'f' || e.key === 'F') {
+      e.preventDefault();
+      if (readingCtrl) readingCtrl.cycle(e.shiftKey ? -1 : 1);
     }
+  });
 
-    // --- 5. 播放进度持久化（统一格式）---
-    audio.addEventListener('timeupdate', function () {
-      AB.saveProgress(BOOK_ID, {
-        chapterId: currentIndex,
-        currentTime: audio.currentTime,
-        volume: audio.volume,
-        playbackRate: audio.playbackRate
-      });
+  // --- 4. PWA 安装 ---
+  const installBtn = document.getElementById('installBtn');
+  if (installBtn) {
+    AB.initPWAInstall(installBtn, {
+      onAvailable: function () {
+        installBtn.hidden = false;
+      },
+      onInstalled: function () {
+        installBtn.hidden = true;
+      }
     });
+  }
 
-    window.addEventListener('beforeunload', function () {
+  // --- 5. 播放进度持久化（统一格式；卸载时绕过节流直写最新值）---
+  window.addEventListener('beforeunload', function () {
+    if (CHAPTERS.length > 0) {
       try {
         localStorage.setItem(
           'audiobook-progress-' + BOOK_ID,
           JSON.stringify({
-            chapterId: currentIndex,
+            chapterId: currentIdx,
             currentTime: audio.currentTime,
             volume: audio.volume,
             playbackRate: audio.playbackRate,
@@ -1228,272 +1598,301 @@ html.js .bottom-player { animation: ng-player-in .55s .55s cubic-bezier(.22,.61,
           })
         );
       } catch (_) {}
-    });
+    }
+  });
 
-    // --- 6. 继续播放提示 ---
-    const progress = AB.loadProgress(BOOK_ID);
-    if (progress && progress.chapterId != null && progress.currentTime > 5) {
-      const chIdx = Number(progress.chapterId);
-      const ch = chapters[chIdx];
-      if (ch && progress.currentTime < (ch.dur || ch.duration) - 5) {
-        const age = Date.now() - (progress.timestamp || 0);
-        if (age < 7 * 24 * 60 * 60 * 1000) {
-          setTimeout(function () {
-            AB.showResumePrompt(progress, {
-              chapterTitle: ch.title,
-              onConfirm: function (p) {
-                const idx = Number(p.chapterId);
-                if (idx !== currentIndex) {
-                  loadChapter(idx, false);
-                }
-                const doSeek = function () {
-                  if (audio.duration && p.currentTime < audio.duration) {
-                    audio.currentTime = p.currentTime;
-                  }
-                  audio.play().catch(function () {});
-                  audio.removeEventListener('canplay', doSeek);
-                };
-                if (audio.readyState >= 1) doSeek();
-                else audio.addEventListener('canplay', doSeek);
+  // --- 6. 播放进度持久化（见上方 beforeunload；timeupdate 节流保存）---
+})();
 
-                if (p.volume != null) audio.volume = p.volume;
-                if (p.playbackRate != null) audio.playbackRate = p.playbackRate;
-              },
-              onCancel: function () {
-                AB.clearProgress(BOOK_ID);
-              }
-            });
-          }, 1000);
+// ===== 继续播放提示（单一进度源；loadData 完成后调用） =====
+function checkResumeProgress() {
+  if (!CHAPTERS.length) return;
+  const progress = AB.loadProgress(BOOK_ID);
+  if (!progress || progress.chapterId == null) return;
+
+  // 检查进度是否有效（章节在范围内，且时间大于 5 秒，小于章节时长）
+  const chIdx = Number(progress.chapterId);
+  const ch = CHAPTERS[chIdx];
+  if (!ch || !progress.currentTime || progress.currentTime < 5) return;
+  if (progress.currentTime >= ch.duration - 5) return;
+
+  // 进度较新（7 天内）才提示
+  const age = Date.now() - (progress.timestamp || 0);
+  if (age > 7 * 24 * 60 * 60 * 1000) return;
+
+  AB.showResumePrompt(progress, {
+    chapterTitle: ch.title,
+    onConfirm: function (p) {
+      const idx = Number(p.chapterId);
+      if (idx !== currentIdx) {
+        loadChapter(idx, false);
+      }
+      // 等音频就绪后 seek
+      const doSeek = function () {
+        if (audio.duration && p.currentTime < audio.duration) {
+          audio.currentTime = p.currentTime;
+        }
+        audio.play().catch(function () {});
+        audio.removeEventListener('canplay', doSeek);
+      };
+      if (audio.readyState >= 1) doSeek();
+      else audio.addEventListener('canplay', doSeek);
+
+      // 恢复音量和速率
+      if (p.volume != null) audio.volume = p.volume;
+      if (p.playbackRate != null) audio.playbackRate = p.playbackRate;
+    },
+    onCancel: function () {
+      // 「从头开始」真正归零：清除统一进度并回到本章起点
+      AB.clearProgress(BOOK_ID);
+      try { audio.currentTime = 0; } catch (_) {}
+    }
+  });
+}
+
+// ===== Media Session API (包装 ABCommon) =====
+function updateMediaSession() {
+  ABUpdateMediaSession && ABUpdateMediaSession(audio, CHAPTERS[currentIdx], {
+    artist: '那年高中',
+    album: '那年高中 · 有声书',
+    onPrev: () => { if (currentIdx > 0) loadChapter(currentIdx - 1, isPlaying); },
+    onNext: () => { if (currentIdx < CHAPTERS.length - 1) loadChapter(currentIdx + 1, isPlaying); }
+  });
+}
+
+// ===== URL hash 路由 (包装 ABCommon) =====
+function applyHashRoute() { ABHashRoute && ABHashRoute(CHAPTERS, (idx) => { if (idx !== currentIdx) loadChapter(idx, false); }); }
+function updateHash() { ABUpdateHash && ABUpdateHash(currentIdx); }
+window.addEventListener('hashchange', () => { applyHashRoute(); });
+
+// ===== 全局错误处理 =====
+window.addEventListener('error', (e) => { console.error('Global error:', e.error || e.message); });
+window.addEventListener('unhandledrejection', (e) => { console.error('Unhandled promise rejection:', e.reason); });
+
+// ===== 性能监控 (LCP) =====
+if ('PerformanceObserver' in window) {
+  try {
+    const po = new PerformanceObserver((list) => {
+      for (const entry of list.getEntries()) {
+        if (entry.entryType === 'largest-contentful-paint') {
+          console.log('LCP:', Math.round(entry.renderTime || entry.loadTime), 'ms');
         }
       }
-    }
+    });
+    po.observe({ type: 'largest-contentful-paint', buffered: true });
+  } catch (_) {}
+}
 
-    // --- 7. 虚拟滚动（章节列表，可选，>50 章时启用）---
-    // nanian 只有 40 章，默认不启用虚拟滚动
-    // 如果后续章节数增加，会自动启用
+// ===== 离线缓存管理（SW 消息通道驱动：预取走 PREFETCH_AUDIO，统计走 QUERY_CACHED_AUDIO/CACHE_INFO） =====
+(() => {
+  /* 注册 Service Worker（更新后自动接管，避免旧 SW 消息 API 缺失导致预取丢失） */
+  AB.registerServiceWorker && AB.registerServiceWorker('sw.js');
 
+  const cacheToggle = document.getElementById('cacheToggle');
+  const cachePopup = document.getElementById('cachePopup');
+  const cacheIcon = document.getElementById('cacheIcon');
+  const cacheBadge = document.getElementById('cacheBadge');
+  const cacheStatusText = document.getElementById('cacheStatusText');
+  const cacheProgressBar = document.getElementById('cacheProgressBar');
+  const cacheCountText = document.getElementById('cacheCountText');
+  const cacheHint = document.getElementById('cacheHint');
+  const cacheStartBtn = document.getElementById('cacheStartBtn');
+  const cacheStopBtn = document.getElementById('cacheStopBtn');
+  const cacheClearBtn = document.getElementById('cacheClearBtn');
+
+  /* 默认开启持续缓存；用户点击"暂停"后设为 false 并持久化 */
+  let autoCacheEnabled = (function () {
+    try { const raw = localStorage.getItem('nanian_auto_cache'); return raw == null ? true : raw !== 'false'; }
+    catch (_) { return true; }
   })();
 
-  // 注册本书 Service Worker（scope 限定在 nanian/ 目录下）
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+  let prefetching = false;
+  let currentRunId = 0;
+  let cachedCount = 0;
+  let audioSize = 0;
+  let audioLimit = 650 * 1024 * 1024; // 与 SW v11 默认一致；CACHE_INFO 会回传实际值
+  let limitNotified = false;
+  /* 数据未加载完成时，预缓存会被延迟到 loadData 成功后 */
+  let dataReady = CHAPTERS.length > 0;
 
-  // ===== 离线缓存功能 =====
-  (() => {
-    const AUDIO_CACHE_NAME = 'audio-audiobook-hub-nanian-v10';
-    const cacheToggle = $('cacheToggle');
-    const cachePopup = $('cachePopup');
-    const cacheIcon = $('cacheIcon');
-    const cacheBadge = $('cacheBadge');
-    const cacheStatusText = $('cacheStatusText');
-    const cacheProgressBar = $('cacheProgressBar');
-    const cacheCountText = $('cacheCountText');
-    const cacheHint = $('cacheHint');
-    const cacheStartBtn = $('cacheStartBtn');
-    const cacheStopBtn = $('cacheStopBtn');
-    const cacheClearBtn = $('cacheClearBtn');
+  function getAllAudioUrls() {
+    return AB.audioUrls ? AB.audioUrls(CHAPTERS) : [];
+  }
 
-    let prefetching = false;
-    let abortController = null;
-    let cachedCount = 0;
-    // 默认开启持续缓存：有网时从当前章节向后顺序下载，直到全书完成。
-    let autoCacheEnabled = readJson('nanian_auto_cache', true) !== false;
-    let prefetchRun = 0;
+  function fmtMB(bytes) {
+    return Math.round((bytes || 0) / 1024 / 1024) + 'MB';
+  }
 
-    // 获取所有音频 URL
-    function getAllAudioUrls() {
-      return chapters.map((ch) => {
-        const base = location.href.replace(/[^/]*$/, '');
-        return new URL(ch.file, base).href;
-      });
-    }
-
-    // 查询已缓存的音频数量
-    async function queryCachedCount() {
-      try {
-        const cache = await caches.open(AUDIO_CACHE_NAME);
-        const keys = await cache.keys();
-        const urls = getAllAudioUrls();
-        const cachedUrls = new Set(keys.map((r) => r.url));
-        return urls.filter((u) => cachedUrls.has(u)).length;
-      } catch (_) { return 0; }
-    }
-
-    // 更新 UI
-    async function updateCacheUI() {
-      const total = chapters.length;
-      cachedCount = await queryCachedCount();
-      const pct = total > 0 ? (cachedCount / total * 100) : 0;
-      cacheProgressBar.style.width = pct.toFixed(1) + '%';
-      cacheCountText.textContent = cachedCount + ' / ' + total + ' 章';
+  /* 渲染 UI（cachedCount/audioSize/audioLimit 由 SW 消息回调更新） */
+  function renderCacheUI() {
+    if (!cacheToggle) return;
+    const total = CHAPTERS.length;
+    const pct = total > 0 ? (cachedCount / total * 100) : 0;
+    if (cacheProgressBar) cacheProgressBar.style.width = pct.toFixed(1) + '%';
+    if (cacheCountText) cacheCountText.textContent = cachedCount + ' / ' + total + ' 章';
+    if (cacheBadge) {
       cacheBadge.textContent = cachedCount;
       cacheBadge.hidden = cachedCount === 0;
+    }
 
-      const online = navigator.onLine;
+    const online = navigator.onLine;
+    if (cacheStatusText) {
       cacheStatusText.textContent = online ? '在线' : '离线';
       cacheStatusText.className = 'cache-status ' + (online ? 'online' : 'offline');
+    }
 
-      if (cachedCount >= total) {
-        cacheHint.textContent = '全部章节已缓存，断网也能听';
-        cacheStartBtn.disabled = true;
-        cacheStartBtn.textContent = '已完成';
-      } else if (!online) {
-        cacheHint.textContent = '当前离线，连接网络后可继续缓存';
-        cacheStartBtn.disabled = true;
-      } else {
-        cacheHint.textContent = '有网络时自动缓存后续章节，断网也能听';
-        cacheStartBtn.disabled = false;
+    let hint = '有网络时自动缓存后续章节，断网也能听';
+    if (total > 0 && cachedCount >= total) {
+      hint = '全部章节已缓存，断网也能听';
+      if (cacheStartBtn) { cacheStartBtn.disabled = true; cacheStartBtn.textContent = '已完成'; }
+    } else if (!online) {
+      hint = '当前离线，连接网络后可继续缓存';
+      if (cacheStartBtn) cacheStartBtn.disabled = true;
+    } else {
+      if (cacheStartBtn) { cacheStartBtn.disabled = false; cacheStartBtn.textContent = autoCacheEnabled ? '继续缓存' : '开始缓存'; }
+    }
+    /* 容量上限提示（GET_CACHE_INFO 回传实际上限） */
+    if (audioLimit && audioSize >= audioLimit * 0.95) {
+      hint = '已达缓存上限 ' + fmtMB(audioLimit) + '，最久未听的章节会自动清理';
+      if (!limitNotified) {
+        limitNotified = true;
+        showToast && showToast('音频缓存已达上限，将自动清理最旧章节');
       }
-
-      cacheStopBtn.hidden = !prefetching;
-      cacheStartBtn.hidden = prefetching || cachedCount >= total;
     }
+    if (cacheHint) cacheHint.textContent = hint;
 
-    // 开始预缓存
-    async function startPrefetch() {
-      if (prefetching || !navigator.onLine || !autoCacheEnabled) return;
-      prefetching = true;
-      const runId = ++prefetchRun;
-      abortController = new AbortController();
-      cacheStartBtn.hidden = true;
-      cacheStopBtn.hidden = false;
-      cacheStopBtn.disabled = false;
+    if (cacheStopBtn) cacheStopBtn.hidden = !prefetching;
+    if (cacheStartBtn) cacheStartBtn.hidden = prefetching || (total > 0 && cachedCount >= total);
+    if (cacheToggle) cacheToggle.classList.toggle('active', prefetching);
+    if (cacheIcon) cacheIcon.classList.toggle('prefetching', prefetching);
+  }
 
-      const allUrls = getAllAudioUrls();
-      // 当前章节之后优先，走到末尾后再从头补齐，确保最终覆盖全书。
-      const ordered = [...allUrls.slice(currentIndex), ...allUrls.slice(0, currentIndex)];
+  /* 向 SW 查询已缓存列表与容量统计（异步回传后重渲染） */
+  function queryState() {
+    AB.sendToServiceWorker && AB.sendToServiceWorker({ type: 'QUERY_CACHED_AUDIO' });
+    AB.sendToServiceWorker && AB.sendToServiceWorker({ type: 'GET_CACHE_INFO' });
+  }
 
-      try {
-        const cache = await caches.open(AUDIO_CACHE_NAME);
-        for (const url of ordered) {
-          if (!prefetching || runId !== prefetchRun) break;
-          if (!navigator.onLine) break;
-          const hit = await cache.match(url);
-          if (hit) continue;
-          try {
-            const resp = await fetch(url, { signal: abortController.signal, mode: 'cors', cache: 'no-cache' });
-            if (resp && resp.ok) {
-              await cache.put(url, resp.clone());
-              cachedCount++;
-              const pct = (cachedCount / allUrls.length * 100);
-              cacheProgressBar.style.width = pct.toFixed(1) + '%';
-              cacheCountText.textContent = cachedCount + ' / ' + allUrls.length + ' 章';
-              cacheBadge.textContent = cachedCount;
-              cacheBadge.hidden = false;
-            }
-          } catch (e) {
-            if (e.name === 'AbortError') break;
-            // 单章失败不阻塞队列；断网时交给 online 事件继续。
-            if (!navigator.onLine) break;
-          }
-          // 给移动端网络栈和浏览器渲染留出调度间隔，避免并发下载拖垮播放。
-          await new Promise((resolve) => setTimeout(resolve, 120));
-        }
-      } catch (_) {}
+  /* 开始预取：当前章节之后优先，走到末尾后再从头补齐；由 SW 下载并写入音频缓存 */
+  function startPrefetch() {
+    if (prefetching || !dataReady || CHAPTERS.length === 0) return;
+    if (!navigator.onLine) { renderCacheUI(); return; }
+    if (cachedCount >= CHAPTERS.length) { renderCacheUI(); return; }
 
-      prefetching = false;
-      abortController = null;
-      await updateCacheUI();
-      if (cachedCount >= allUrls.length) showToast('全部章节已缓存');
-    }
+    prefetching = true;
+    const runId = ++currentRunId;
+    renderCacheUI();
 
-    function stopPrefetch() {
-      autoCacheEnabled = false;
-      try { localStorage.setItem('nanian_auto_cache', 'false'); } catch (_) {}
-      ++prefetchRun;
-      if (abortController) abortController.abort();
-      prefetching = false;
-      updateCacheUI();
-      showToast('已暂停自动缓存，可重新开始');
-    }
+    const allUrls = getAllAudioUrls();
+    const ordered = [...allUrls.slice(currentIdx), ...allUrls.slice(0, currentIdx)];
+    AB.sendToServiceWorker && AB.sendToServiceWorker({ type: 'PREFETCH_AUDIO', urls: ordered, runId: runId });
+  }
 
-    async function clearCache() {
-      try {
-        await caches.delete(AUDIO_CACHE_NAME);
-      } catch (_) {}
-      cachedCount = 0;
-      await updateCacheUI();
-      showToast('已清除缓存');
-    }
+  /* 暂停：用户主动停止，并持久化状态 */
+  function stopPrefetch() {
+    autoCacheEnabled = false;
+    try { localStorage.setItem('nanian_auto_cache', 'false'); } catch (_) {}
+    ++currentRunId;
+    prefetching = false;
+    AB.sendToServiceWorker && AB.sendToServiceWorker({ type: 'PREFETCH_STOP' });
+    renderCacheUI();
+    showToast && showToast('已暂停自动缓存，可随时继续');
+  }
 
-    // 事件绑定
+  /* 启用：用户主动开启，并持久化状态 */
+  function startManual() {
+    autoCacheEnabled = true;
+    try { localStorage.setItem('nanian_auto_cache', 'true'); } catch (_) {}
+    startPrefetch();
+  }
+
+  /* 清除全部缓存（仅删音频缓存，外壳不受影响；由 SW 执行并广播） */
+  function clearCache() {
+    prefetching = false;
+    AB.sendToServiceWorker && AB.sendToServiceWorker({ type: 'CLEAR_AUDIO_CACHE' });
+    cachedCount = 0;
+    renderCacheUI();
+    showToast && showToast('已清除缓存');
+  }
+
+  /* 监听 SW 消息 */
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.addEventListener('message', (e) => {
+      const d = e.data || {};
+      if (d.type === 'CACHED_AUDIO_LIST') {
+        const urls = new Set(getAllAudioUrls());
+        cachedCount = (d.urls || []).filter((u) => urls.has(u)).length;
+        renderCacheUI();
+      } else if (d.type === 'CACHE_INFO') {
+        if (d.audioLimit) audioLimit = d.audioLimit;
+        audioSize = d.audioSize || 0;
+        renderCacheUI();
+      } else if (d.type === 'PREFETCH_DONE') {
+        if (d.runId != null && d.runId !== currentRunId) return; // 过期轮次
+        prefetching = false;
+        queryState();
+        if (cachedCount >= CHAPTERS.length) showToast && showToast('全部章节已缓存');
+      } else if (d.type === 'AUDIO_CACHE_CLEARED') {
+        queryState();
+      }
+    });
+  }
+
+  /* 事件绑定 */
+  if (cacheToggle) {
     cacheToggle.addEventListener('click', (e) => {
       e.stopPropagation();
       cachePopup.classList.toggle('open');
+      cacheToggle.setAttribute('aria-expanded', String(cachePopup.classList.contains('open')));
     });
-    cacheStartBtn.addEventListener('click', () => {
-      autoCacheEnabled = true;
-      try { localStorage.setItem('nanian_auto_cache', 'true'); } catch (_) {}
-      startPrefetch();
-    });
-    cacheStopBtn.addEventListener('click', stopPrefetch);
-    cacheClearBtn.addEventListener('click', clearCache);
+  }
+  if (cacheStartBtn) cacheStartBtn.addEventListener('click', startManual);
+  if (cacheStopBtn) cacheStopBtn.addEventListener('click', stopPrefetch);
+  if (cacheClearBtn) cacheClearBtn.addEventListener('click', clearCache);
 
-    // 点击外部关闭（排除缓存按钮本身）
-    document.addEventListener('click', (e) => {
-      if (!e.target.closest('.cache-panel')) cachePopup.classList.remove('open');
-    });
-
-    // 网络状态变化时更新 UI；重新联网后自动从断点继续。
-    window.addEventListener('online', () => {
-      updateCacheUI();
-      if (autoCacheEnabled) window.setTimeout(startPrefetch, 250);
-    });
-    window.addEventListener('offline', updateCacheUI);
-    document.addEventListener('visibilitychange', () => {
-      if (!document.hidden && navigator.onLine && autoCacheEnabled && !prefetching) startPrefetch();
-    });
-
-    // 注册 SW 并监听消息
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.addEventListener('message', (e) => {
-        if (e.data && e.data.type === 'PREFETCH_DONE') updateCacheUI();
-        if (e.data && e.data.type === 'CACHED_AUDIO_LIST') updateCacheUI();
-      });
+  document.addEventListener('click', (e) => {
+    if (cachePopup && cachePopup.classList.contains('open') && !e.target.closest('.cache-panel')) {
+      cachePopup.classList.remove('open');
+      if (cacheToggle) cacheToggle.setAttribute('aria-expanded', 'false');
     }
+  });
 
-    // 申请持久化存储，避免移动端浏览器在空间紧张时优先清理音频缓存。
-    if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
-    // 页面打开即开始持续缓存；浏览器后台冻结时，恢复前台后会继续。
-    updateCacheUI();
+  /* 网络状态变化时更新 UI；重新联网后自动从断点继续 */
+  window.addEventListener('online', () => { queryState(); if (autoCacheEnabled) window.setTimeout(startPrefetch, 300); });
+  window.addEventListener('offline', () => { renderCacheUI(); });
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && navigator.onLine && autoCacheEnabled && !prefetching && dataReady) startPrefetch();
+  });
+
+  /* 申请持久化存储，避免移动端浏览器在空间紧张时优先清理音频缓存 */
+  if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+
+  /* 暴露给 loadData 调用：数据加载完成后启动持续缓存 */
+  window.__nanianStartCache = function () {
+    dataReady = true;
+    queryState();
     if (navigator.onLine && autoCacheEnabled) window.setTimeout(startPrefetch, 800);
-  })();
+  };
 })();
+
+// 初始化
+loadData();
 </script>
+
 <script>
-/* 交互动效增强：首屏统计数字滚动（读取主逻辑已计算的终值，再补滚动过程） */
+/* 交互动效增强：播放/暂停键弹跳反馈（附加监听，不影响主逻辑） */
 (function () {
   'use strict';
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  function animateInt(el, target, comma, dur) {
-    var t0 = null;
-    requestAnimationFrame(function step(t) {
-      if (t0 === null) t0 = t;
-      var p = Math.min(1, (t - t0) / dur);
-      var e = 1 - Math.pow(1 - p, 3);
-      var v = Math.round(target * e);
-      el.textContent = comma ? v.toLocaleString('en-US') : String(v);
-      if (p < 1) requestAnimationFrame(step);
-    });
+  var audioEl = document.getElementById('audio');
+  var pBtn = document.getElementById('playBtn');
+  if (!audioEl || !pBtn) return;
+  function pop() {
+    pBtn.classList.remove('is-pop');
+    pBtn.addEventListener('animationend', function onEnd() { pBtn.classList.remove('is-pop'); pBtn.removeEventListener('animationend', onEnd); });
+    requestAnimationFrame(function() { pBtn.classList.add('is-pop'); });
   }
-  function animateDur(el, h, m, dur) {
-    var target = h * 60 + m, t0 = null;
-    requestAnimationFrame(function step(t) {
-      if (t0 === null) t0 = t;
-      var p = Math.min(1, (t - t0) / dur);
-      var e = 1 - Math.pow(1 - p, 3);
-      var v = Math.round(target * e);
-      el.textContent = Math.floor(v / 60) + 'h ' + String(v % 60).padStart(2, '0') + 'm';
-      if (p < 1) requestAnimationFrame(step);
-    });
-  }
-  setTimeout(function () {
-    var cc = document.getElementById('chapterCount');
-    var sc = document.getElementById('segmentCount');
-    var ds = document.getElementById('durationStat');
-    if (cc) { var n = parseInt(cc.textContent, 10); if (n > 0) animateInt(cc, n, false, 900); }
-    if (sc) { var s = parseInt(sc.textContent.replace(/[^\d]/g, ''), 10); if (s > 0) animateInt(sc, s, true, 1100); }
-    if (ds) { var m = ds.textContent.match(/^(\d+)h (\d+)m$/); if (m) animateDur(ds, +m[1], +m[2], 1100); }
-  }, 380);
+  audioEl.addEventListener('play', pop);
+  audioEl.addEventListener('pause', pop);
 })();
 </script>
 </body>

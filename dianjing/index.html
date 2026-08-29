@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>电竞群像 · 有声书 | 有声书馆</title>
-<meta name="description" content="《电竞群像》完整有声书，免费收听，支持文本同步高亮、倍速播放、章节目录与断点续听。全 177 章，约 15 小时 51 分。">
-<meta name="keywords" content="电竞群像,有声书,有声小说,校园文学,原创长篇,许闻,唐星烨">
+<meta name="description" content="《电竞群像》有声书，免费收听，支持文本同步高亮、倍速播放、章节目录与断点续听。全 90 章，约 22 小时 7 分。">
+<meta name="keywords" content="电竞群像,有声书,有声小说,电竞,双男主,原创长篇,一诺,大帅">
 <meta name="author" content="有声书馆">
 <meta name="robots" content="index,follow,max-image-preview:large">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#efe2cc">
@@ -24,7 +24,7 @@
 <meta property="og:image:alt" content="电竞群像 · 有声书">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="电竞群像 · 有声书 | 有声书馆">
-<meta name="twitter:description" content="校园成长长篇有声书，全 177 章。许闻与唐星烨，从初遇到知悉。">
+<meta name="twitter:description" content="双男主电竞群像长篇有声书，全 90 章。从一诺退役接手，到与辅助大帅并肩夺冠。">
 <meta name="twitter:image" content="https://audiobook-hub.site/og-cover.png">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23efe2cc'/><text x='50' y='50' text-anchor='middle' dominant-baseline='central' font-size='56' fill='%23b66b3f' font-family='serif' font-weight='600'>听</text></svg>">
 <link rel="apple-touch-icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect width='180' height='180' rx='40' fill='%23efe2cc'/><text x='90' y='90' text-anchor='middle' dominant-baseline='central' font-size='100' fill='%23b66b3f' font-family='serif' font-weight='600'>听</text></svg>">
@@ -44,13 +44,13 @@
     "name": "有声书馆"
   },
   "url": "https://audiobook-hub.site/dianjing/",
-  "description": "校园成长长篇有声书，全 177 章。许闻的锁骨上有一道不轻易示人的疤。唐星烨在晃动的火车上与他擦肩，目光却停在那道疤上。",
+  "description": "双男主电竞群像长篇有声书。从一诺退役接手，到与辅助大帅并肩夺冠，成长与并肩的故事。",
   "inLanguage": "zh-CN",
-  "duration": "PT15H51M",
+  "duration": "PT22H7M",
   "numberOfChapters": "90",
   "readBy": {
     "@type": "Person",
-    "name": "苏打"
+    "name": "AI 克隆声部"
   },
   "isPartOf": {
     "@type": "WebSite",
@@ -59,8 +59,8 @@
   }
 }
 </script>
-<script>/* 主题前置初始化：避免深色用户先看到浅色闪屏 */
-try{var t=localStorage.getItem('dianjing_theme');if(t==='dark'||t==='light')document.documentElement.dataset.theme=t;else if(window.matchMedia('(prefers-color-scheme: dark)').matches)document.documentElement.dataset.theme='dark';}catch(e){}document.documentElement.classList.add('js');</script>
+<script>/* 主题前置初始化：统一键 audiobook-theme（与着陆页/404 共享），旧按书键兜底，避免深色用户先看到浅色闪屏 */
+try{var t=localStorage.getItem('audiobook-theme');if(t==null)t=localStorage.getItem('dianjing_theme');if(t==='dark'||(t!=='light'&&window.matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.dataset.theme='dark';}catch(e){}document.documentElement.classList.add('js');</script>
 <style>
 :root {
   color-scheme: light;
@@ -99,7 +99,10 @@ body {
     var(--bg);
   color: var(--text);
   font-family: "Noto Serif SC","Source Han Serif SC","Songti SC","SimSun",serif;
-  min-height: 100vh;
+  /* 定高 + 隐藏溢出：构成 app-shell 布局，正文在 .reader 内部滚动、播放栏常驻底部 */
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   transition: background 0.3s, color 0.3s;
@@ -375,20 +378,6 @@ header {
   transition: width 0.1s linear;
   position: relative;
 }
-.progress-fill::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,.45) 50%, transparent 100%);
-  transform: translateX(-100%);
-  animation: ab-fill-shimmer 2.4s ease-in-out infinite;
-  pointer-events: none;
-}
-@keyframes ab-fill-shimmer {
-  0%   { transform: translateX(-100%); }
-  60%  { transform: translateX(120%); }
-  100% { transform: translateX(120%); }
-}
 .progress-track:hover .progress-fill { opacity: 0.95; }
 .progress-tooltip {
   position: absolute;
@@ -545,7 +534,19 @@ header { animation-delay: .05s; }
 .icon-btn { transition: background .22s ease, border-color .22s ease, color .22s ease, transform .22s cubic-bezier(.22,.61,.36,1); }
 .icon-btn:active { transform: scale(.9); }
 
-/* 播放按钮：脉冲呼吸 */
+/* 主题按钮：日/月图标随 data-theme 切换（纯 CSS，无 JS 文本替换） */
+#themeBtn .icon-sun { display: block; }
+#themeBtn .icon-moon { display: none; }
+[data-theme="dark"] #themeBtn .icon-sun { display: none; }
+[data-theme="dark"] #themeBtn .icon-moon { display: block; }
+
+/* 缓存按钮：下载/旋转图标随预取状态切换 */
+.cache-icon .icon-dl { display: block; }
+.cache-icon .icon-sync { display: none; }
+.cache-icon.prefetching .icon-dl { display: none; }
+.cache-icon.prefetching .icon-sync { display: block; animation: spin 1.2s linear infinite; }
+
+/* 播放按钮：状态切换（去掉无限脉冲，保留按压缩放） */
 .play-btn { position: relative; transition: transform .2s cubic-bezier(.22,.61,.36,1), background .2s ease, box-shadow .2s ease; }
 .play-btn .icon-play, .play-btn .icon-pause {
   position: absolute; top: 50%; left: 50%;
@@ -555,20 +556,6 @@ header { animation-delay: .05s; }
 .play-btn .icon-pause { opacity: 0; transform: translate(-50%,-50%) scale(.5); }
 .play-btn.playing .icon-play { opacity: 0; transform: translate(-50%,-50%) scale(.5); }
 .play-btn.playing .icon-pause { opacity: 1; transform: translate(-50%,-50%) scale(1); }
-.play-btn:not(:disabled)::before {
-  content: "";
-  position: absolute; inset: -3px;
-  border-radius: 50%;
-  border: 1.5px solid var(--accent);
-  opacity: 0;
-  pointer-events: none;
-  animation: ab-play-pulse 2.4s ease-out infinite;
-}
-@keyframes ab-play-pulse {
-  0%   { transform: scale(.92); opacity: .65; }
-  70%  { transform: scale(1.18); opacity: 0; }
-  100% { transform: scale(1.18); opacity: 0; }
-}
 .play-btn:hover:not(:disabled) { transform: scale(1.05); box-shadow: 0 6px 16px color-mix(in srgb, var(--accent) 30%, transparent); }
 .play-btn:active:not(:disabled) { transform: scale(.96); }
 
@@ -623,10 +610,9 @@ header { animation-delay: .05s; }
   .sidebar a:hover { background: transparent; border-left-color: transparent; padding-left: 16px; }
   .sidebar a:hover::before { transform: scaleY(0); }
   .sidebar a:active { background: var(--surface-light); }
-  /* 触屏禁用菜单按钮 90° 旋转 + 标题下划线扫过 + 持续脉冲，节电 */
+  /* 触屏禁用菜单按钮 90° 旋转 + 标题下划线扫过，节电 */
   .menu-btn:hover { transform: none; }
   .chapter-title::after { animation: none; width: 56px; }
-  .play-btn:not(:disabled)::before { animation: none; opacity: 0; }
   .progress-track:hover { height: 6px; }
 }
 
@@ -760,6 +746,55 @@ header { animation-delay: .05s; }
   .play-btn .icon-play, .play-btn .icon-pause { transition: none !important; }
 }
 
+/* 宽屏常驻目录：≥1024px 时目录固定在左侧（吸收 nanian 版经验），不再用抽屉 */
+@media (min-width: 1024px) {
+  body {
+    display: grid;
+    grid-template-columns: 300px minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    height: 100vh;
+    height: 100dvh;
+  }
+  header { grid-column: 1 / -1; grid-row: 1; }
+  .menu-btn { display: none; }
+  .sidebar-overlay { display: none !important; }
+  .sidebar {
+    grid-column: 1; grid-row: 2;
+    position: static;
+    left: auto; top: auto;
+    width: auto; height: auto;
+    min-height: 0;
+    padding: 12px 0 20px;
+    border-top: none;
+    transition: none;
+    z-index: auto;
+  }
+  /* 打开/关闭类不再影响布局（无遮罩、无动画） */
+  .sidebar.open a { animation: none; }
+  .main-wrap { grid-column: 2; grid-row: 2; min-height: 0; }
+  .reader { padding: 36px 40px 48px; }
+}
+
+/* 进度跳转按钮（桌面显示；移动端靠进度条拖拽与长按） */
+.skip-btn {
+  background: var(--surface-light);
+  border: 1px solid var(--border);
+  color: var(--text);
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: background .18s ease, border-color .18s ease, transform .18s cubic-bezier(.22,.61,.36,1);
+  touch-action: manipulation;
+}
+.skip-btn:hover { background: var(--accent-glow); border-color: var(--accent); }
+.skip-btn:active { transform: scale(.9); }
+@media (max-width: 767px) { .skip-btn { display: none; } }
+
+/* 图标按钮：SVG 图标统一尺寸 */
+.icon-btn svg, .nav-btn svg, .skip-btn svg { display: block; }
+
 /* 内联错误条（播放器上方） */
 .player-bar { position: relative; }
 </style>
@@ -769,7 +804,7 @@ header { animation-delay: .05s; }
 <div class="top-progress" id="topProgress" style="width:0%"></div>
 
 <header>
-  <button class="icon-btn menu-btn" id="menuBtn" aria-label="打开章节目录" aria-controls="sidebar" aria-expanded="false">☰</button>
+  <button class="icon-btn menu-btn" id="menuBtn" aria-label="打开章节目录" aria-controls="sidebar" aria-expanded="false"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg></button>
   <a class="brand" href="../index.html" title="返回有声书馆">
     <span class="brand-mark" aria-hidden="true">听</span>
     <span class="brand-body">
@@ -778,9 +813,9 @@ header { animation-delay: .05s; }
     </span>
   </a>
   <div class="header-btns">
-    <button class="icon-btn" id="helpBtn" title="快捷键帮助" aria-label="键盘快捷键帮助">?</button>
-    <button class="icon-btn" id="installBtn" title="安装应用" aria-label="安装为应用" hidden>⬇</button>
-    <button class="icon-btn" id="themeBtn" title="切换主题" aria-label="切换明暗主题">☀</button>
+    <button class="icon-btn" id="helpBtn" title="快捷键帮助" aria-label="键盘快捷键帮助"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9.2"/><path d="M9.4 9.2a2.7 2.7 0 0 1 5.2 1c0 1.8-2.6 2.2-2.6 3.6"/><circle cx="12" cy="17.2" r="0.4" fill="currentColor"/></svg></button>
+    <button class="icon-btn" id="installBtn" title="安装应用" aria-label="安装为应用" hidden><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m0 0 4.5-4.5M12 15l-4.5-4.5M5 19h14"/></svg></button>
+    <button class="icon-btn" id="themeBtn" title="切换主题" aria-label="切换明暗主题"><svg class="icon-sun" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5 5l1.6 1.6M17.4 17.4 19 19M19 5l-1.6 1.6M6.6 17.4 5 19"/></svg><svg class="icon-moon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 14.2A8.8 8.8 0 1 1 9.8 3.4a7 7 0 0 0 10.8 10.8z"/></svg></button>
   </div>
 </header>
 
@@ -820,12 +855,14 @@ header { animation-delay: .05s; }
       <span class="time-label" id="durTime">0:00</span>
     </div>
   </div>
+  <button class="skip-btn" id="back15Btn" title="后退 15 秒" aria-label="后退 15 秒"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 9.5A9 9 0 1 1 3 13"/><path d="M3 4v5.5h5.5"/></svg></button>
+  <button class="skip-btn" id="fwd15Btn" title="前进 15 秒" aria-label="前进 15 秒"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 9.5A9 9 0 1 0 21 13"/><path d="M21 4v5.5h-5.5"/></svg></button>
   <button class="speed-btn" id="speedBtn" aria-label="播放速度">1.0x</button>
-  <button class="font-size-btn" id="timerBtn" aria-label="定时关闭">⏱</button>
+  <button class="font-size-btn" id="timerBtn" aria-label="定时关闭">定时</button>
   <button class="font-size-btn" id="fontSizeBtn" aria-label="阅读字号">Aa</button>
   <div class="nav-btns">
-    <button class="nav-btn" id="prevBtn" title="上一章" aria-label="上一章">⏮</button>
-    <button class="nav-btn" id="nextBtn" title="下一章" aria-label="下一章">⏭</button>
+    <button class="nav-btn" id="prevBtn" title="上一章" aria-label="上一章"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 5h2.4v14H7zM20 5.8v12.4a.8.8 0 0 1-1.3.6l-8-6.2a.8.8 0 0 1 0-1.2l8-6.2a.8.8 0 0 1 1.3.6z"/></svg></button>
+    <button class="nav-btn" id="nextBtn" title="下一章" aria-label="下一章"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M14.6 5H17v14h-2.4zM4 5.8v12.4a.8.8 0 0 0 1.3.6l8-6.2a.8.8 0 0 0 0-1.2l-8-6.2A.8.8 0 0 0 4 5.8z"/></svg></button>
   </div>
 </div>
 </main>
@@ -833,7 +870,7 @@ header { animation-delay: .05s; }
 <!-- 离线缓存面板（持续自动缓存：有网时从当前章节向后顺序下载，直到全书完成） -->
 <div class="cache-panel" id="cachePanel">
   <button class="cache-toggle" id="cacheToggle" type="button" title="离线缓存" aria-label="离线缓存管理" aria-expanded="false">
-    <span class="cache-icon" id="cacheIcon">⬇</span>
+    <span class="cache-icon" id="cacheIcon"><svg class="icon-dl" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m0 0 4.5-4.5M12 15l-4.5-4.5M5 19h14"/></svg><svg class="icon-sync" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11.5A8 8 0 1 0 18.9 16"/><path d="M20 5v6h-6"/></svg></span>
     <span class="cache-badge" id="cacheBadge" hidden>0</span>
   </button>
   <div class="cache-popup" id="cachePopup" role="dialog" aria-label="离线缓存状态">
@@ -891,6 +928,8 @@ const audio = document.getElementById('audio');
 const playBtn = document.getElementById('playBtn');
 const prevBtn = document.getElementById('prevBtn');
 const nextBtn = document.getElementById('nextBtn');
+const back15Btn = document.getElementById('back15Btn');
+const fwd15Btn = document.getElementById('fwd15Btn');
 const speedBtn = document.getElementById('speedBtn');
 const themeBtn = document.getElementById('themeBtn');
 const fontSizeBtn = document.getElementById('fontSizeBtn');
@@ -910,7 +949,7 @@ const overlay = document.getElementById('overlay');
 AB.initTheme && AB.initTheme({
   key: 'dianjing_theme',
   button: themeBtn,
-  iconFor: (dark) => dark ? '🌙' : '☀',
+  iconFor: function () { return ''; }, /* 图标由 CSS 按 data-theme 切换（日/月 SVG） */
   onToggle: () => {
     themeBtn.classList.add('spinning');
     setTimeout(() => themeBtn.classList.remove('spinning'), 380);
@@ -1410,6 +1449,14 @@ nextBtn.addEventListener('click', () => {
   if (currentIdx < CHAPTERS.length - 1) loadChapter(currentIdx + 1, isPlaying);
 });
 
+// ±15 秒快退/快进（与键盘 J/K 同步长）
+function seekBy(delta) {
+  if (!audio.duration) return;
+  audio.currentTime = Math.max(0, Math.min(audio.duration, audio.currentTime + delta));
+}
+back15Btn.addEventListener('click', () => seekBy(-15));
+fwd15Btn.addEventListener('click', () => seekBy(15));
+
 // 倍速（8 档，与键盘快捷键共用 SPEED_STEPS，持久化；默认 1.0x）
 (function initSpeed() {
   speedIdx = SPEED_STEPS.indexOf(1.0); // 默认 1.0x
@@ -1451,7 +1498,7 @@ overlay.addEventListener('click', closeSidebar);
   function updateTimerBtn(result) {
     if (!timerBtn) return;
     if (result === 0) {
-      timerBtn.textContent = '⏱';
+      timerBtn.textContent = '定时';
       timerBtn.classList.remove('active');
     } else if (result === 'chapter') {
       timerBtn.textContent = '本章';
@@ -1467,7 +1514,7 @@ overlay.addEventListener('click', closeSidebar);
         timerBtn.classList.add('active');
       },
       onEnd: function () {
-        timerBtn.textContent = '⏱';
+        timerBtn.textContent = '定时';
         timerBtn.classList.remove('active');
       }
     });
@@ -1717,7 +1764,7 @@ if ('PerformanceObserver' in window) {
     if (cacheStopBtn) cacheStopBtn.hidden = !prefetching;
     if (cacheStartBtn) cacheStartBtn.hidden = prefetching || (total > 0 && cachedCount >= total);
     if (cacheToggle) cacheToggle.classList.toggle('active', prefetching);
-    if (cacheIcon) cacheIcon.textContent = prefetching ? '⟳' : '⬇';
+    if (cacheIcon) cacheIcon.classList.toggle('prefetching', prefetching);
   }
 
   /* 向 SW 查询已缓存列表与容量统计（异步回传后重渲染） */

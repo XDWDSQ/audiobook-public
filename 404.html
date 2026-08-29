@@ -363,12 +363,6 @@ html.dark .theme-toggle__moon{opacity:1;transform:none;color:var(--gold)}
         });
     }
 
-    /* Service Worker 注册 */
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', function () {
-            navigator.serviceWorker.register('sw.js', { scope: './' }).catch(function () {});
-        });
-    }
 })();
 </script>
 </body>

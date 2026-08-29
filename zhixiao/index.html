@@ -59,8 +59,8 @@
   }
 }
 </script>
-<script>/* 主题前置初始化：避免深色用户先看到浅色闪屏 */
-try{var t=localStorage.getItem('zhixiao_theme');if(t==='dark'||t==='light')document.documentElement.dataset.theme=t;else if(window.matchMedia('(prefers-color-scheme: dark)').matches)document.documentElement.dataset.theme='dark';}catch(e){}document.documentElement.classList.add('js');</script>
+<script>/* 主题前置初始化：统一键 audiobook-theme（与着陆页/404 共享），旧按书键兜底，避免深色用户先看到浅色闪屏 */
+try{var t=localStorage.getItem('audiobook-theme');if(t==null)t=localStorage.getItem('zhixiao_theme');if(t==='dark'||(t!=='light'&&window.matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.dataset.theme='dark';}catch(e){}document.documentElement.classList.add('js');</script>
 <style>
 :root {
   color-scheme: light;
@@ -99,7 +99,10 @@ body {
     var(--bg);
   color: var(--text);
   font-family: "Noto Serif SC","Source Han Serif SC","Songti SC","SimSun",serif;
-  min-height: 100vh;
+  /* 定高 + 隐藏溢出：构成 app-shell 布局，正文在 .reader 内部滚动、播放栏常驻底部 */
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   transition: background 0.3s, color 0.3s;
@@ -121,7 +124,7 @@ header {
   color: var(--text);
 }
 .brand-mark {
-  width: 38px; height: 38px; border-radius: 12px;
+  width: 38px; height: 38px; border-radius: 14px;
   display: grid; place-items: center;
   color: #fff8ef; background: linear-gradient(145deg, var(--accent), var(--gold));
   box-shadow: 0 8px 18px rgba(182,107,63,.24);
@@ -203,7 +206,7 @@ header {
   font-size: 0.85rem;
   transition: background 0.22s ease, color 0.22s ease, border-left-color 0.22s ease, padding-left 0.22s ease;
   border-left: 3px solid transparent;
-  border-radius: 0 8px 8px 0;
+  border-radius: 0 14px 14px 0;
   margin: 1px 0;
   position: relative;
   animation: ab-toc-in 0.5s ease both;
@@ -287,7 +290,7 @@ header {
 }
 .seg {
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: 8px;
   transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease;
   padding: 1px 3px;
 }
@@ -375,28 +378,14 @@ header {
   transition: width 0.1s linear;
   position: relative;
 }
-.progress-fill::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,.45) 50%, transparent 100%);
-  transform: translateX(-100%);
-  animation: ab-fill-shimmer 2.4s ease-in-out infinite;
-  pointer-events: none;
-}
-@keyframes ab-fill-shimmer {
-  0%   { transform: translateX(-100%); }
-  60%  { transform: translateX(120%); }
-  100% { transform: translateX(120%); }
-}
 .progress-track:hover .progress-fill { opacity: 0.95; }
 .progress-tooltip {
   position: absolute;
   top: -22px;
   left: 0;
   transform: translateX(-50%);
-  padding: 2px 6px;
-  border-radius: 5px;
+  padding: 2px 8px;
+  border-radius: 999px;
   background: var(--accent);
   color: var(--bg);
   font-size: 0.65rem;
@@ -484,8 +473,8 @@ header {
   background: var(--surface-light);
   border: 1px solid var(--border);
   color: var(--text);
-  padding: 8px 10px 8px 30px;
-  border-radius: 8px;
+  padding: 8px 12px 8px 32px;
+  border-radius: 999px;
   font-size: 0.85rem;
   font-family: inherit;
   outline: none;
@@ -545,7 +534,19 @@ header { animation-delay: .05s; }
 .icon-btn { transition: background .22s ease, border-color .22s ease, color .22s ease, transform .22s cubic-bezier(.22,.61,.36,1); }
 .icon-btn:active { transform: scale(.9); }
 
-/* 播放按钮：脉冲呼吸 */
+/* 主题按钮：日/月图标随 data-theme 切换（纯 CSS，无 JS 文本替换） */
+#themeBtn .icon-sun { display: block; }
+#themeBtn .icon-moon { display: none; }
+[data-theme="dark"] #themeBtn .icon-sun { display: none; }
+[data-theme="dark"] #themeBtn .icon-moon { display: block; }
+
+/* 缓存按钮：下载/旋转图标随预取状态切换 */
+.cache-icon .icon-dl { display: block; }
+.cache-icon .icon-sync { display: none; }
+.cache-icon.prefetching .icon-dl { display: none; }
+.cache-icon.prefetching .icon-sync { display: block; animation: spin 1.2s linear infinite; }
+
+/* 播放按钮：状态切换（去掉无限脉冲，保留按压缩放） */
 .play-btn { position: relative; transition: transform .2s cubic-bezier(.22,.61,.36,1), background .2s ease, box-shadow .2s ease; }
 .play-btn .icon-play, .play-btn .icon-pause {
   position: absolute; top: 50%; left: 50%;
@@ -555,20 +556,6 @@ header { animation-delay: .05s; }
 .play-btn .icon-pause { opacity: 0; transform: translate(-50%,-50%) scale(.5); }
 .play-btn.playing .icon-play { opacity: 0; transform: translate(-50%,-50%) scale(.5); }
 .play-btn.playing .icon-pause { opacity: 1; transform: translate(-50%,-50%) scale(1); }
-.play-btn:not(:disabled)::before {
-  content: "";
-  position: absolute; inset: -3px;
-  border-radius: 50%;
-  border: 1.5px solid var(--accent);
-  opacity: 0;
-  pointer-events: none;
-  animation: ab-play-pulse 2.4s ease-out infinite;
-}
-@keyframes ab-play-pulse {
-  0%   { transform: scale(.92); opacity: .65; }
-  70%  { transform: scale(1.18); opacity: 0; }
-  100% { transform: scale(1.18); opacity: 0; }
-}
 .play-btn:hover:not(:disabled) { transform: scale(1.05); box-shadow: 0 6px 16px color-mix(in srgb, var(--accent) 30%, transparent); }
 .play-btn:active:not(:disabled) { transform: scale(.96); }
 
@@ -623,10 +610,9 @@ header { animation-delay: .05s; }
   .sidebar a:hover { background: transparent; border-left-color: transparent; padding-left: 16px; }
   .sidebar a:hover::before { transform: scaleY(0); }
   .sidebar a:active { background: var(--surface-light); }
-  /* 触屏禁用菜单按钮 90° 旋转 + 标题下划线扫过 + 持续脉冲，节电 */
+  /* 触屏禁用菜单按钮 90° 旋转 + 标题下划线扫过，节电 */
   .menu-btn:hover { transform: none; }
   .chapter-title::after { animation: none; width: 56px; }
-  .play-btn:not(:disabled)::before { animation: none; opacity: 0; }
   .progress-track:hover { height: 6px; }
 }
 
@@ -652,7 +638,7 @@ header { animation-delay: .05s; }
 }
 .cache-popup {
   display: none; position: absolute; right: 0; bottom: 52px;
-  width: 280px; padding: 16px; border-radius: 16px;
+  width: 280px; padding: 16px; border-radius: 20px;
   border: 1px solid var(--border); background: var(--surface);
   box-shadow: 0 12px 40px rgba(0,0,0,0.28);
 }
@@ -663,7 +649,7 @@ header { animation-delay: .05s; }
 .cache-status.online { color: #2f7d4a; }
 .cache-status.offline { color: var(--accent); }
 .cache-progress-wrap { margin-bottom: 8px; }
-.cache-progress { height: 6px; border-radius: 3px; background: var(--surface-light); overflow: hidden; }
+.cache-progress { height: 6px; border-radius: 99px; background: var(--surface-light); overflow: hidden; }
 .cache-progress > span {
   display: block; height: 100%; width: 0; border-radius: inherit;
   background: var(--accent); transition: width .3s;
@@ -707,7 +693,7 @@ header { animation-delay: .05s; }
 
 /* 骨架屏加载（替代 spinner） */
 .skeleton-wrap { padding: 4px 0; }
-.skeleton { position: relative; overflow: hidden; background: var(--surface-light); border-radius: 6px; }
+.skeleton { position: relative; overflow: hidden; background: var(--surface-light); border-radius: 10px; }
 .skeleton::after {
   content: ""; position: absolute; inset: 0;
   background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--text) 9%, transparent), transparent);
@@ -760,6 +746,55 @@ header { animation-delay: .05s; }
   .play-btn .icon-play, .play-btn .icon-pause { transition: none !important; }
 }
 
+/* 宽屏常驻目录：≥1024px 时目录固定在左侧（吸收 nanian 版经验），不再用抽屉 */
+@media (min-width: 1024px) {
+  body {
+    display: grid;
+    grid-template-columns: 300px minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    height: 100vh;
+    height: 100dvh;
+  }
+  header { grid-column: 1 / -1; grid-row: 1; }
+  .menu-btn { display: none; }
+  .sidebar-overlay { display: none !important; }
+  .sidebar {
+    grid-column: 1; grid-row: 2;
+    position: static;
+    left: auto; top: auto;
+    width: auto; height: auto;
+    min-height: 0;
+    padding: 12px 0 20px;
+    border-top: none;
+    transition: none;
+    z-index: auto;
+  }
+  /* 打开/关闭类不再影响布局（无遮罩、无动画） */
+  .sidebar.open a { animation: none; }
+  .main-wrap { grid-column: 2; grid-row: 2; min-height: 0; }
+  .reader { padding: 36px 40px 48px; }
+}
+
+/* 进度跳转按钮（桌面显示；移动端靠进度条拖拽与长按） */
+.skip-btn {
+  background: var(--surface-light);
+  border: 1px solid var(--border);
+  color: var(--text);
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: background .18s ease, border-color .18s ease, transform .18s cubic-bezier(.22,.61,.36,1);
+  touch-action: manipulation;
+}
+.skip-btn:hover { background: var(--accent-glow); border-color: var(--accent); }
+.skip-btn:active { transform: scale(.9); }
+@media (max-width: 767px) { .skip-btn { display: none; } }
+
+/* 图标按钮：SVG 图标统一尺寸 */
+.icon-btn svg, .nav-btn svg, .skip-btn svg { display: block; }
+
 /* 内联错误条（播放器上方） */
 .player-bar { position: relative; }
 </style>
@@ -769,7 +804,7 @@ header { animation-delay: .05s; }
 <div class="top-progress" id="topProgress" style="width:0%"></div>
 
 <header>
-  <button class="icon-btn menu-btn" id="menuBtn" aria-label="打开章节目录" aria-controls="sidebar" aria-expanded="false">☰</button>
+  <button class="icon-btn menu-btn" id="menuBtn" aria-label="打开章节目录" aria-controls="sidebar" aria-expanded="false"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg></button>
   <a class="brand" href="../index.html" title="返回有声书馆">
     <span class="brand-mark" aria-hidden="true">听</span>
     <span class="brand-body">
@@ -778,9 +813,9 @@ header { animation-delay: .05s; }
     </span>
   </a>
   <div class="header-btns">
-    <button class="icon-btn" id="helpBtn" title="快捷键帮助" aria-label="键盘快捷键帮助">?</button>
-    <button class="icon-btn" id="installBtn" title="安装应用" aria-label="安装为应用" hidden>⬇</button>
-    <button class="icon-btn" id="themeBtn" title="切换主题" aria-label="切换明暗主题">☀</button>
+    <button class="icon-btn" id="helpBtn" title="快捷键帮助" aria-label="键盘快捷键帮助"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9.2"/><path d="M9.4 9.2a2.7 2.7 0 0 1 5.2 1c0 1.8-2.6 2.2-2.6 3.6"/><circle cx="12" cy="17.2" r="0.4" fill="currentColor"/></svg></button>
+    <button class="icon-btn" id="installBtn" title="安装应用" aria-label="安装为应用" hidden><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m0 0 4.5-4.5M12 15l-4.5-4.5M5 19h14"/></svg></button>
+    <button class="icon-btn" id="themeBtn" title="切换主题" aria-label="切换明暗主题"><svg class="icon-sun" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5 5l1.6 1.6M17.4 17.4 19 19M19 5l-1.6 1.6M6.6 17.4 5 19"/></svg><svg class="icon-moon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 14.2A8.8 8.8 0 1 1 9.8 3.4a7 7 0 0 0 10.8 10.8z"/></svg></button>
   </div>
 </header>
 
@@ -789,6 +824,7 @@ header { animation-delay: .05s; }
   <h3>目 录</h3>
   <div class="sidebar-search"><input id="tocSearch" type="search" placeholder="搜索章节标题" autocomplete="off" aria-label="搜索章节"></div>
   <div id="toc"><p class="loading"><span class="spinner"></span><br>加载中...</p></div>
+  <div id="tocEmpty" hidden></div>
 </nav>
 
 <main class="main-wrap">
@@ -819,12 +855,14 @@ header { animation-delay: .05s; }
       <span class="time-label" id="durTime">0:00</span>
     </div>
   </div>
+  <button class="skip-btn" id="back15Btn" title="后退 15 秒" aria-label="后退 15 秒"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 9.5A9 9 0 1 1 3 13"/><path d="M3 4v5.5h5.5"/></svg></button>
+  <button class="skip-btn" id="fwd15Btn" title="前进 15 秒" aria-label="前进 15 秒"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 9.5A9 9 0 1 0 21 13"/><path d="M21 4v5.5h-5.5"/></svg></button>
   <button class="speed-btn" id="speedBtn" aria-label="播放速度">1.0x</button>
-  <button class="font-size-btn" id="timerBtn" aria-label="定时关闭">⏱</button>
+  <button class="font-size-btn" id="timerBtn" aria-label="定时关闭">定时</button>
   <button class="font-size-btn" id="fontSizeBtn" aria-label="阅读字号">Aa</button>
   <div class="nav-btns">
-    <button class="nav-btn" id="prevBtn" title="上一章" aria-label="上一章">⏮</button>
-    <button class="nav-btn" id="nextBtn" title="下一章" aria-label="下一章">⏭</button>
+    <button class="nav-btn" id="prevBtn" title="上一章" aria-label="上一章"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 5h2.4v14H7zM20 5.8v12.4a.8.8 0 0 1-1.3.6l-8-6.2a.8.8 0 0 1 0-1.2l8-6.2a.8.8 0 0 1 1.3.6z"/></svg></button>
+    <button class="nav-btn" id="nextBtn" title="下一章" aria-label="下一章"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M14.6 5H17v14h-2.4zM4 5.8v12.4a.8.8 0 0 0 1.3.6l8-6.2a.8.8 0 0 0 0-1.2l-8-6.2A.8.8 0 0 0 4 5.8z"/></svg></button>
   </div>
 </div>
 </main>
@@ -832,7 +870,7 @@ header { animation-delay: .05s; }
 <!-- 离线缓存面板（持续自动缓存：有网时从当前章节向后顺序下载，直到全书完成） -->
 <div class="cache-panel" id="cachePanel">
   <button class="cache-toggle" id="cacheToggle" type="button" title="离线缓存" aria-label="离线缓存管理" aria-expanded="false">
-    <span class="cache-icon" id="cacheIcon">⬇</span>
+    <span class="cache-icon" id="cacheIcon"><svg class="icon-dl" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m0 0 4.5-4.5M12 15l-4.5-4.5M5 19h14"/></svg><svg class="icon-sync" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11.5A8 8 0 1 0 18.9 16"/><path d="M20 5v6h-6"/></svg></span>
     <span class="cache-badge" id="cacheBadge" hidden>0</span>
   </button>
   <div class="cache-popup" id="cachePopup" role="dialog" aria-label="离线缓存状态">
@@ -860,28 +898,29 @@ header { animation-delay: .05s; }
 <script>
 'use strict';
 
-function safeGetStorage(key) {
-  try { return localStorage.getItem(key); } catch (e) { console.error('LocalStorage read error:', e); return null; }
-}
-function safeSetStorage(key, value) {
-  try { localStorage.setItem(key, value); } catch (e) { console.error('LocalStorage write error:', e); }
-}
-
 const AB = window.ABCommon;
 if (!AB) { document.body.insertAdjacentHTML('beforeend', '<p style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;color:#000;padding:16px;border-radius:8px;z-index:99999">共享脚本未加载</p>'); }
-const { fmtTime, findActiveSeg, applyHashRoute: ABHashRoute, updateHash: ABUpdateHash, updateMediaSession: ABUpdateMediaSession, saveThrottled, showToast, announce } = AB || {};
+const {
+  fmtTime, findActiveSeg, normalizeChapters: ABNormalize, audioSrc: ABAudioSrc,
+  applyHashRoute: ABHashRoute, updateHash: ABUpdateHash,
+  updateMediaSession: ABUpdateMediaSession, updateMediaSessionPosition: ABUpdatePosition,
+  showToast, announce
+} = AB || {};
+const SPEED_STEPS = (AB && AB.SPEED_STEPS) || [0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.5];
+const BOOK_ID = 'zhixiao';
+const SPEED_KEY = 'audiobook-speed-' + BOOK_ID;
 
 let CHAPTERS = [];
 let currentIdx = 0;
 let isPlaying = false;
-let speeds = [1.0, 1.25, 1.5, 2.0];
 let speedIdx = 0;
 let segElements = [];
 let autoPlayNext = true;
-let isFirstLoad = true;
 let userScrolling = false;
 let scrollResumeTimer = null;
 let lastActiveSegIdx = -1;
+let sleepTimer = null; // 集成节赋值；章节结束处理需要
+let virtualList = null; // 目录虚拟滚动实例
 
 let isFirstRender = true;
 
@@ -889,6 +928,8 @@ const audio = document.getElementById('audio');
 const playBtn = document.getElementById('playBtn');
 const prevBtn = document.getElementById('prevBtn');
 const nextBtn = document.getElementById('nextBtn');
+const back15Btn = document.getElementById('back15Btn');
+const fwd15Btn = document.getElementById('fwd15Btn');
 const speedBtn = document.getElementById('speedBtn');
 const themeBtn = document.getElementById('themeBtn');
 const fontSizeBtn = document.getElementById('fontSizeBtn');
@@ -904,73 +945,23 @@ const topProgress = document.getElementById('topProgress');
 const sidebar = document.getElementById('sidebar');
 const overlay = document.getElementById('overlay');
 
-// ===== 主题 =====
-function initTheme() {
-  const saved = safeGetStorage('zhixiao_theme');
-  if (saved === 'dark') {
-    document.documentElement.setAttribute('data-theme', 'dark');
-    themeBtn.textContent = '🌙';
-  } else if (saved === 'light') {
-    document.documentElement.removeAttribute('data-theme');
-    themeBtn.textContent = '☀';
-  } else {
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    if (prefersDark) {
-      document.documentElement.setAttribute('data-theme', 'dark');
-      themeBtn.textContent = '🌙';
-    } else {
-      themeBtn.textContent = '☀';
-    }
+// ===== 主题（共享逻辑，存储键按书参数化） =====
+AB.initTheme && AB.initTheme({
+  key: 'zhixiao_theme',
+  button: themeBtn,
+  iconFor: function () { return ''; }, /* 图标由 CSS 按 data-theme 切换（日/月 SVG） */
+  onToggle: () => {
+    themeBtn.classList.add('spinning');
+    setTimeout(() => themeBtn.classList.remove('spinning'), 380);
   }
-}
-function toggleTheme() {
-  themeBtn.classList.add('spinning');
-  setTimeout(() => themeBtn.classList.remove('spinning'), 380);
-  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-  if (isDark) {
-    document.documentElement.removeAttribute('data-theme');
-    safeSetStorage('zhixiao_theme', 'light');
-    themeBtn.textContent = '☀';
-  } else {
-    document.documentElement.setAttribute('data-theme', 'dark');
-    safeSetStorage('zhixiao_theme', 'dark');
-    themeBtn.textContent = '🌙';
-  }
-  announce && announce(isDark ? '已切换到浅色主题' : '已切换到深色主题');
-}
-
-// ===== 阅读字号 =====
-const readingSizeKey = 'zhixiao_reading_size';
-const sizes = [1, 1.15, 1.3];
-let sizeIdx = Math.max(0, sizes.indexOf(Number(safeGetStorage(readingSizeKey)) || 1));
-function applyReadingSize() {
-  document.documentElement.style.setProperty('--reading-size', String(sizes[sizeIdx]));
-  fontSizeBtn.classList.toggle('active', sizeIdx !== 0);
-  fontSizeBtn.setAttribute('aria-label', '阅读字号：' + Math.round(sizes[sizeIdx] * 100) + '%');
-  fontSizeBtn.textContent = sizes[sizeIdx] === 1 ? 'Aa' : (sizes[sizeIdx] >= 1.3 ? 'Aa++' : 'Aa+');
-  announce && announce('字号已调为 ' + Math.round(sizes[sizeIdx] * 100) + '%');
-}
-fontSizeBtn.addEventListener('click', () => {
-  sizeIdx = (sizeIdx + 1) % sizes.length;
-  safeSetStorage(readingSizeKey, String(sizes[sizeIdx]));
-  applyReadingSize();
 });
-applyReadingSize();
 
-// ===== 数据格式归一化（兼容 v1 扁平数组 / v2 book+chapters） =====
-function normalizeChapters(data) {
-  if (Array.isArray(data)) {
-    // v1 格式：扁平数组
-    return data;
-  }
-  if (data && typeof data === 'object' && Array.isArray(data.chapters)) {
-    // v2 格式：{ version, book, chapters }
-    // 同时将 book 元数据挂到全局，供后续使用
-    window.BOOK_INFO = data.book || null;
-    return data.chapters;
-  }
-  return [];
-}
+// ===== 阅读字号（共享逻辑，存储键按书参数化） =====
+const readingCtrl = AB.initReadingSize && AB.initReadingSize({
+  key: 'zhixiao_reading_size',
+  button: fontSizeBtn,
+  apply: (size) => document.documentElement.style.setProperty('--reading-size', String(size))
+});
 
 // ===== 加载数据 =====
 async function loadData() {
@@ -978,13 +969,18 @@ async function loadData() {
     const resp = await fetch('data.json');
     if (!resp.ok) throw new Error('HTTP ' + resp.status);
     const raw = await resp.json();
-    CHAPTERS = normalizeChapters(raw);
+    CHAPTERS = ABNormalize ? ABNormalize(raw) : ((raw && raw.chapters) || raw || []);
     document.getElementById('initLoading').style.display = 'none';
     buildTOC();
-    const saved = parseInt(safeGetStorage('zhixiao_chapter') || '0', 10);
-    currentIdx = isNaN(saved) ? 0 : Math.min(Math.max(saved, 0), CHAPTERS.length - 1);
+    initVirtualList();
+    // 单一进度源决定起始章节（含旧键一次性迁移）
+    const progress = AB && AB.loadProgress(BOOK_ID);
+    let startIdx = progress && Number.isInteger(progress.chapterId) ? Number(progress.chapterId) : 0;
+    currentIdx = Math.min(Math.max(startIdx, 0), CHAPTERS.length - 1);
     applyHashRoute();
     loadChapter(currentIdx, false);
+    if (typeof checkResumeProgress === 'function') setTimeout(checkResumeProgress, 800);
+    window.__zhixiaoStartCache && window.__zhixiaoStartCache();
   } catch(e) {
     document.getElementById('initLoading').innerHTML = AB.errorHTML('加载失败: ' + (e && e.message || e), 'retryLoadBtn');
     var retryBtn = document.getElementById('retryLoadBtn');
@@ -995,7 +991,22 @@ async function loadData() {
   }
 }
 
-// ===== 目录 (带搜索) =====
+// ===== 目录（普通列表 / 虚拟滚动 + 搜索） =====
+let tocKeyword = '';
+let tocSearchTimer = 0;
+let tocBreakpointBound = false; // 断点监听只绑一次，重建虚拟列表时不叠加
+
+function tocItemHeight() {
+  // 移动端行高更大（padding 12px 20px + 0.9rem 字号）
+  return window.matchMedia('(max-width: 768px)').matches ? 46 : 44;
+}
+
+function filterChapters(keyword) {
+  const kw = String(keyword || '').trim().toLowerCase();
+  if (!kw) return CHAPTERS;
+  return CHAPTERS.filter((ch) => (ch.title || '').toLowerCase().includes(kw));
+}
+
 function buildTOC(keyword) {
   const toc = document.getElementById('toc');
   toc.innerHTML = '';
@@ -1006,17 +1017,17 @@ function buildTOC(keyword) {
     if (kw && !(ch.title || '').toLowerCase().includes(kw)) return;
     count++;
     const a = document.createElement('a');
-    a.href = 'javascript:void(0)';
     a.dataset.idx = i;
     /* 目录入场 stagger：仅完整列表启用；搜索过滤时直出 */
     if (!kw) { a.style.animationDelay = Math.min(count - 1, 24) * 14 + 'ms'; } else { a.style.animation = 'none'; }
     a.setAttribute('role', 'button');
+    a.tabIndex = 0;
     if (i === currentIdx) a.setAttribute('aria-current', 'true');
     const span = document.createElement('span');
     span.textContent = ch.title;
     const dur = document.createElement('span');
     dur.className = 'ch-dur';
-    dur.textContent = fmtTime(ch.dur);
+    dur.textContent = fmtTime(ch.duration);
     a.appendChild(span);
     a.appendChild(dur);
     a.addEventListener('click', (e) => {
@@ -1030,8 +1041,103 @@ function buildTOC(keyword) {
     frag.appendChild(a);
   });
   toc.appendChild(frag);
-  if (!count) { toc.innerHTML = AB.emptyHTML('没有找到匹配章节', '清除搜索', 'clearSearchBtn'); var cb = document.getElementById('clearSearchBtn'); if (cb) cb.addEventListener('click', function() { document.getElementById('tocSearch').value = ''; buildTOC(''); }); }
   updateTOCActive();
+}
+
+function initVirtualList() {
+  const tocContainer = document.getElementById('toc');
+  if (virtualList || !tocContainer || CHAPTERS.length <= 50) return;
+  virtualList = AB.createVirtualList(tocContainer, CHAPTERS, {
+    itemHeight: tocItemHeight(),
+    buffer: 8,
+    threshold: 50,
+    renderItem: function (ch, i) {
+      const realIdx = CHAPTERS.indexOf(ch);
+      const a = document.createElement('a');
+      a.dataset.idx = realIdx;
+      a.setAttribute('role', 'button');
+      a.tabIndex = 0;
+      if (realIdx === currentIdx) {
+        a.classList.add('active');
+        a.setAttribute('aria-current', 'true');
+      }
+      a.style.display = 'flex';
+      a.style.justifyContent = 'space-between';
+      a.style.alignItems = 'center';
+      a.style.gap = '10px';
+      a.style.padding = '9px 18px 9px 16px';
+      a.style.color = 'var(--text-dim)';
+      a.style.textDecoration = 'none';
+      a.style.fontSize = '0.85rem';
+      a.style.borderLeft = '3px solid transparent';
+      a.style.borderRadius = '0 8px 8px 0';
+      a.style.boxSizing = 'border-box';
+      a.style.position = 'relative';
+
+      const span = document.createElement('span');
+      span.textContent = ch.title;
+      span.style.flex = '1';
+      span.style.minWidth = '0';
+      span.style.overflow = 'hidden';
+      span.style.textOverflow = 'ellipsis';
+      span.style.whiteSpace = 'nowrap';
+
+      const dur = document.createElement('span');
+      dur.className = 'ch-dur';
+      dur.textContent = fmtTime(ch.duration);
+      dur.style.fontSize = '0.7rem';
+      dur.style.opacity = '0.65';
+      dur.style.fontVariantNumeric = 'tabular-nums';
+      dur.style.flexShrink = '0';
+
+      a.appendChild(span);
+      a.appendChild(dur);
+      return a;
+    },
+    onItemClick: function (ch) {
+      loadChapter(CHAPTERS.indexOf(ch), isPlaying);
+      closeSidebar();
+    }
+  });
+  // 断点切换时重建行高（移动端行高更大）；监听器只注册一次
+  if (!tocBreakpointBound) {
+    tocBreakpointBound = true;
+    window.matchMedia('(max-width: 768px)').addEventListener('change', function () {
+      if (!virtualList) return;
+      const kw = tocKeyword;
+      virtualList.destroy();
+      virtualList = null;
+      initVirtualList();
+      renderTOC(kw);
+    });
+  }
+}
+
+// 搜索 / 过滤统一入口：虚拟列表走 refresh 增量渲染，普通列表走 buildTOC
+function renderTOC(keyword) {
+  tocKeyword = String(keyword || '');
+  const filtered = filterChapters(tocKeyword);
+  const toc = document.getElementById('toc');
+  const emptyEl = document.getElementById('tocEmpty');
+  if (!filtered.length) {
+    emptyEl.innerHTML = AB.emptyHTML('没有找到匹配章节', '清除搜索', 'clearSearchBtn');
+    emptyEl.hidden = false;
+    toc.hidden = true;
+    const cb = document.getElementById('clearSearchBtn');
+    if (cb) cb.addEventListener('click', function () {
+      document.getElementById('tocSearch').value = '';
+      renderTOC('');
+    });
+    return;
+  }
+  emptyEl.hidden = true;
+  toc.hidden = false;
+  if (virtualList) {
+    virtualList.refresh(filtered);
+    updateTOCActive();
+  } else {
+    buildTOC(tocKeyword);
+  }
 }
 
 function updateTOCActive() {
@@ -1043,7 +1149,8 @@ function updateTOCActive() {
 }
 
 document.getElementById('tocSearch').addEventListener('input', (e) => {
-  buildTOC(e.target.value);
+  clearTimeout(tocSearchTimer);
+  tocSearchTimer = setTimeout(() => renderTOC(e.target.value), 200);
 });
 
 // ===== 侧边栏 =====
@@ -1053,6 +1160,9 @@ function openSidebar() {
   overlay.setAttribute('aria-hidden', 'false');
   menuBtn.setAttribute('aria-expanded', 'true');
   AB.trapFocus(sidebar, menuBtn);
+  setTimeout(function () {
+    if (virtualList && !tocKeyword) virtualList.scrollToIndex(currentIdx);
+  }, 350);
 }
 function closeSidebar() {
   sidebar.classList.remove('open');
@@ -1081,7 +1191,7 @@ function loadChapter(idx, autoplay) {
     contentEl.className = 'chapter-content';
     segElements = [];
     const frag = document.createDocumentFragment();
-    ch.segs.forEach((seg, si) => {
+    ch.segments.forEach((seg, si) => {
       const span = document.createElement('span');
       span.className = 'seg';
       span.dataset.idx = si;
@@ -1119,7 +1229,8 @@ function loadChapter(idx, autoplay) {
 
   // 更新播放器
   playerTitle.textContent = ch.title;
-  audio.src = ch.file;
+  audio.src = ABAudioSrc ? ABAudioSrc(ch) : ch.audio;
+  audio.playbackRate = SPEED_STEPS[speedIdx];
   playBtn.disabled = false;
   prevBtn.disabled = (idx === 0);
   nextBtn.disabled = (idx === CHAPTERS.length - 1);
@@ -1130,9 +1241,6 @@ function loadChapter(idx, autoplay) {
     const bookProgress = ((idx + 1) / CHAPTERS.length * 100).toFixed(1);
     topProgress.style.width = bookProgress + '%';
   }));
-
-  // 保存进度
-  safeSetStorage('zhixiao_chapter', idx);
 
   // 更新目录高亮
   updateTOCActive();
@@ -1211,8 +1319,12 @@ audio.addEventListener('error', () => {
   }
 });
 
-// 自动连播核心：章节结束 → 播放下一章
+// 自动连播核心：章节结束 → 播放下一章（「播完本章暂停」模式下让淡出接管）
 audio.addEventListener('ended', () => {
+  if (sleepTimer && sleepTimer.getMode() === 'chapter') {
+    sleepTimer.onChapterEnded();
+    return;
+  }
   if (autoPlayNext && currentIdx < CHAPTERS.length - 1) {
     loadChapter(currentIdx + 1, true);
   }
@@ -1223,7 +1335,7 @@ audio.addEventListener('loadedmetadata', () => {
   progressTrack.setAttribute('aria-valuemax', String(Math.round(audio.duration)));
 });
 
-// 统一的 timeupdate 监听器：进度条 + 文本高亮 + 节流保存
+// 统一的 timeupdate 监听器：进度条 + 文本高亮 + 节流保存 + 锁屏位置同步
 audio.addEventListener('timeupdate', () => {
   const cur = audio.currentTime;
   const dur = audio.duration;
@@ -1237,14 +1349,21 @@ audio.addEventListener('timeupdate', () => {
 
   // 文本高亮跟随（二分查找）
   const ch = CHAPTERS[currentIdx];
-  if (ch && ch.segs) {
-    const activeIdx = findActiveSeg(ch.segs, cur);
+  if (ch && ch.segments) {
+    const activeIdx = findActiveSeg(ch.segments, cur);
     if (activeIdx >= 0) highlightSeg(activeIdx);
   }
 
-  // 节流保存 (每 5s 一次)
-  saveThrottled && saveThrottled('zhixiao_time', String(cur), 5000);
-  saveThrottled && saveThrottled('zhixiao_chapter', String(currentIdx), 5000);
+  // 节流保存（单一进度源，每 5s 一次）
+  AB && AB.saveProgress(BOOK_ID, {
+    chapterId: currentIdx,
+    currentTime: cur,
+    volume: audio.volume,
+    playbackRate: audio.playbackRate
+  });
+
+  // 锁屏 / 系统媒体中心进度同步
+  ABUpdatePosition && ABUpdatePosition(audio);
 });
 
 // 进度条拖拽
@@ -1330,36 +1449,62 @@ nextBtn.addEventListener('click', () => {
   if (currentIdx < CHAPTERS.length - 1) loadChapter(currentIdx + 1, isPlaying);
 });
 
-// 倍速
+// ±15 秒快退/快进（与键盘 J/K 同步长）
+function seekBy(delta) {
+  if (!audio.duration) return;
+  audio.currentTime = Math.max(0, Math.min(audio.duration, audio.currentTime + delta));
+}
+back15Btn.addEventListener('click', () => seekBy(-15));
+fwd15Btn.addEventListener('click', () => seekBy(15));
+
+// 倍速（8 档，与键盘快捷键共用 SPEED_STEPS，持久化；默认 1.0x）
+(function initSpeed() {
+  speedIdx = SPEED_STEPS.indexOf(1.0); // 默认 1.0x
+  try {
+    const saved = Number(localStorage.getItem(SPEED_KEY));
+    const i = SPEED_STEPS.indexOf(saved);
+    if (i >= 0) speedIdx = i;
+  } catch (_) {}
+  speedBtn.textContent = SPEED_STEPS[speedIdx].toFixed(2).replace(/\.?0+$/, '') + 'x';
+})();
+function applySpeed(rate, silent) {
+  speedIdx = SPEED_STEPS.indexOf(rate);
+  if (speedIdx < 0) { speedIdx = 2; rate = SPEED_STEPS[2]; }
+  audio.playbackRate = rate;
+  speedBtn.textContent = rate.toFixed(2).replace(/\.?0+$/, '') + 'x';
+  try { localStorage.setItem(SPEED_KEY, String(rate)); } catch (_) {}
+  if (!silent) announce && announce('播放速度 ' + speedBtn.textContent + ' 倍');
+}
 speedBtn.addEventListener('click', () => {
-  speedIdx = (speedIdx + 1) % speeds.length;
-  audio.playbackRate = speeds[speedIdx];
-  speedBtn.textContent = speeds[speedIdx].toFixed(1) + 'x';
-  announce && announce('播放速度 ' + speeds[speedIdx].toFixed(1) + ' 倍');
+  applySpeed(SPEED_STEPS[(speedIdx + 1) % SPEED_STEPS.length]);
 });
 
 // 侧边栏
 menuBtn.addEventListener('click', openSidebar);
 overlay.addEventListener('click', closeSidebar);
 
-// 主题
-themeBtn.addEventListener('click', toggleTheme);
-
 // ===== 新增功能集成 =====
 (function () {
   const AB = window.ABCommon;
   if (!AB) return;
 
-  const BOOK_ID = 'zhixiao';
-  let sleepTimer = null;
-  let virtualList = null;
-
   // --- 1. 缓冲进度 ---
   const bufferBar = document.getElementById('bufferBar');
   if (bufferBar) AB.initBufferProgress(audio, bufferBar);
 
-  // --- 2. 睡眠定时器（带淡出）---
+  // --- 2. 睡眠定时器（带淡出；含「播完本章暂停」档）---
   const timerBtn = document.getElementById('timerBtn');
+  const TIMER_CYCLE = [15, 30, 45, 60, 'chapter', 0];
+  function updateTimerBtn(result) {
+    if (!timerBtn) return;
+    if (result === 0) {
+      timerBtn.textContent = '定时';
+      timerBtn.classList.remove('active');
+    } else if (result === 'chapter') {
+      timerBtn.textContent = '本章';
+      timerBtn.classList.add('active');
+    }
+  }
   if (timerBtn) {
     sleepTimer = AB.createSleepTimer(audio, {
       fadeDuration: 10000,
@@ -1369,26 +1514,16 @@ themeBtn.addEventListener('click', toggleTheme);
         timerBtn.classList.add('active');
       },
       onEnd: function () {
-        timerBtn.textContent = '⏱';
+        timerBtn.textContent = '定时';
         timerBtn.classList.remove('active');
       }
     });
 
     timerBtn.addEventListener('click', function () {
       if (!sleepTimer) return;
-      const result = sleepTimer.cycle([15, 30, 45, 60, 0]);
-      if (result === 0) {
-        timerBtn.textContent = '⏱';
-        timerBtn.classList.remove('active');
-      }
+      updateTimerBtn(sleepTimer.cycle(TIMER_CYCLE));
     });
   }
-
-  // 章节结束时检查睡眠定时器（chapter 模式）
-  const origEndedHandler = function () {};
-  audio.addEventListener('ended', function () {
-    if (sleepTimer) sleepTimer.onChapterEnded();
-  });
 
   // --- 3. 键盘快捷键扩展 ---
   AB.initKeyboardShortcuts(audio, {
@@ -1402,22 +1537,10 @@ themeBtn.addEventListener('click', toggleTheme);
     },
     onTogglePlay: togglePlay,
     onSpeedChange: function (rate) {
-      // 更新速率按钮显示
-      const speedBtn = document.getElementById('speedBtn');
-      if (speedBtn) speedBtn.textContent = rate.toFixed(2).replace(/\.?0+$/, '') + 'x';
-      // 同步到全局 speedIdx
-      const allSpeeds = [0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.5];
-      const idx = allSpeeds.indexOf(rate);
-      if (idx >= 0) { speedIdx = idx % speeds.length; }
+      applySpeed(rate, true); // 键盘快捷键内部已播报
     },
     onSleepTimer: function () {
-      if (sleepTimer && timerBtn) {
-        const result = sleepTimer.cycle([15, 30, 45, 60, 0]);
-        if (result === 0) {
-          timerBtn.textContent = '⏱';
-          timerBtn.classList.remove('active');
-        }
-      }
+      if (sleepTimer && timerBtn) updateTimerBtn(sleepTimer.cycle(TIMER_CYCLE));
     },
     extraShortcuts: [
       { key: 'F', label: '字号调节', description: '调节阅读字号大小' },
@@ -1443,9 +1566,7 @@ themeBtn.addEventListener('click', toggleTheme);
     }
     if (e.key === 'f' || e.key === 'F') {
       e.preventDefault();
-      if (e.shiftKey) { sizeIdx = Math.max(0, sizeIdx - 1); } else { sizeIdx = Math.min(sizes.length - 1, sizeIdx + 1); }
-      safeSetStorage(readingSizeKey, String(sizes[sizeIdx]));
-      applyReadingSize();
+      if (readingCtrl) readingCtrl.cycle(e.shiftKey ? -1 : 1);
     }
   });
 
@@ -1462,20 +1583,7 @@ themeBtn.addEventListener('click', toggleTheme);
     });
   }
 
-  // --- 5. 播放进度持久化（统一格式）---
-  // 在 timeupdate 中保存进度
-  audio.addEventListener('timeupdate', function () {
-    if (CHAPTERS.length > 0) {
-      AB.saveProgress(BOOK_ID, {
-        chapterId: currentIdx,
-        currentTime: audio.currentTime,
-        volume: audio.volume,
-        playbackRate: audio.playbackRate
-      });
-    }
-  });
-
-  // 页面卸载前保存
+  // --- 5. 播放进度持久化（统一格式；卸载时绕过节流直写最新值）---
   window.addEventListener('beforeunload', function () {
     if (CHAPTERS.length > 0) {
       try {
@@ -1493,176 +1601,54 @@ themeBtn.addEventListener('click', toggleTheme);
     }
   });
 
-  // --- 6. 虚拟滚动（目录）---
-  // 在 buildTOC 被调用后启用虚拟滚动
-  const origBuildTOC = window.buildTOC;
-  // 监听数据加载完成，替换目录渲染为虚拟滚动
-  const tocContainer = document.getElementById('toc');
-  function initVirtualList() {
-    if (!tocContainer || CHAPTERS.length <= 50 || virtualList) return;
-
-    const sidebarEl = document.getElementById('sidebar');
-    // 计算可用高度
-    const sidebarRect = sidebarEl.getBoundingClientRect();
-    const listTop = tocContainer.offsetTop;
-    const visibleHeight = Math.min(sidebarRect.height - listTop - 20, window.innerHeight * 0.7);
-
-    virtualList = AB.createVirtualList(tocContainer, CHAPTERS, {
-      itemHeight: 44,
-      buffer: 8,
-      threshold: 50,
-      renderItem: function (ch, i) {
-        const a = document.createElement('a');
-        a.href = 'javascript:void(0)';
-        a.dataset.idx = i;
-        a.setAttribute('role', 'button');
-        if (i === currentIdx) {
-          a.classList.add('active');
-          a.setAttribute('aria-current', 'true');
-        }
-        a.style.display = 'flex';
-        a.style.justifyContent = 'space-between';
-        a.style.alignItems = 'center';
-        a.style.gap = '10px';
-        a.style.padding = '9px 18px 9px 16px';
-        a.style.color = 'var(--text-dim)';
-        a.style.textDecoration = 'none';
-        a.style.fontSize = '0.85rem';
-        a.style.borderLeft = '3px solid transparent';
-        a.style.borderRadius = '0 8px 8px 0';
-        a.style.boxSizing = 'border-box';
-        a.style.position = 'relative';
-
-        const span = document.createElement('span');
-        span.textContent = ch.title;
-        span.style.flex = '1';
-        span.style.minWidth = '0';
-        span.style.overflow = 'hidden';
-        span.style.textOverflow = 'ellipsis';
-        span.style.whiteSpace = 'nowrap';
-
-        const dur = document.createElement('span');
-        dur.className = 'ch-dur';
-        dur.textContent = fmtTime(ch.dur);
-        dur.style.fontSize = '0.7rem';
-        dur.style.opacity = '0.65';
-        dur.style.fontVariantNumeric = 'tabular-nums';
-        dur.style.flexShrink = '0';
-
-        a.appendChild(span);
-        a.appendChild(dur);
-        return a;
-      },
-      onItemClick: function (ch, i) {
-        loadChapter(i, isPlaying);
-        closeSidebar();
-      }
-    });
-  }
-
-  // 暴露给外部调用
-  window.__zhixiaoInitVirtualList = initVirtualList;
-  window.__zhixiaoUpdateVirtualActive = function () {
-    if (virtualList) virtualList.updateActive(currentIdx);
-  };
-  window.__zhixiaoScrollToCurrent = function () {
-    if (virtualList) virtualList.scrollToIndex(currentIdx);
-  };
-
-  // 监听数据加载完成（通过 MutationObserver 检测目录变化）
-  if (tocContainer && 'MutationObserver' in window) {
-    const observer = new MutationObserver(function () {
-      if (CHAPTERS.length > 50) {
-        observer.disconnect();
-        initVirtualList();
-      }
-    });
-    observer.observe(tocContainer, { childList: true });
-  }
-
-  // 打开侧栏时滚动到当前章节
-  const origOpenSidebar = window.openSidebar;
-  if (typeof origOpenSidebar === 'function') {
-    window.openSidebar = function () {
-      origOpenSidebar.apply(this, arguments);
-      setTimeout(function () {
-        if (virtualList) virtualList.scrollToIndex(currentIdx);
-      }, 350);
-    };
-  }
-
-  // --- 7. 继续播放提示 ---
-  // 在首次加载完成后检查并显示
-  function checkResumeProgress() {
-    if (!CHAPTERS.length) return;
-    const progress = AB.loadProgress(BOOK_ID);
-    if (!progress || progress.chapterId == null) return;
-
-    // 检查进度是否有效（章节在范围内，且时间大于 5 秒，小于章节时长）
-    const chIdx = Number(progress.chapterId);
-    const ch = CHAPTERS[chIdx];
-    if (!ch || !progress.currentTime || progress.currentTime < 5) return;
-    if (progress.currentTime >= (ch.dur || ch.duration) - 5) return;
-
-    // 进度较新（7 天内）才提示
-    const age = Date.now() - (progress.timestamp || 0);
-    if (age > 7 * 24 * 60 * 60 * 1000) return;
-
-    AB.showResumePrompt(progress, {
-      chapterTitle: ch.title,
-      onConfirm: function (p) {
-        const idx = Number(p.chapterId);
-        if (idx !== currentIdx) {
-          loadChapter(idx, false);
-        }
-        // 等音频就绪后 seek
-        const doSeek = function () {
-          if (audio.duration && p.currentTime < audio.duration) {
-            audio.currentTime = p.currentTime;
-          }
-          audio.play().catch(function () {});
-          audio.removeEventListener('canplay', doSeek);
-        };
-        if (audio.readyState >= 1) doSeek();
-        else audio.addEventListener('canplay', doSeek);
-
-        // 恢复音量和速率
-        if (p.volume != null) audio.volume = p.volume;
-        if (p.playbackRate != null) audio.playbackRate = p.playbackRate;
-      },
-      onCancel: function () {
-        // 从头开始，清除进度
-        AB.clearProgress(BOOK_ID);
-      }
-    });
-  }
-
-  // 等数据加载完成后检查
-  const origLoadDataFn = loadData;
-  let _progressChecked = false;
-  const origLoadChapter = loadChapter;
-  loadChapter = function (idx, autoplay) {
-    origLoadChapter.apply(this, arguments);
-    // 首次加载完成后检查进度（延迟一点，确保 UI 就绪）
-    if (!_progressChecked && CHAPTERS.length > 0) {
-      _progressChecked = true;
-      setTimeout(checkResumeProgress, 800);
-    }
-  };
-
+  // --- 6. 播放进度持久化（见上方 beforeunload；timeupdate 节流保存）---
 })();
 
-// 恢复播放位置（兼容旧逻辑，仅首次加载）
-audio.addEventListener('canplay', function restoreTime() {
-  if (isFirstLoad) {
-    isFirstLoad = false;
-    const savedTime = parseFloat(safeGetStorage('zhixiao_time') || '0');
-    if (savedTime > 1 && savedTime < audio.duration) {
-      audio.currentTime = savedTime;
+// ===== 继续播放提示（单一进度源；loadData 完成后调用） =====
+function checkResumeProgress() {
+  if (!CHAPTERS.length) return;
+  const progress = AB.loadProgress(BOOK_ID);
+  if (!progress || progress.chapterId == null) return;
+
+  // 检查进度是否有效（章节在范围内，且时间大于 5 秒，小于章节时长）
+  const chIdx = Number(progress.chapterId);
+  const ch = CHAPTERS[chIdx];
+  if (!ch || !progress.currentTime || progress.currentTime < 5) return;
+  if (progress.currentTime >= ch.duration - 5) return;
+
+  // 进度较新（7 天内）才提示
+  const age = Date.now() - (progress.timestamp || 0);
+  if (age > 7 * 24 * 60 * 60 * 1000) return;
+
+  AB.showResumePrompt(progress, {
+    chapterTitle: ch.title,
+    onConfirm: function (p) {
+      const idx = Number(p.chapterId);
+      if (idx !== currentIdx) {
+        loadChapter(idx, false);
+      }
+      // 等音频就绪后 seek
+      const doSeek = function () {
+        if (audio.duration && p.currentTime < audio.duration) {
+          audio.currentTime = p.currentTime;
+        }
+        audio.play().catch(function () {});
+        audio.removeEventListener('canplay', doSeek);
+      };
+      if (audio.readyState >= 1) doSeek();
+      else audio.addEventListener('canplay', doSeek);
+
+      // 恢复音量和速率
+      if (p.volume != null) audio.volume = p.volume;
+      if (p.playbackRate != null) audio.playbackRate = p.playbackRate;
+    },
+    onCancel: function () {
+      // 「从头开始」真正归零：清除统一进度并回到本章起点
+      AB.clearProgress(BOOK_ID);
+      try { audio.currentTime = 0; } catch (_) {}
     }
-    audio.removeEventListener('canplay', restoreTime);
-  }
-});
+  });
+}
 
 // ===== Media Session API (包装 ABCommon) =====
 function updateMediaSession() {
@@ -1697,14 +1683,11 @@ if ('PerformanceObserver' in window) {
   } catch (_) {}
 }
 
-// ===== 离线缓存管理（持续自动缓存：有网时从当前章节向后顺序下载，直到全书完成） =====
+// ===== 离线缓存管理（SW 消息通道驱动：预取走 PREFETCH_AUDIO，统计走 QUERY_CACHED_AUDIO/CACHE_INFO） =====
 (() => {
-  /* 注册 Service Worker（先于缓存查询，避免初次重复下载） */
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').catch(() => {});
-  }
+  /* 注册 Service Worker（更新后自动接管，避免旧 SW 消息 API 缺失导致预取丢失） */
+  AB.registerServiceWorker && AB.registerServiceWorker('sw.js');
 
-  const CACHE_NAME = 'audio-audiobook-hub-zhixiao-v10';
   const cacheToggle = document.getElementById('cacheToggle');
   const cachePopup = document.getElementById('cachePopup');
   const cacheIcon = document.getElementById('cacheIcon');
@@ -1724,37 +1707,26 @@ if ('PerformanceObserver' in window) {
   })();
 
   let prefetching = false;
-  let abortController = null;
+  let currentRunId = 0;
   let cachedCount = 0;
-  let prefetchRun = 0;
-  /* 数据未加载完成时，预缓存会被延迟到 loadChapter 后 */
+  let audioSize = 0;
+  let audioLimit = 650 * 1024 * 1024; // 与 SW v11 默认一致；CACHE_INFO 会回传实际值
+  let limitNotified = false;
+  /* 数据未加载完成时，预缓存会被延迟到 loadData 成功后 */
   let dataReady = CHAPTERS.length > 0;
 
-  /* 获取所有音频 URL（同源，相对路径基于当前位置） */
   function getAllAudioUrls() {
-    return CHAPTERS.map((ch) => {
-      const base = location.href.replace(/[^/]*$/, '');
-      return new URL(ch.file, base).href;
-    });
+    return AB.audioUrls ? AB.audioUrls(CHAPTERS) : [];
   }
 
-  /* 统计已缓存的章节数（仅匹配 chapters/ch*.mp3，忽略外壳资源） */
-  async function queryCachedCount() {
-    try {
-      const cache = await caches.open(CACHE_NAME);
-      const keys = await cache.keys();
-      const audioUrls = new Set(getAllAudioUrls());
-      let n = 0;
-      keys.forEach((r) => { if (audioUrls.has(r.url)) n++; });
-      return n;
-    } catch (_) { return 0; }
+  function fmtMB(bytes) {
+    return Math.round((bytes || 0) / 1024 / 1024) + 'MB';
   }
 
-  /* 同步刷新 UI */
-  async function updateCacheUI() {
+  /* 渲染 UI（cachedCount/audioSize/audioLimit 由 SW 消息回调更新） */
+  function renderCacheUI() {
     if (!cacheToggle) return;
     const total = CHAPTERS.length;
-    if (total > 0) cachedCount = await queryCachedCount();
     const pct = total > 0 ? (cachedCount / total * 100) : 0;
     if (cacheProgressBar) cacheProgressBar.style.width = pct.toFixed(1) + '%';
     if (cacheCountText) cacheCountText.textContent = cachedCount + ' / ' + total + ' 章';
@@ -1769,78 +1741,61 @@ if ('PerformanceObserver' in window) {
       cacheStatusText.className = 'cache-status ' + (online ? 'online' : 'offline');
     }
 
+    let hint = '有网络时自动缓存后续章节，断网也能听';
     if (total > 0 && cachedCount >= total) {
-      if (cacheHint) cacheHint.textContent = '全部章节已缓存，断网也能听';
+      hint = '全部章节已缓存，断网也能听';
       if (cacheStartBtn) { cacheStartBtn.disabled = true; cacheStartBtn.textContent = '已完成'; }
     } else if (!online) {
-      if (cacheHint) cacheHint.textContent = '当前离线，连接网络后可继续缓存';
+      hint = '当前离线，连接网络后可继续缓存';
       if (cacheStartBtn) cacheStartBtn.disabled = true;
     } else {
-      if (cacheHint) cacheHint.textContent = '有网络时自动缓存后续章节，断网也能听';
       if (cacheStartBtn) { cacheStartBtn.disabled = false; cacheStartBtn.textContent = autoCacheEnabled ? '继续缓存' : '开始缓存'; }
     }
+    /* 容量上限提示（GET_CACHE_INFO 回传实际上限） */
+    if (audioLimit && audioSize >= audioLimit * 0.95) {
+      hint = '已达缓存上限 ' + fmtMB(audioLimit) + '，最久未听的章节会自动清理';
+      if (!limitNotified) {
+        limitNotified = true;
+        showToast && showToast('音频缓存已达上限，将自动清理最旧章节');
+      }
+    }
+    if (cacheHint) cacheHint.textContent = hint;
 
     if (cacheStopBtn) cacheStopBtn.hidden = !prefetching;
     if (cacheStartBtn) cacheStartBtn.hidden = prefetching || (total > 0 && cachedCount >= total);
     if (cacheToggle) cacheToggle.classList.toggle('active', prefetching);
-    if (cacheIcon) cacheIcon.textContent = prefetching ? '⟳' : '⬇';
+    if (cacheIcon) cacheIcon.classList.toggle('prefetching', prefetching);
   }
 
-  /* 开始预缓存：当前章节之后优先，走到末尾后再从头补齐，确保最终覆盖全书 */
-  async function startPrefetch() {
-    if (prefetching) return;
-    if (!dataReady || CHAPTERS.length === 0) return;
-    if (!navigator.onLine) { updateCacheUI(); return; }
-    if (cachedCount >= CHAPTERS.length) { updateCacheUI(); return; }
+  /* 向 SW 查询已缓存列表与容量统计（异步回传后重渲染） */
+  function queryState() {
+    AB.sendToServiceWorker && AB.sendToServiceWorker({ type: 'QUERY_CACHED_AUDIO' });
+    AB.sendToServiceWorker && AB.sendToServiceWorker({ type: 'GET_CACHE_INFO' });
+  }
+
+  /* 开始预取：当前章节之后优先，走到末尾后再从头补齐；由 SW 下载并写入音频缓存 */
+  function startPrefetch() {
+    if (prefetching || !dataReady || CHAPTERS.length === 0) return;
+    if (!navigator.onLine) { renderCacheUI(); return; }
+    if (cachedCount >= CHAPTERS.length) { renderCacheUI(); return; }
 
     prefetching = true;
-    const runId = ++prefetchRun;
-    abortController = new AbortController();
-    updateCacheUI();
+    const runId = ++currentRunId;
+    renderCacheUI();
 
     const allUrls = getAllAudioUrls();
     const ordered = [...allUrls.slice(currentIdx), ...allUrls.slice(0, currentIdx)];
-
-    try {
-      const cache = await caches.open(CACHE_NAME);
-      for (const url of ordered) {
-        if (!prefetching || runId !== prefetchRun) break;
-        if (!navigator.onLine) break;
-        const hit = await cache.match(url);
-        if (hit) continue;
-        try {
-          const resp = await fetch(url, { signal: abortController.signal, mode: 'cors', cache: 'no-cache' });
-          if (resp && resp.ok) {
-            await cache.put(url, resp.clone());
-            cachedCount++;
-            const pct = (cachedCount / allUrls.length * 100);
-            if (cacheProgressBar) cacheProgressBar.style.width = pct.toFixed(1) + '%';
-            if (cacheCountText) cacheCountText.textContent = cachedCount + ' / ' + allUrls.length + ' 章';
-            if (cacheBadge) { cacheBadge.textContent = cachedCount; cacheBadge.hidden = false; }
-          }
-        } catch (e) {
-          if (e && e.name === 'AbortError') break;
-          if (!navigator.onLine) break;
-        }
-        /* 给移动端网络栈与浏览器渲染留出调度间隔，避免并发下载拖垮播放 */
-        await new Promise((resolve) => setTimeout(resolve, 120));
-      }
-    } catch (_) {}
-
-    prefetching = false;
-    abortController = null;
-    await updateCacheUI();
-    if (cachedCount >= allUrls.length) showToast && showToast('全部章节已缓存');
+    AB.sendToServiceWorker && AB.sendToServiceWorker({ type: 'PREFETCH_AUDIO', urls: ordered, runId: runId });
   }
 
   /* 暂停：用户主动停止，并持久化状态 */
   function stopPrefetch() {
     autoCacheEnabled = false;
     try { localStorage.setItem('zhixiao_auto_cache', 'false'); } catch (_) {}
-    ++prefetchRun;
-    if (abortController) abortController.abort();
+    ++currentRunId;
     prefetching = false;
-    updateCacheUI();
+    AB.sendToServiceWorker && AB.sendToServiceWorker({ type: 'PREFETCH_STOP' });
+    renderCacheUI();
     showToast && showToast('已暂停自动缓存，可随时继续');
   }
 
@@ -1851,12 +1806,36 @@ if ('PerformanceObserver' in window) {
     startPrefetch();
   }
 
-  /* 清除全部缓存（仅删音频 cache，外壳不受影响） */
-  async function clearCache() {
-    try { await caches.delete(CACHE_NAME); } catch (_) {}
+  /* 清除全部缓存（仅删音频缓存，外壳不受影响；由 SW 执行并广播） */
+  function clearCache() {
+    prefetching = false;
+    AB.sendToServiceWorker && AB.sendToServiceWorker({ type: 'CLEAR_AUDIO_CACHE' });
     cachedCount = 0;
-    await updateCacheUI();
+    renderCacheUI();
     showToast && showToast('已清除缓存');
+  }
+
+  /* 监听 SW 消息 */
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.addEventListener('message', (e) => {
+      const d = e.data || {};
+      if (d.type === 'CACHED_AUDIO_LIST') {
+        const urls = new Set(getAllAudioUrls());
+        cachedCount = (d.urls || []).filter((u) => urls.has(u)).length;
+        renderCacheUI();
+      } else if (d.type === 'CACHE_INFO') {
+        if (d.audioLimit) audioLimit = d.audioLimit;
+        audioSize = d.audioSize || 0;
+        renderCacheUI();
+      } else if (d.type === 'PREFETCH_DONE') {
+        if (d.runId != null && d.runId !== currentRunId) return; // 过期轮次
+        prefetching = false;
+        queryState();
+        if (cachedCount >= CHAPTERS.length) showToast && showToast('全部章节已缓存');
+      } else if (d.type === 'AUDIO_CACHE_CLEARED') {
+        queryState();
+      }
+    });
   }
 
   /* 事件绑定 */
@@ -1879,18 +1858,11 @@ if ('PerformanceObserver' in window) {
   });
 
   /* 网络状态变化时更新 UI；重新联网后自动从断点继续 */
-  window.addEventListener('online', () => { updateCacheUI(); if (autoCacheEnabled) window.setTimeout(startPrefetch, 300); });
-  window.addEventListener('offline', () => { updateCacheUI(); });
+  window.addEventListener('online', () => { queryState(); if (autoCacheEnabled) window.setTimeout(startPrefetch, 300); });
+  window.addEventListener('offline', () => { renderCacheUI(); });
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden && navigator.onLine && autoCacheEnabled && !prefetching && dataReady) startPrefetch();
   });
-
-  /* 监听 SW 消息：若被其他客户端触发缓存完成，同步刷新 UI */
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.addEventListener('message', (e) => {
-      if (e.data && (e.data.type === 'PREFETCH_DONE' || e.data.type === 'CACHED_AUDIO_LIST')) updateCacheUI();
-    });
-  }
 
   /* 申请持久化存储，避免移动端浏览器在空间紧张时优先清理音频缓存 */
   if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
@@ -1898,20 +1870,12 @@ if ('PerformanceObserver' in window) {
   /* 暴露给 loadData 调用：数据加载完成后启动持续缓存 */
   window.__zhixiaoStartCache = function () {
     dataReady = true;
-    updateCacheUI();
+    queryState();
     if (navigator.onLine && autoCacheEnabled) window.setTimeout(startPrefetch, 800);
   };
 })();
 
-// 数据加载完成后启动持续缓存（loadData 内部已成功才调用）
-const origLoadData = loadData;
-loadData = async function () {
-  await origLoadData.apply(this, arguments);
-  if (CHAPTERS.length > 0) window.__zhixiaoStartCache && window.__zhixiaoStartCache();
-};
-
 // 初始化
-initTheme();
 loadData();
 </script>
 

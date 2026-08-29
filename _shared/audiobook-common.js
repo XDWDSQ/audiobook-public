@@ -4,11 +4,16 @@
  *
  * API:
  *   ABCommon.fmtTime(seconds)               -> "1:23" / "1:02:03"
+ *   ABCommon.SPEED_STEPS                    -> 倍速 8 档 [0.5..2.5]
+ *   ABCommon.normalizeChapters(data)        -> data.json → v2 章节数组（v1 兜底映射）
+ *   ABCommon.audioSrc(chapter)              -> 带 ?v=hash 的音频 URL
+ *   ABCommon.audioUrls(chapters)            -> 全部章节绝对音频 URL（预取用）
  *   ABCommon.findActiveSeg(segs, t)         -> 段落索引(0-based) / -1
  *   ABCommon.parseHashChapter(hash)         -> 章节号(1-based) / null
  *   ABCommon.applyHashRoute(chapters, fn)   -> 匹配 hash 中的章节并回调
  *   ABCommon.updateHash(index)              -> 更新 URL hash 为 #chapter=N
  *   ABCommon.updateMediaSession(audio, ch, opts)
+ *   ABCommon.updateMediaSessionPosition(audio) -> 同步锁屏进度（timeupdate 调）
  *   ABCommon.readJSON(key, fallback)        -> 从 localStorage 读取 JSON
  *   ABCommon.saveThrottled(key, val, ms, store)  -> 节流写入 localStorage
  *   ABCommon.showToast(msg, host?, variant?)  -> 显示 Toast (variant: success/error)
@@ -22,7 +27,7 @@
  *
  *   === 播放进度持久化 ===
  *   ABCommon.saveProgress(bookId, data)     -> 保存播放进度（节流）
- *   ABCommon.loadProgress(bookId)           -> 读取播放进度
+ *   ABCommon.loadProgress(bookId)           -> 读取播放进度（含旧键一次性迁移）
  *   ABCommon.clearProgress(bookId)          -> 清除播放进度
  *   ABCommon.showResumePrompt(progress, opts) -> 显示"继续播放"提示
  *
@@ -38,9 +43,18 @@
  *
  *   === 睡眠定时器（淡出效果）===
  *   ABCommon.createSleepTimer(audio, opts)   -> 创建带淡出的睡眠定时器
+ *      cycle 数组支持 'chapter'（播完本章暂停）
  *
  *   === PWA 安装 ===
  *   ABCommon.initPWAInstall(buttonEl, opts)  -> 初始化 PWA 安装按钮
+ *
+ *   === SW 注册 / 消息 ===
+ *   ABCommon.registerServiceWorker(swPath, opts) -> 注册 SW，更新后自动接管
+ *   ABCommon.sendToServiceWorker(message)    -> 给激活中的 SW 发消息
+ *
+ *   === 主题 / 阅读字号（book id 参数化）===
+ *   ABCommon.initTheme(opts)                 -> 初始化主题切换
+ *   ABCommon.initReadingSize(opts)           -> 初始化阅读字号切换
  */
 (function (global) {
   'use strict';
@@ -53,6 +67,81 @@
     const r = s % 60;
     if (h) return h + ':' + String(m).padStart(2, '0') + ':' + String(r).padStart(2, '0');
     return m + ':' + String(r).padStart(2, '0');
+  }
+
+  /* ---------- 倍速档位（页面按钮与键盘快捷键共用） ---------- */
+  const SPEED_STEPS = [0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.5];
+
+  /* ---------- 段文本净化（历史数据兜底） ---------- */
+  /**
+   * 剥离旧管线遗留的段文本污染：BOM 与 Markdown 标题标记（"# 书名 ## 第1章"）。
+   * data.json 已由 scripts/migrate_data_v2.py --clean-markers 落盘清洗；
+   * 此处兜底 SW 里可能仍缓存的旧数据，保证阅读区不再显示标记符号。
+   * @param {string} t - 原始段文本
+   * @returns {string} 净化后的文本
+   */
+  function cleanSegText(t) {
+    if (typeof t !== 'string') return t;
+    if (t.indexOf('#') === -1 && t.indexOf('\uFEFF') === -1) return t;
+    return t.replace(/\uFEFF/g, '').replace(/#{1,6}\s*/g, '');
+  }
+
+  /* ---------- 章节数据归一化（v2 单一格式，v1 字段兜底映射） ---------- */
+  /**
+   * 将 data.json 原始数据归一化为播放器内部使用的章节数组（v2 字段）。
+   * 兼容 v1 扁平数组与 v2 { version, book, chapters }；章节对象若只有
+   * v1 字段（num/file/dur/segs）也会映射为 v2 字段，避免旧缓存数据崩溃。
+   * @param {*} data - fetch 到的原始数据
+   * @returns {Array<Object>} 章节数组（id/title/duration/audio/hash/segments）
+   */
+  function normalizeChapters(data) {
+    if (data && typeof data === 'object') {
+      window.BOOK_INFO = data.book || null;
+      if (Array.isArray(data.chapters)) data = data.chapters;
+    }
+    if (!Array.isArray(data)) return [];
+    return data.map(function (ch) {
+      if (!ch || typeof ch !== 'object') return ch;
+      var segs = Array.isArray(ch.segments) ? ch.segments : (Array.isArray(ch.segs) ? ch.segs : []);
+      if (segs.length) {
+        segs = segs.map(function (s) {
+          if (s && typeof s === 'object' && typeof s.t === 'string') {
+            var cleaned = cleanSegText(s.t);
+            if (cleaned !== s.t) return Object.assign({}, s, { t: cleaned });
+          }
+          return s;
+        });
+      }
+      return {
+        id: ch.id != null ? ch.id : (ch.num != null ? 'ch' + String(ch.num).padStart(3, '0') : ''),
+        title: ch.title || '',
+        duration: ch.duration != null ? ch.duration : (ch.dur != null ? ch.dur : 0),
+        audio: ch.audio || ch.file || '',
+        hash: ch.hash || '',
+        segments: segs
+      };
+    });
+  }
+
+  /**
+   * 生成带缓存版本参数的音频 URL（?v=hash 绕过 SW cache-first 永不失效）。
+   * @param {Object} chapter - 章节对象
+   * @returns {string} 相对 URL（如 chapters/ch001.mp3?v=abc…）
+   */
+  function audioSrc(chapter) {
+    if (!chapter) return '';
+    const base = chapter.audio || chapter.file || '';
+    return chapter.hash ? base + '?v=' + chapter.hash : base;
+  }
+
+  /**
+   * 生成全部章节的绝对音频 URL（预取走 SW 消息通道时使用）。
+   * @param {Array<Object>} chapters - 章节数组
+   * @returns {Array<string>} 绝对 URL 列表
+   */
+  function audioUrls(chapters) {
+    const base = location.href.replace(/[^/]*$/, '');
+    return chapters.map(function (ch) { return new URL(audioSrc(ch), base).href; });
   }
 
   /* ---------- 二分查找当前段落 ---------- */
@@ -105,12 +194,35 @@
         if (!audio.duration) return;
         audio.currentTime = Math.max(0, Math.min(audio.duration, (audio.currentTime || 0) + delta));
       };
+      const seekTo = (time) => {
+        if (!audio.duration || !Number.isFinite(time)) return;
+        audio.currentTime = Math.max(0, Math.min(audio.duration, time));
+      };
       safe(() => navigator.mediaSession.setActionHandler('play', () => audio.play()));
       safe(() => navigator.mediaSession.setActionHandler('pause', () => audio.pause()));
       safe(() => navigator.mediaSession.setActionHandler('seekbackward', () => seek(-15)));
       safe(() => navigator.mediaSession.setActionHandler('seekforward', () => seek(15)));
+      safe(() => navigator.mediaSession.setActionHandler('seekto', (d) => { if (d && d.seekTime != null) seekTo(d.seekTime); }));
       if (typeof opts.onPrev === 'function') safe(() => navigator.mediaSession.setActionHandler('previoustrack', opts.onPrev));
       if (typeof opts.onNext === 'function') safe(() => navigator.mediaSession.setActionHandler('nexttrack', opts.onNext));
+      updateMediaSessionPosition(audio);
+    } catch (_) {}
+  }
+
+  /**
+   * 同步锁屏/系统媒体的播放位置与速率（timeupdate 中调用）。
+   * @param {HTMLAudioElement} audio - 音频元素
+   */
+  function updateMediaSessionPosition(audio) {
+    if (!audio || !('mediaSession' in navigator) || typeof navigator.mediaSession.setPositionState !== 'function') return;
+    try {
+      const dur = Number.isFinite(audio.duration) ? audio.duration : 0;
+      const pos = Number.isFinite(audio.currentTime) ? Math.max(0, Math.min(audio.currentTime, dur || Infinity)) : 0;
+      navigator.mediaSession.setPositionState({
+        duration: dur,
+        playbackRate: audio.playbackRate || 1,
+        position: pos
+      });
     } catch (_) {}
   }
 
@@ -289,6 +401,12 @@
   const PROGRESS_THROTTLE_MS = 5000; // 每 5 秒保存一次
   const _progressStore = {}; // 节流存储
 
+  // 旧版双键进度格式（单一进度源迁移前各页面自行维护），迁移后删除
+  const LEGACY_PROGRESS_KEYS = {
+    zhixiao: { chapter: 'zhixiao_chapter', time: 'zhixiao_time', times: null },
+    nanian: { chapter: 'nagao_chapter', time: null, times: 'nagao_times' }
+  };
+
   /**
    * 保存播放进度（节流）
    * @param {string} bookId - 书籍 ID
@@ -302,14 +420,38 @@
   }
 
   /**
-   * 读取播放进度
+   * 读取播放进度；统一键缺失时尝试一次性迁移旧双键格式并删除旧键。
    * @param {string} bookId - 书籍 ID
    * @returns {Object|null} 进度数据或 null
    */
   function loadProgress(bookId) {
     if (!bookId) return null;
     const key = PROGRESS_KEY_PREFIX + bookId;
-    return readJSON(key, null);
+    const existing = readJSON(key, null);
+    if (existing) return existing;
+
+    // 一次性旧键迁移（zhixiao: chapter+time；nanian: chapter+times 映射）
+    const legacy = LEGACY_PROGRESS_KEYS[bookId];
+    if (!legacy) return null;
+    try {
+      const chRaw = localStorage.getItem(legacy.chapter);
+      if (chRaw == null) return null;
+      const chapterId = parseInt(chRaw, 10);
+      if (!Number.isInteger(chapterId) || chapterId < 0) return null;
+      let currentTime = 0;
+      if (legacy.time) {
+        currentTime = parseFloat(localStorage.getItem(legacy.time) || '0') || 0;
+      } else if (legacy.times) {
+        const times = readJSON(legacy.times, {});
+        currentTime = Number(times[chapterId] || 0) || 0;
+      }
+      const progress = { chapterId: chapterId, currentTime: currentTime, timestamp: Date.now() };
+      try { localStorage.setItem(key, JSON.stringify(progress)); } catch (_) {}
+      localStorage.removeItem(legacy.chapter);
+      if (legacy.time) localStorage.removeItem(legacy.time);
+      if (legacy.times) localStorage.removeItem(legacy.times);
+      return progress;
+    } catch (_) { return null; }
   }
 
   /**
@@ -662,8 +804,8 @@
       return false;
     }
 
-    // 速率档位
-    const speedSteps = [0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.5];
+    // 速率档位（与 SPEED_STEPS 一致，页面按钮共用）
+    const speedSteps = SPEED_STEPS;
 
     function getSpeedIndex(rate) {
       let best = 2; // 默认 1.0
@@ -1042,9 +1184,9 @@
     }
 
     /**
-     * 循环切换定时时长
-     * @param {Array<number>} cycle - 时长循环数组（分钟），默认 [15, 30, 45, 60, 0]
-     * @returns {number} 当前设置的分钟数（0 表示关闭）
+     * 循环切换定时时长；数组可含 'chapter'（播完本章暂停）。
+     * @param {Array<number|string>} cycle - 循环数组，默认 [15, 30, 45, 60, 0]
+     * @returns {number|string} 当前设置（0 表示关闭，'chapter' 表示本章结束暂停）
      */
     function cycle(cycleArr) {
       cycleArr = cycleArr || [15, 30, 45, 60, 0];
@@ -1056,6 +1198,8 @@
       const next = cycleArr[(idx + 1) % cycleArr.length];
       if (next === 0) {
         cancel();
+      } else if (next === 'chapter') {
+        startChapterEnd();
       } else {
         startCountdown(next);
       }
@@ -1169,14 +1313,159 @@
     };
   }
 
+  /* ================================================================
+   * Service Worker 注册与消息辅助
+   * ================================================================ */
+
+  /**
+   * 注册 Service Worker；检测到新版本时立即 skipWaiting 接管，
+   * 避免旧 SW（无新消息 API）导致 PREFETCH_AUDIO 等消息丢失。
+   * @param {string} swPath - SW 脚本路径（相对当前页面）
+   * @param {Object} [options] - 配置
+   * @param {Function} [options.onReady] - 注册完成回调 (registration)
+   * @returns {Promise<ServiceWorkerRegistration|null>}
+   */
+  function registerServiceWorker(swPath, options) {
+    options = options || {};
+    if (!('serviceWorker' in navigator)) return Promise.resolve(null);
+    return navigator.serviceWorker.register(swPath).then(function (reg) {
+      const skipWaiting = function () {
+        if (reg.waiting) { reg.waiting.postMessage('SKIP_WAITING'); return; }
+        if (reg.installing) {
+          reg.installing.addEventListener('statechange', function onState(e) {
+            if (e.target.state === 'installed') {
+              e.target.postMessage('SKIP_WAITING');
+              e.target.removeEventListener('statechange', onState);
+            }
+          });
+        }
+      };
+      reg.addEventListener('updatefound', skipWaiting);
+      skipWaiting();
+      if (typeof options.onReady === 'function') options.onReady(reg);
+      return reg;
+    }).catch(function () { return null; });
+  }
+
+  /**
+   * 向当前激活的 SW 发送消息（PREFETCH_AUDIO / PREFETCH_STOP / QUERY_CACHED_AUDIO 等）。
+   * @param {Object} message - 消息对象（含 type）
+   * @returns {Promise<boolean>} 是否成功投递
+   */
+  function sendToServiceWorker(message) {
+    if (!('serviceWorker' in navigator)) return Promise.resolve(false);
+    return navigator.serviceWorker.ready.then(function (reg) {
+      const target = reg.active || reg.waiting || reg.installing;
+      if (!target) return false;
+      target.postMessage(message);
+      return true;
+    }).catch(function () { return false; });
+  }
+
+  /* ================================================================
+   * 主题 / 阅读字号（book id 参数化）
+   * ================================================================ */
+
+  /**
+   * 初始化明暗主题切换（全站统一存储键 ``audiobook-theme``，与着陆页/404 共享，
+   * 暗色状态跨页保持；旧的按书键只作一次性迁移）。
+   * 页面头部内联脚本负责首屏防闪，这里只同步按钮、迁移旧键并处理点击。
+   * @param {Object} opts - 配置
+   * @param {string} [opts.key] - 旧版按书存储键（如 'zhixiao_theme'），迁移后可删
+   * @param {HTMLElement} opts.button - 切换按钮
+   * @param {Function} [opts.iconFor] - (isDark) => 图标文本
+   * @param {Function} [opts.onToggle] - 切换后的额外回调（如旋转动画）
+   */
+  function initTheme(opts) {
+    if (!opts || !opts.button) return;
+    const key = 'audiobook-theme';
+    const legacyKey = opts.key || null;
+    const button = opts.button;
+    const iconFor = opts.iconFor || function (dark) { return dark ? '🌙' : '☀'; };
+    const isDark = () => document.documentElement.getAttribute('data-theme') === 'dark';
+
+    /* 一次性迁移：旧按书键 → 统一键（与着陆页/404 共享同一暗色状态） */
+    try {
+      let t = localStorage.getItem(key);
+      if (t == null && legacyKey) {
+        t = localStorage.getItem(legacyKey);
+        if (t === 'dark' || t === 'light') localStorage.setItem(key, t);
+      }
+    } catch (_) {}
+
+    /* iconFor 返回空串表示图标由页面 CSS 控制（如日/月 SVG），此时不能写
+     * textContent——那会清空按钮内的子元素。 */
+    const applyIcon = function (dark) {
+      const icon = iconFor(dark);
+      if (icon) button.textContent = icon;
+    };
+    applyIcon(isDark());
+    button.addEventListener('click', function () {
+      const next = !isDark();
+      if (next) document.documentElement.setAttribute('data-theme', 'dark');
+      else document.documentElement.removeAttribute('data-theme');
+      try { localStorage.setItem(key, next ? 'dark' : 'light'); } catch (_) {}
+      applyIcon(next);
+      if (typeof opts.onToggle === 'function') opts.onToggle(next);
+      announce(next ? '已切换到深色主题' : '已切换到浅色主题');
+    });
+  }
+
+  const READING_SIZES = [1, 1.15, 1.3];
+
+  /**
+   * 初始化阅读字号切换（存储键按书参数化）。
+   * @param {Object} opts - 配置
+   * @param {string} opts.key - localStorage 键（如 'zhixiao_reading_size'）
+   * @param {HTMLElement} opts.button - 字号按钮
+   * @param {Function} opts.apply - (size, idx) => 应用字号到页面
+   * @returns {Object} { cycle(delta), getIndex() }
+   */
+  function initReadingSize(opts) {
+    if (!opts || !opts.button) return null;
+    const key = opts.key || 'reading_size';
+    const button = opts.button;
+    let idx = 0;
+    try {
+      const saved = Number(localStorage.getItem(key));
+      const i = READING_SIZES.indexOf(saved);
+      if (i >= 0) idx = i;
+    } catch (_) {}
+
+    function apply() {
+      const size = READING_SIZES[idx];
+      if (typeof opts.apply === 'function') opts.apply(size, idx);
+      button.classList.toggle('active', idx !== 0);
+      button.textContent = idx === 0 ? 'Aa' : (idx === READING_SIZES.length - 1 ? 'Aa++' : 'Aa+');
+      button.setAttribute('aria-label', '阅读字号：' + Math.round(size * 100) + '%');
+    }
+
+    function cycle(delta) {
+      idx = (idx + (delta || 1) + READING_SIZES.length) % READING_SIZES.length;
+      try { localStorage.setItem(key, String(READING_SIZES[idx])); } catch (_) {}
+      apply();
+      announce('字号已调为 ' + Math.round(READING_SIZES[idx] * 100) + '%');
+      return READING_SIZES[idx];
+    }
+
+    button.addEventListener('click', function () { cycle(1); });
+    apply();
+    return { cycle: cycle, getIndex: function () { return idx; } };
+  }
+
   /* ---------- 暴露 API ---------- */
   global.ABCommon = {
     fmtTime: fmtTime,
+    SPEED_STEPS: SPEED_STEPS,
+    normalizeChapters: normalizeChapters,
+    audioSrc: audioSrc,
+    audioUrls: audioUrls,
     findActiveSeg: findActiveSeg,
     parseHashChapter: parseHashChapter,
     applyHashRoute: applyHashRoute,
     updateHash: updateHash,
     updateMediaSession: updateMediaSession,
+    updateMediaSessionPosition: updateMediaSessionPosition,
     readJSON: readJSON,
     saveThrottled: saveThrottled,
     showToast: showToast,
@@ -1202,6 +1491,12 @@
     // 睡眠定时器
     createSleepTimer: createSleepTimer,
     // PWA 安装
-    initPWAInstall: initPWAInstall
+    initPWAInstall: initPWAInstall,
+    // SW 注册与消息
+    registerServiceWorker: registerServiceWorker,
+    sendToServiceWorker: sendToServiceWorker,
+    // 主题 / 阅读字号
+    initTheme: initTheme,
+    initReadingSize: initReadingSize
   };
 })(window);

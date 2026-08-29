@@ -327,73 +327,13 @@ a:focus-visible,
   to { opacity: 1; transform: none; }
 }
 
-/* ===== 页面离开过渡 ===== */
-body.is-leaving {
-  opacity: 0;
-  transform: translateY(-8px);
-  transition: opacity .25s ease-in, transform .25s ease-in;
-}
-
-/* ===== 回到顶部按钮 ===== */
-.ab-back-top {
-  position: fixed;
-  right: 20px;
-  bottom: 28px;
-  z-index: 50;
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  border: 1px solid var(--line, var(--border, #d6c3a8));
-  background: var(--panel, var(--surface, #fff));
-  color: var(--accent, #b66b3f);
-  font-size: 18px;
-  cursor: pointer;
-  display: grid;
-  place-items: center;
-  box-shadow: 0 6px 20px rgba(0,0,0,.12);
-  opacity: 0;
-  transform: translateY(12px) scale(.9);
-  pointer-events: none;
-  transition: opacity .3s cubic-bezier(.22,.61,.36,1), transform .3s cubic-bezier(.22,.61,.36,1), background .2s ease, border-color .2s ease;
-}
-.ab-back-top.visible {
-  opacity: 1;
-  transform: none;
-  pointer-events: auto;
-}
-.ab-back-top:hover { border-color: var(--accent, #b66b3f); background: var(--accent-glow, rgba(182,107,63,.1)); }
-.ab-back-top:active { transform: scale(.9); transition: transform .12s ease; }
-
-/* ===== 顶部滚动进度条 ===== */
-.ab-scroll-progress {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  z-index: 100;
-  background: var(--accent, #b66b3f);
-  transform-origin: left center;
-  transform: scaleX(0);
-  will-change: transform;
-  pointer-events: none;
-}
-
 /* ===== 移动端适配 ===== */
 @media (max-width: 480px) {
   .ab-empty { padding: 24px 12px; }
   .ab-error { padding: 24px 14px; }
   .ab-error__msg { font-size: 12px; }
-  .ab-back-top { right: 14px; bottom: 20px; width: 38px; height: 38px; font-size: 16px; }
   .ab-inline-error { white-space: normal; text-align: center; font-size: 11px; }
 }
-@supports (padding-bottom: env(safe-area-inset-bottom)) {
-  .ab-back-top { bottom: calc(28px + env(safe-area-inset-bottom)); }
-  @media (max-width: 480px) {
-    .ab-back-top { bottom: calc(20px + env(safe-area-inset-bottom)); }
-  }
-}
-
 /* ===== 缓冲进度条 ===== */
 /* 使用方式：在进度条 track 内添加 .ab-buffer 元素，位于播放进度条下方 */
 .ab-buffer {
@@ -649,11 +589,6 @@ body.is-leaving {
   font-size: 11px;
 }
 
-/* ===== PWA 安装按钮 ===== */
-.ab-pwa-install {
-  /* 可根据需要自定义按钮样式 */
-}
-
 /* ===== Reduced motion ===== */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -665,8 +600,6 @@ body.is-leaving {
   .ab-empty, .ab-error { animation: none !important; }
   .ab-switching { transition: none !important; }
   .ab-switch-enter { animation: none !important; }
-  body.is-leaving { transition: none !important; }
-  .ab-back-top { transition: none !important; }
   .ab-resume-prompt { transition: none !important; }
   .ab-shortcuts-overlay, .ab-shortcuts-modal { transition: none !important; }
 }
@@ -727,9 +660,6 @@ body.is-leaving {
   .ab-toast {
     border: 2px solid rgba(255,255,255,.3);
   }
-  .ab-back-top {
-    border-width: 2px;
-  }
   .ab-empty__action,
   .ab-error__retry {
     border-width: 2px;
@@ -737,211 +667,6 @@ body.is-leaving {
   *:focus-visible {
     outline-width: 3px !important;
     outline-offset: 3px !important;
-  }
-}
-
-/* ===== 通用工具类 ===== */
-
-/* 显示/隐藏 */
-.ab-hidden { display: none !important; }
-.ab-invisible { visibility: hidden !important; }
-.ab-sr-only {
-  position: absolute !important;
-  width: 1px; height: 1px;
-  padding: 0; margin: -1px;
-  overflow: hidden;
-  clip: rect(0,0,0,0);
-  white-space: nowrap;
-  border: 0;
-}
-
-/* 文字截断 */
-.ab-truncate {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.ab-clamp-2 {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-.ab-clamp-3 {
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-/* 弹性布局 */
-.ab-flex { display: flex; }
-.ab-flex-col { flex-direction: column; }
-.ab-items-center { align-items: center; }
-.ab-justify-center { justify-content: center; }
-.ab-justify-between { justify-content: space-between; }
-.ab-gap-1 { gap: 4px; }
-.ab-gap-2 { gap: 8px; }
-.ab-gap-3 { gap: 12px; }
-.ab-gap-4 { gap: 16px; }
-.ab-flex-1 { flex: 1; min-width: 0; }
-
-/* 文字对齐 */
-.ab-text-center { text-align: center; }
-.ab-text-left { text-align: left; }
-.ab-text-right { text-align: right; }
-
-/* 字体 */
-.ab-font-serif { font-family: var(--font-serif, serif); }
-.ab-font-sans { font-family: var(--font-sans, sans-serif); }
-.ab-font-mono { font-family: var(--font-mono, monospace); }
-.ab-text-sm { font-size: 12px; }
-.ab-text-base { font-size: 14px; }
-.ab-text-lg { font-size: 16px; }
-.ab-text-xl { font-size: 20px; }
-.ab-font-medium { font-weight: 500; }
-.ab-font-semibold { font-weight: 600; }
-.ab-font-bold { font-weight: 700; }
-
-/* 间距 */
-.ab-m-0 { margin: 0; }
-.ab-p-0 { padding: 0; }
-.ab-mt-auto { margin-top: auto; }
-.ab-mb-auto { margin-bottom: auto; }
-.ab-ml-auto { margin-left: auto; }
-.ab-mr-auto { margin-right: auto; }
-.ab-mx-auto { margin-left: auto; margin-right: auto; }
-
-/* 宽度 */
-.ab-w-full { width: 100%; }
-.ab-h-full { height: 100%; }
-.ab-min-w-0 { min-width: 0; }
-
-/* 圆角 */
-.ab-rounded-sm { border-radius: var(--radius-sm, 8px); }
-.ab-rounded-md { border-radius: var(--radius-md, 12px); }
-.ab-rounded-lg { border-radius: var(--radius-lg, 18px); }
-.ab-rounded-full { border-radius: var(--radius-full, 9999px); }
-
-/* 交互 */
-.ab-pointer-events-none { pointer-events: none; }
-.ab-select-none { user-select: none; -webkit-user-select: none; }
-.ab-cursor-pointer { cursor: pointer; }
-
-/* 定位 */
-.ab-relative { position: relative; }
-.ab-absolute { position: absolute; }
-.ab-fixed { position: fixed; }
-.ab-sticky { position: sticky; }
-.ab-inset-0 { inset: 0; }
-.ab-top-0 { top: 0; }
-.ab-bottom-0 { bottom: 0; }
-.ab-left-0 { left: 0; }
-.ab-right-0 { right: 0; }
-
-/* 溢出 */
-.ab-overflow-hidden { overflow: hidden; }
-.ab-overflow-auto { overflow: auto; }
-.ab-overflow-x-auto { overflow-x: auto; }
-.ab-overflow-y-auto { overflow-y: auto; }
-
-/* 滚动优化 */
-.ab-scroll-smooth { scroll-behavior: smooth; }
-.ab-overscroll-contain { overscroll-behavior: contain; }
-
-/* 网格 */
-.ab-grid { display: grid; }
-.ab-grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.ab-grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-.ab-gap-2 { gap: 8px; }
-.ab-gap-3 { gap: 12px; }
-.ab-gap-4 { gap: 16px; }
-
-/* ===== 打印样式 ===== */
-@media print {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-
-  html {
-    font-size: 12pt;
-    background: #fff !important;
-  }
-
-  body {
-    background: #fff !important;
-    color: #000 !important;
-    margin: 0;
-    padding: 0;
-    line-height: 1.6;
-  }
-
-  /* 隐藏交互元素 */
-  .ab-toast,
-  .ab-back-top,
-  .ab-scroll-progress,
-  .ab-resume-prompt,
-  .ab-shortcuts-overlay,
-  .ab-inline-error,
-  .skip-link,
-  button,
-  input[type="button"],
-  input[type="submit"],
-  input[type="reset"] {
-    display: none !important;
-  }
-
-  /* 移除背景和阴影 */
-  .ab-empty,
-  .ab-error,
-  .ab-shortcuts-modal,
-  .ab-resume-prompt__content {
-    background: #fff !important;
-    box-shadow: none !important;
-    border: 1px solid #ccc !important;
-  }
-
-  /* 链接颜色 */
-  a {
-    color: #000;
-    text-decoration: underline;
-  }
-
-  a::after {
-    content: " (" attr(href) ")";
-    font-size: 0.9em;
-    color: #666;
-  }
-
-  /* 只对外部链接显示 URL */
-  a[href^="#"]::after,
-  a[href^="javascript:"]::after {
-    content: "";
-  }
-
-  /* 分页优化 */
-  h1, h2, h3, h4, h5, h6 {
-    page-break-after: avoid;
-    break-after: avoid;
-  }
-
-  p, ul, ol, dl, blockquote, table, pre {
-    orphans: 3;
-    widows: 3;
-  }
-
-  img, svg {
-    max-width: 100% !important;
-    page-break-inside: avoid;
-    break-inside: avoid;
-  }
-
-  /* 隐藏装饰元素 */
-  .page-bg,
-  .page-bg__glow {
-    display: none !important;
   }
 }
 
@@ -956,18 +681,3 @@ body.is-leaving {
   --shadow-lg: 0 14px 40px rgba(0, 0, 0, 0.45);
 }
 
-/* ===== 安全区域适配（全局补充） ===== */
-@supports (padding-top: env(safe-area-inset-top)) {
-  .ab-safe-top { padding-top: env(safe-area-inset-top); }
-  .ab-safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
-  .ab-safe-left { padding-left: env(safe-area-inset-left); }
-  .ab-safe-right { padding-right: env(safe-area-inset-right); }
-  .ab-safe-x {
-    padding-left: env(safe-area-inset-left);
-    padding-right: env(safe-area-inset-right);
-  }
-  .ab-safe-y {
-    padding-top: env(safe-area-inset-top);
-    padding-bottom: env(safe-area-inset-bottom);
-  }
-}

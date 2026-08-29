@@ -8,7 +8,8 @@
 | --- | --- | --- |
 | `index.html` | 有声书馆着陆页 | `nanagao-redesign/pages/index.html` |
 | `zhixiao/` | 《知晓》播放器与章节 | `novel1/audiobook/` |
-| `nanian/` | 《那年高中》播放器与章节 | 对应项目音频产物 |
+| `dianjing/` | 《电竞群像》播放器与章节 | 书皮由 `scripts/gen_dianjing_site.py` 生成（模板 `novel1/audiobook/`）；`data.json` 由 `scripts/sync_site.py` 从 `novel3/audio/output/` 同步 |
+| `nanian/` | 《那年高中》播放器与章节 | 书皮由 `scripts/gen_nanian_site.py` 生成（模板 `novel1/audiobook/`）；`data.json`/音频以本目录为事实源 |
 | `CNAME` | 生产自定义域名 | 固定为 `audiobook-hub.site` |
 | `.nojekyll` | 禁用 Jekyll 处理 | 必须保留 |
 | `robots.txt` | 爬虫规则 | 顶层站点配置 |
@@ -20,11 +21,14 @@
 后者 `../_shared/`），请使用仓库根的同步脚本：
 
 ```bash
-python scripts/sync_zhixiao.py            # 同步 + 校验
-python scripts/sync_zhixiao.py --check    # 只检查漂移（有差异退出码 1）
+python scripts/gen_landing_stats.py      # 着陆页统计数字 ← 三份 data.json（sync 前先跑）
+python scripts/gen_dianjing_site.py      # 生成 dianjing 书皮（模板或 novel3 data.json 变更后）
+python scripts/gen_nanian_site.py        # 生成 nanian 书皮（模板变更后；data.json 不动）
+python scripts/sync_site.py              # 同步全部（zhixiao + dianjing + landing + shared）+ 校验
+python scripts/sync_site.py --check      # 只检查漂移（有差异退出码 1，QA/CI 用）
 ```
 
-着陆页应从生产源码复制，不从草稿或 UI 探索目录发布。
+着陆页应从生产源码（`nanagao-redesign/pages/index.html`）同步，不从草稿或 UI 探索目录发布。
 
 ## 发布到生产
 
@@ -48,7 +52,7 @@ git add -A && git commit -m "deploy: 描述" && git push origin main
 
 ## 发布前检查
 
-- [ ] 首页与两个播放器可打开
+- [ ] 首页与三个播放器（zhixiao / dianjing / nanian）可打开
 - [ ] 章节数据和音频路径正确
 - [ ] Service Worker 缓存版本一致
 - [ ] CNAME 与 `.nojekyll` 存在
