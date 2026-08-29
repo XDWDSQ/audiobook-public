@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>页面不存在 · 有声书馆</title>
-<meta name="description" content="抱歉，您访问的页面不存在。返回有声书馆首页，收听《知晓》与《那年高中》完整有声书。">
+<meta name="description" content="抱歉，您访问的页面不存在。返回有声书馆首页，收听《知晓》《那年高中》《电竞群像》完整有声书。">
 <meta name="keywords" content="404,页面不存在,有声书馆">
 <meta name="author" content="有声书馆">
 <meta name="robots" content="noindex,follow">
@@ -180,8 +180,8 @@ html.dark .theme-toggle__moon{opacity:1;transform:none;color:var(--gold)}
 /* 书籍快捷入口 */
 .error-books{
     margin-top:44px;
-    display:grid;grid-template-columns:1fr 1fr;gap:16px;
-    width:100%;max-width:480px;
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;
+    width:100%;max-width:640px;
     opacity:0;transform:translateY(20px);
     animation:fadeInUp .8s cubic-bezier(.22,.61,.36,1) .7s forwards
 }
@@ -330,7 +330,12 @@ html.dark .theme-toggle__moon{opacity:1;transform:none;color:var(--gold)}
 <a href="nanian/" class="error-book">
 <span class="error-book__badge">VOL. II</span>
 <span class="error-book__title">那年高中</span>
-<p class="error-book__meta">40 章 · 2h 45m</p>
+<p class="error-book__meta">40 章 · 8h 31m</p>
+</a>
+<a href="dianjing/" class="error-book">
+<span class="error-book__badge">VOL. III</span>
+<span class="error-book__title">电竞群像</span>
+<p class="error-book__meta">90 章 · 22h 08m</p>
 </a>
 </div>
 </main>
@@ -338,9 +343,9 @@ html.dark .theme-toggle__moon{opacity:1;transform:none;color:var(--gold)}
 <footer class="footer">
 <div class="footer__line"></div>
 <p class="footer__text">
-    有声书馆 · 知晓 <span class="footer__amp">·</span> 那年高中 · 苏打语音合成
+    有声书馆 · 知晓 <span class="footer__amp">·</span> 那年高中 <span class="footer__amp">·</span> 电竞群像 · 苏打语音合成
 </p>
-<p class="footer__sub">VOL. I · VOL. II · AUDIOBOOK LIBRARY</p>
+<p class="footer__sub">VOL. I · VOL. II · VOL. III · AUDIOBOOK LIBRARY</p>
 </footer>
 </div>
 

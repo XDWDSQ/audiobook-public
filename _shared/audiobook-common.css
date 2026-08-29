@@ -606,8 +606,10 @@ a:focus-visible,
 
 /* ===== 移动端适配（新增组件） ===== */
 @media (max-width: 480px) {
+  /* 底栏在窄屏折成两行且控件加大，浮层整体上移避免遮挡 */
+  .ab-toast { bottom: 138px; }
   .ab-resume-prompt {
-    bottom: 100px;
+    bottom: 130px;
     width: calc(100vw - 24px);
   }
   .ab-resume-prompt__content {

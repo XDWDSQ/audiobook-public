@@ -678,6 +678,8 @@ header { animation-delay: .05s; }
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
   header { padding-top: calc(16px + env(safe-area-inset-top)); }
   .player-bar { padding-bottom: calc(10px + env(safe-area-inset-bottom)); }
+  /* 抽屉目录同样避开顶部刘海（独立于 header 的定位层） */
+  .sidebar { padding-top: calc(20px + env(safe-area-inset-top)); }
 }
 
 /* 高对比度模式 */
@@ -797,6 +799,51 @@ header { animation-delay: .05s; }
 
 /* 内联错误条（播放器上方） */
 .player-bar { position: relative; }
+
+/* ===== 移动端体验补强（触控目标 / 进度条命中区 / 横屏 / 输入缩放） ===== */
+/* iOS Safari：输入框字号 ≥16px，聚焦时不触发页面自动缩放 */
+@media (max-width: 768px) {
+  .sidebar-search input { font-size: 16px; }
+}
+/* 触屏：进度条命中区加高到 24px（视觉细条不变，整条可点可拖） */
+@media (hover: none) and (pointer: coarse) {
+  .progress-track,
+  .progress-track:hover { height: 24px; background: transparent; }
+  .progress-track::before {
+    content: "";
+    position: absolute;
+    left: 0; right: 0; top: 9px;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--surface-light);
+  }
+  .progress-fill { height: 6px; margin-top: 9px; }
+  .ab-buffer { top: 9px; height: 6px; }
+  .progress-thumb { top: 12px; }
+}
+/* 小屏：控件触控目标提升到 ≥40px */
+@media (max-width: 480px) {
+  .icon-btn { width: 40px; height: 40px; }
+  .player-bar { row-gap: 2px; }
+  .speed-btn, .font-size-btn { padding: 9px 12px; font-size: 0.75rem; }
+  .nav-btn { width: 42px; height: 42px; }
+}
+/* 手机横屏：压缩头部与留白，把高度留给正文 */
+@media (orientation: landscape) and (max-height: 500px) {
+  header { padding: 8px 16px 7px; padding-top: 8px; padding-top: max(8px, env(safe-area-inset-top)); }
+  .brand-mark { width: 28px; height: 28px; font-size: 14px; border-radius: 10px; }
+  .brand-title { font-size: 1rem; }
+  .brand-sub { display: none; }
+  .icon-btn { width: 30px; height: 30px; }
+  .menu-btn { left: 10px; }
+  .header-btns { right: 10px; gap: 6px; }
+  .reader { padding: 14px 20px 22px; }
+  .chapter-title { font-size: 1.05rem; margin-bottom: 12px; padding-bottom: 8px; }
+  .chapter-content { line-height: 1.8; }
+  .player-bar { padding-top: 6px; }
+  .cache-panel { bottom: 64px; }
+}
+
 </style>
 </head>
 <body>
