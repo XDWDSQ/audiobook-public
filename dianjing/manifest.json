@@ -1,0 +1,45 @@
+{
+  "name": "电竞群像 · 有声书",
+  "short_name": "电竞群像",
+  "description": "《电竞群像》完整有声书，支持文本同步高亮、倍速播放、断点续听",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f7f1e8",
+  "theme_color": "#b66b3f",
+  "lang": "zh-CN",
+  "dir": "ltr",
+  "categories": ["books", "entertainment", "music"],
+  "icons": [
+    {
+      "src": "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='112' fill='%23efe2cc'/><text x='256' y='256' text-anchor='middle' dominant-baseline='central' font-size='240' fill='%23b66b3f' font-family='serif' font-weight='600'>书</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='42' fill='%23efe2cc'/><text x='96' y='96' text-anchor='middle' dominant-baseline='central' font-size='90' fill='%23b66b3f' font-family='serif' font-weight='600'>书</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "继续播放",
+      "short_name": "继续",
+      "description": "从上次停止的位置继续播放",
+      "url": "./index.html",
+      "icons": [
+        {
+          "src": "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23b66b3f'><path d='M8 5v14l11-7z'/></svg>",
+          "sizes": "24x24",
+          "type": "image/svg+xml"
+        }
+      ]
+    }
+  ],
+  "screenshots": [],
+  "prefer_related_applications": false
+}
