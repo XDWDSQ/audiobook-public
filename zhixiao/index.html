@@ -1732,8 +1732,11 @@ if ('PerformanceObserver' in window) {
 
 // ===== 离线缓存管理（SW 消息通道驱动：预取走 PREFETCH_AUDIO，统计走 QUERY_CACHED_AUDIO/CACHE_INFO） =====
 (() => {
-  /* 注册 Service Worker（更新后自动接管，避免旧 SW 消息 API 缺失导致预取丢失） */
-  AB.registerServiceWorker && AB.registerServiceWorker('sw.js');
+  /* 注册 Service Worker（更新后自动接管，避免旧 SW 消息 API 缺失导致预取丢失）
+   * 注册 URL 带版本参数：sw.js 被 GitHub Pages 缓存 max-age=600（10 分钟），
+   * 不带参数时用户在缓存窗口内刷新仍会命中旧 SW（例如音频 Range 转发缺陷的 v11）。
+   * 版本化 scriptURL 会强制浏览器拉取指定版本，更新两步到位（与 sw.js 内 VERSION 同步递增）。 */
+  AB.registerServiceWorker && AB.registerServiceWorker('sw.js?v=12');
 
   const cacheToggle = document.getElementById('cacheToggle');
   const cachePopup = document.getElementById('cachePopup');
