@@ -1,4 +1,7 @@
-/* sw.js — 知晓有声书 Service Worker (v13)
+/* sw.js — 知晓有声书 Service Worker (v14)
+ *
+ * v14 性能改进：serveRange 改 Blob 零拷贝切片（seek 不再整章复制进 JS 内存）；
+ * touchAudioMeta 5 分钟节流（seek 密集时不再每请求开一次 IndexedDB）。
  *
  * 统一缓存策略：
  *   page-cache   — HTML 页面：network-first，离线回退缓存
@@ -24,7 +27,7 @@
  */
 
 const SW_ID = 'zhixiao';
-const VERSION = 13;
+const VERSION = 14;
 const CACHE_PREFIX = 'audiobook-hub-';
 
 const PAGE_CACHE   = `page-${CACHE_PREFIX}${SW_ID}-v${VERSION}`;
@@ -99,7 +102,16 @@ function updateAudioMeta(url, size) {
   }).catch(() => {});
 }
 
+// touch 节流：同一 URL 5 分钟窗口内只写一次 lastAccess（seek/预取密集时避免
+// 每请求开库+事务；LRU 淘汰按分钟级精度排序，足够）
+const TOUCH_THROTTLE_MS = 5 * 60 * 1000;
+const lastTouchTs = new Map();
+
 function touchAudioMeta(url) {
+  const now = Date.now();
+  const prev = lastTouchTs.get(url);
+  if (prev && now - prev < TOUCH_THROTTLE_MS) return Promise.resolve();
+  lastTouchTs.set(url, now);
   return openDB().then((db) => {
     return new Promise((resolve) => {
       const tx = db.transaction(AUDIO_STORE, 'readwrite');
@@ -226,7 +238,8 @@ function serveRange(cached, request) {
       headers: { 'Content-Range': 'bytes */' + size }
     }));
   }
-  return cached.arrayBuffer().then((buf) => new Response(new Uint8Array(buf.slice(start, end + 1)), {
+  // Blob.slice 是零拷贝引用切片，避免 arrayBuffer 把整章复制进 JS 内存
+  return cached.blob().then((blob) => new Response(blob.slice(start, end + 1), {
     status: 206,
     statusText: 'Partial Content',
     headers: {

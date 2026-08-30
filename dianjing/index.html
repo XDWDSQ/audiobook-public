@@ -1746,7 +1746,7 @@ if ('PerformanceObserver' in window) {
    * 不带参数时用户在缓存窗口内刷新仍会命中旧 SW（例如音频 Range 转发缺陷的 v11）。
    * 版本化 scriptURL 会强制浏览器拉取指定版本，更新两步到位（与 sw.js 内 VERSION 同步递增；
    * 配合 common.js 的 controllerchange 自动刷新，旧 SW 用户一次访问即收敛到新版本）。 */
-  AB.registerServiceWorker && AB.registerServiceWorker('sw.js?v=13');
+  AB.registerServiceWorker && AB.registerServiceWorker('sw.js?v=14');
 
   const cacheToggle = document.getElementById('cacheToggle');
   const cachePopup = document.getElementById('cachePopup');
@@ -1770,7 +1770,7 @@ if ('PerformanceObserver' in window) {
   let currentRunId = 0;
   let cachedCount = 0;
   let audioSize = 0;
-  let audioLimit = 650 * 1024 * 1024; // 与 SW v11 默认一致；CACHE_INFO 会回传实际值
+  let audioLimit = 650 * 1024 * 1024; // 与 SW 默认上限一致；CACHE_INFO 会回传实际值
   let limitNotified = false;
   /* 数据未加载完成时，预缓存会被延迟到 loadData 成功后 */
   let dataReady = CHAPTERS.length > 0;
