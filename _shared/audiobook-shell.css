@@ -9,7 +9,7 @@
   --surface: #fffaf4;
   --surface-light: #efe4d5;
   --text: #2f2923;
-  --text-dim: #8b7d70;
+  --text-dim: #6f6255;
   --accent: #b66b3f;
   --accent-deep: #8f4f2c;
   --accent-glow: rgba(182,107,63,0.12);
@@ -309,7 +309,7 @@ header {
   border-radius: 3px;
   cursor: pointer;
   position: relative;
-  overflow: hidden;
+  /* 不设 overflow:hidden：会裁掉悬停气泡（-22px）与 thumb 圆点 */
   transition: height .22s ease;
 }
 .progress-track:hover { height: 9px; }
@@ -670,6 +670,8 @@ header { animation-delay: .05s; }
 /* 目录条目：打开侧栏时才播 stagger（配合 JS 逐项 delay） */
 .sidebar a { animation: none; }
 .sidebar.open a { animation: ab-toc-in .45s cubic-bezier(.22,.61,.36,1) both; }
+/* 虚拟滚动项随滚动持续重建，入场动画会造成淡入闪烁，豁免 */
+.sidebar .ab-virtual-content a { animation: none; }
 
 /* 进度条拇指：悬停/拖拽时浮现 */
 .progress-thumb {

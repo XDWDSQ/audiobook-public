@@ -357,14 +357,20 @@
   }
 
   /* ---------- 空状态 / 错误状态 HTML 生成 ---------- */
+  // 动态文本（错误信息/搜索词等）拼入 innerHTML 前必须转义，等价于 textContent 硬规则
+  function escapeHTML(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
   function emptyHTML(text, actionLabel, actionId) {
-    let html = '<div class="ab-empty"><span class="ab-empty__icon" aria-hidden="true">\uD83D\uDD0D</span><span class="ab-empty__text">' + text + '</span>';
-    if (actionLabel) html += '<button class="ab-empty__action" id="' + (actionId || '') + '" type="button">' + actionLabel + '</button>';
+    let html = '<div class="ab-empty"><span class="ab-empty__icon" aria-hidden="true">\uD83D\uDD0D</span><span class="ab-empty__text">' + escapeHTML(text) + '</span>';
+    if (actionLabel) html += '<button class="ab-empty__action" id="' + (actionId || '') + '" type="button">' + escapeHTML(actionLabel) + '</button>';
     html += '</div>';
     return html;
   }
   function errorHTML(msg, retryId) {
-    return '<div class="ab-error" role="alert"><span class="ab-error__icon" aria-hidden="true">\u26A0\uFE0F</span><span class="ab-error__msg">' + msg + '</span><button class="ab-error__retry" id="' + (retryId || '') + '" type="button">\u91CD\u8BD5</button></div>';
+    return '<div class="ab-error" role="alert"><span class="ab-error__icon" aria-hidden="true">\u26A0\uFE0F</span><span class="ab-error__msg">' + escapeHTML(msg) + '</span><button class="ab-error__retry" id="' + (retryId || '') + '" type="button">\u91CD\u8BD5</button></div>';
   }
 
   /* ================================================================
@@ -491,7 +497,14 @@
     const confirmBtn = prompt.querySelector('#ab-resume-confirm');
     const cancelBtn = prompt.querySelector('#ab-resume-cancel');
 
+    let dismissTimer = null;
+    let closed = false;
+
     function close() {
+      if (closed) return;
+      closed = true;
+      if (dismissTimer) { clearTimeout(dismissTimer); dismissTimer = null; }
+      releaseFocus();
       prompt.classList.remove('show');
       setTimeout(() => { if (prompt.parentNode) prompt.parentNode.removeChild(prompt); }, 300);
     }
@@ -504,11 +517,19 @@
       close();
       if (typeof opts.onCancel === 'function') opts.onCancel();
     });
+    // Esc 关闭（视为取消，不触发回调）
+    prompt.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        e.stopPropagation();
+        close();
+        if (typeof opts.onCancel === 'function') opts.onCancel();
+      }
+    });
 
     // 自动消失
     const autoDismiss = typeof opts.autoDismiss === 'number' ? opts.autoDismiss : 8000;
     if (autoDismiss > 0) {
-      setTimeout(close, autoDismiss);
+      dismissTimer = setTimeout(close, autoDismiss);
     }
 
     // 焦点管理
@@ -667,6 +688,14 @@
         el.dataset.index = i;
         if (options.onItemClick) {
           el.addEventListener('click', () => options.onItemClick(item, i));
+          // 键盘激活（Enter/Space），与非虚拟目录行为一致；
+          // preventDefault 阻止 Space 冒泡到全局快捷键触发播放/暂停
+          el.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
+              e.preventDefault();
+              options.onItemClick(item, i);
+            }
+          });
         }
         frag.appendChild(el);
       }
@@ -859,6 +888,9 @@
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
       // 焦点在按钮上时，空格/回车属按钮原生激活，避免与全局快捷键双触发
       if (tag === 'BUTTON' && (e.key === ' ' || e.key === 'Enter')) return;
+      // 焦点在进度条（role=slider）上时方向键由滑条自身处理，全局跳过避免双倍跳转
+      if (e.target.getAttribute && e.target.getAttribute('role') === 'slider' &&
+          e.key.indexOf('Arrow') === 0) return;
       if (e.target.isContentEditable) return;
 
       // 修饰键组合跳过

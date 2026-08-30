@@ -235,7 +235,8 @@ async function loadData() {
     const raw = await resp.json();
     CHAPTERS = ABNormalize ? ABNormalize(raw) : ((raw && raw.chapters) || raw || []);
     document.getElementById('initLoading').style.display = 'none';
-    buildTOC();
+    // >50 章走虚拟滚动：initVirtualList 会整块重建，跳过全量 buildTOC 省一次 DOM 构建
+    if (CHAPTERS.length <= 50) buildTOC();
     initVirtualList();
     // 单一进度源决定起始章节（含旧键一次性迁移）
     const progress = AB && AB.loadProgress(BOOK_ID);
@@ -311,12 +312,15 @@ function buildTOC(keyword) {
 function initVirtualList() {
   const tocContainer = document.getElementById('toc');
   if (virtualList || !tocContainer || CHAPTERS.length <= 50) return;
+  // 章节对象 → 原始索引（O(1)；渲染每帧调用，避免 indexOf 的 O(n)）
+  const chapterIndex = new WeakMap();
+  CHAPTERS.forEach((ch, i) => chapterIndex.set(ch, i));
   virtualList = AB.createVirtualList(tocContainer, CHAPTERS, {
     itemHeight: tocItemHeight(),
     buffer: 8,
     threshold: 50,
     renderItem: function (ch, i) {
-      const realIdx = CHAPTERS.indexOf(ch);
+      const realIdx = chapterIndex.get(ch);
       const a = document.createElement('a');
       a.dataset.idx = realIdx;
       a.setAttribute('role', 'button');
@@ -359,7 +363,7 @@ function initVirtualList() {
       return a;
     },
     onItemClick: function (ch) {
-      loadChapter(CHAPTERS.indexOf(ch), isPlaying);
+      loadChapter(chapterIndex.get(ch), isPlaying);
       closeSidebar();
     }
   });
@@ -616,7 +620,9 @@ audio.addEventListener('timeupdate', () => {
     const ratio = cur / dur;
     progressFill.style.width = (ratio * 100) + '%';
     progressThumb.style.left = (ratio * 100) + '%';
-    progressTrack.setAttribute('aria-valuenow', String(Math.round(ratio * 100)));
+    // aria 数值统一用秒（与 loadedmetadata 的 valuemax 同单位）+ 人类可读文本
+    progressTrack.setAttribute('aria-valuenow', String(Math.round(cur)));
+    progressTrack.setAttribute('aria-valuetext', fmtTime(cur) + ' / ' + fmtTime(dur));
   }
   curTimeLabel.textContent = fmtTime(cur);
 
@@ -857,8 +863,8 @@ overlay.addEventListener('click', closeSidebar);
   }
 
   // --- 5. 播放进度持久化（统一格式；离开页面时绕过节流直写最新值）---
-  // beforeunload 在移动端（iOS Safari / Android Chrome 后台杀页、bfcache）常不触发，
-  // 必须同时挂 pagehide 与 visibilitychange=hidden，否则手机最多丢 5 秒进度。
+  // pagehide 与 visibilitychange=hidden 覆盖全部退出路径（含移动端杀页）；
+  // 不挂 beforeunload——它会令页面失去 bfcache 资格，拖慢前进/后退恢复。
   function flushProgress() {
     if (CHAPTERS.length === 0) return;
     try {
@@ -874,7 +880,6 @@ overlay.addEventListener('click', closeSidebar);
       );
     } catch (_) {}
   }
-  window.addEventListener('beforeunload', flushProgress);
   window.addEventListener('pagehide', flushProgress);
   document.addEventListener('visibilitychange', function () {
     if (document.hidden) flushProgress();
@@ -917,9 +922,9 @@ function checkResumeProgress() {
       if (audio.readyState >= 1) doSeek();
       else audio.addEventListener('canplay', doSeek);
 
-      // 恢复音量和速率
+      // 恢复音量和速率（走 applySpeed 同步 speedIdx 与按钮文案，避免后续档位错乱）
       if (p.volume != null) audio.volume = p.volume;
-      if (p.playbackRate != null) audio.playbackRate = p.playbackRate;
+      if (p.playbackRate != null) applySpeed(p.playbackRate, true);
     },
     onCancel: function () {
       // 「从头开始」真正归零：清除统一进度并回到本章起点
