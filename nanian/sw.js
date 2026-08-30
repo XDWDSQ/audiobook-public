@@ -23,7 +23,7 @@
  */
 
 const SW_ID = 'nanian';
-const VERSION = 11;
+const VERSION = 12;
 const CACHE_PREFIX = 'audiobook-hub-';
 
 const PAGE_CACHE   = `page-${CACHE_PREFIX}${SW_ID}-v${VERSION}`;
@@ -262,23 +262,35 @@ function cacheFirst(cacheName, request, trackAudio) {
         return cached;
       }
       return fetch(request).then((resp) => {
-        if (resp && resp.status === 200) {
-          if (trackAudio) {
-            // 估算大小并更新元数据；以重建头的响应入缓存
-            resp.clone().arrayBuffer().then((buf) => {
-              updateAudioMeta(request.url, buf.byteLength);
-              evictAudioIfNeeded();
-            }).catch(() => {});
-            buildAudioResponse(resp.clone()).then((audioCopy) =>
-              cache.put(request, audioCopy).catch(() => {})
-            ).catch(() => {});
-          } else {
+        // 音频 Range 请求未命中缓存：直接转发 206 部分流经 SW 后，长流在播放中途
+        // 会数据源中断（PIPELINE_ERROR_READ，线上 Fastly 复现）。改为去掉 Range
+        // 拉取全量 200 → 重建响应头整体入缓存 → 再从缓存按 Range 切片返回 206。
+        const isAudioRange = trackAudio && !!request.headers.get('range');
+        const audioReq = isAudioRange ? new Request(request.url, { mode: request.mode }) : request;
+        return fetch(audioReq).then((resp) => {
+          if (resp && resp.status === 200) {
+            if (trackAudio) {
+              // 估算大小并更新元数据；以重建头的响应入缓存
+              resp.clone().arrayBuffer().then((buf) => {
+                updateAudioMeta(request.url, buf.byteLength);
+                evictAudioIfNeeded();
+              }).catch(() => {});
+              return buildAudioResponse(resp.clone()).then((audioCopy) =>
+                cache.put(request, audioCopy).then(() => {
+                  if (isAudioRange) {
+                    const ranged = serveRange(audioCopy, request);
+                    if (ranged) return ranged;
+                  }
+                  return audioCopy;
+                })
+              ).catch(() => resp);
+            }
             const copy = resp.clone();
             cache.put(request, copy).catch(() => {});
           }
-        }
-        return resp;
-      }).catch(() => new Response('', { status: 503, statusText: 'Offline' }));
+          return resp;
+        }).catch(() => new Response('', { status: 503, statusText: 'Offline' }));
+      });
     })
   );
 }
