@@ -2,5 +2,6 @@ User-agent: *
 Allow: /
 Disallow: /zhixiao/chapters/
 Disallow: /nanian/chapters/
+Disallow: /dianjing/chapters/
 
 Sitemap: https://audiobook-hub.site/sitemap.xml

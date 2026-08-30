@@ -1,5 +1,6 @@
-/* sw.js — 电竞群像有声书 Service Worker (v14)
+/* sw.js — 电竞群像有声书 Service Worker (v15)
  *
+ * v15：audiobook-shell.css 纳入静态预缓存清单（无缓存语义变化）。
  * v14 性能改进：serveRange 改 Blob 零拷贝切片（seek 不再整章复制进 JS 内存）；
  * touchAudioMeta 5 分钟节流（seek 密集时不再每请求开一次 IndexedDB）。
  *

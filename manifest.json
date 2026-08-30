@@ -1,7 +1,7 @@
 {
   "name": "有声书馆",
   "short_name": "有声书馆",
-  "description": "免费收听原创长篇有声书，支持文本同步高亮、定时关闭、倍速播放。收录《知晓》与《那年高中》完整内容。",
+  "description": "免费收听原创长篇有声书，支持文本同步高亮、定时关闭、倍速播放。收录《知晓》《那年高中》与《电竞群像》完整内容。",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
@@ -56,6 +56,19 @@
       "icons": [
         {
           "src": "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'><rect width='96' height='96' rx='21' fill='%23efe2cc'/><text x='48' y='48' text-anchor='middle' dominant-baseline='central' font-size='42' fill='%23b66b3f' font-family='serif' font-weight='500'>那</text></svg>",
+          "sizes": "96x96",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "电竞群像 · 有声书",
+      "short_name": "电竞群像",
+      "description": "直接进入《电竞群像》有声书播放器",
+      "url": "./dianjing/",
+      "icons": [
+        {
+          "src": "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'><rect width='96' height='96' rx='21' fill='%23efe2cc'/><text x='48' y='48' text-anchor='middle' dominant-baseline='central' font-size='42' fill='%23b66b3f' font-family='serif' font-weight='500'>电</text></svg>",
           "sizes": "96x96",
           "type": "image/svg+xml"
         }
