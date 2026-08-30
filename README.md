@@ -8,7 +8,7 @@
 | --- | --- | --- |
 | `index.html` | 有声书馆着陆页 | `nanagao-redesign/pages/index.html` |
 | `zhixiao/` | 《知晓》播放器与章节 | `novel1/audiobook/` |
-| `dianjing/` | 《电竞群像》播放器与章节 | 书皮由 `scripts/gen_dianjing_site.py` 生成（模板 `novel1/audiobook/`）；`data.json` 由 `scripts/sync_site.py` 从 `novel3/audio/output/` 同步 |
+| `dianjing/` | 《电竞群像》播放器与章节 | 书皮由 `scripts/gen_dianjing_site.py` 生成（模板 `novel1/audiobook/`）；`data.json` 由 `scripts/sync_site.py` 从 `novel3/audio/output/` 同步（压缩为 compact 写出） |
 | `nanian/` | 《那年高中》播放器与章节 | 书皮由 `scripts/gen_nanian_site.py` 生成（模板 `novel1/audiobook/`）；`data.json`/音频以本目录为事实源 |
 | `CNAME` | 生产自定义域名 | 固定为 `audiobook-hub.site` |
 | `.nojekyll` | 禁用 Jekyll 处理 | 必须保留 |
@@ -32,14 +32,15 @@ python scripts/sync_site.py --check      # 只检查漂移（有差异退出码 
 
 ## 发布到生产
 
-本目录内容即公开部署仓库 `XDWDSQ/audiobook-public` 的**根目录**。发布时，把本地 `site-dist/`
-的变更同步到该仓库的工作副本并推送，GitHub Pages 会自动构建：
+本目录内容即公开部署仓库 `XDWDSQ/audiobook-public` 的**根目录**。实际发布以一键脚本为准
+（含章节音频，本机计划任务每 30 分钟自动执行）：
 
 ```bash
-cd <audiobook-public 工作副本>   # git clone https://github.com/XDWDSQ/audiobook-public.git
-# 用本地 site-dist/ 内容覆盖对应文件（保留 CNAME 与 .nojekyll）
-git add -A && git commit -m "deploy: 描述" && git push origin main
+python scripts/publish_site.py           # 生成链 → 镜像 → commit → push（幂等）
 ```
+
+手工兜底：把本地 `site-dist/` 的变更同步到该仓库的工作副本并推送（保留 `CNAME` 与
+`.nojekyll`），GitHub Pages 会自动构建。
 
 ## 禁止事项
 
