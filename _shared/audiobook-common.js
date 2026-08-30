@@ -741,7 +741,7 @@
     { key: 'M', label: '静音切换', description: '切换静音状态' },
     { key: 'N / P', label: '下一章 / 上一章', description: '切换到下一章节或上一章节' },
     { key: '[ / ]', label: '播放速率减 / 加', description: '调节播放速度（0.5x - 2.5x）' },
-    { key: 'T', label: '定时关闭', description: '循环切换 15/30/45/60 分钟 / 关闭' },
+    { key: 'T', label: '定时关闭', description: '循环切换 15/30/45/60 分钟 / 播完本章 / 关闭' },
     { key: '?', label: '显示快捷键帮助', description: '打开此帮助面板' }
   ];
 

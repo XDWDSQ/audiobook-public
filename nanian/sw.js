@@ -27,7 +27,7 @@
  */
 
 const SW_ID = 'nanian';
-const VERSION = 14;
+const VERSION = 15;
 const CACHE_PREFIX = 'audiobook-hub-';
 
 const PAGE_CACHE   = `page-${CACHE_PREFIX}${SW_ID}-v${VERSION}`;
@@ -43,7 +43,7 @@ const AUDIO_CACHE_LIMIT = 650 * 1024 * 1024;
 // 安装时预缓存的外壳资源（按运行策略分仓，避免与页面 fetch 重复写入）
 const SHELL_ASSETS = {
   page: ['./', './index.html', './data.json'],
-  static: ['../_shared/audiobook-common.js', '../_shared/audiobook-common.css']
+  static: ['../_shared/audiobook-common.js', '../_shared/audiobook-common.css', '../_shared/audiobook-shell.css']
 };
 
 /* ---------- 工具函数 ---------- */
