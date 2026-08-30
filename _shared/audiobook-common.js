@@ -18,7 +18,6 @@
  *   ABCommon.saveThrottled(key, val, ms, store)  -> 节流写入 localStorage
  *   ABCommon.showToast(msg, host?, variant?)  -> 显示 Toast (variant: success/error)
  *   ABCommon.announce(message)              -> 屏幕阅读器播报
- *   ABCommon.copyShareLink(url?)            -> 复制分享链接到剪贴板
  *   ABCommon.trapFocus(container, trigger?) -> 焦点陷阱 (模态框用)
  *   ABCommon.releaseFocus()                 -> 释放焦点陷阱
  *   ABCommon.crossFade(el, renderFn)        -> 章节切换淡入淡出过渡
@@ -286,30 +285,6 @@
     if (!el) return;
     el.textContent = '';
     window.setTimeout(() => { el.textContent = String(message || ''); }, 30);
-  }
-
-  /* ---------- 复制分享链接 ---------- */
-  /**
-   * 复制分享链接到剪贴板。优先使用 Clipboard API，降级到 execCommand。
-   * @param {string} [url] - 要复制的链接，默认为当前页面 URL
-   */
-  function copyShareLink(url) {
-    const text = String(url || location.href);
-    const fallback = () => {
-      const ta = document.createElement('textarea');
-      ta.value = text;
-      ta.style.position = 'fixed';
-      ta.style.opacity = '0';
-      document.body.appendChild(ta);
-      ta.select();
-      try { document.execCommand('copy'); } catch (_) {}
-      document.body.removeChild(ta);
-    };
-    if (navigator.clipboard && window.isSecureContext) {
-      navigator.clipboard.writeText(text).catch(fallback);
-    } else {
-      fallback();
-    }
   }
 
   /* ---------- 焦点陷阱 ---------- */
@@ -1481,7 +1456,6 @@
     saveThrottled: saveThrottled,
     showToast: showToast,
     announce: announce,
-    copyShareLink: copyShareLink,
     trapFocus: trapFocus,
     releaseFocus: releaseFocus,
     crossFade: crossFade,

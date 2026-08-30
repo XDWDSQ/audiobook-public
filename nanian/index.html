@@ -1301,6 +1301,15 @@ function loadChapter(idx, autoplay) {
   // 更新目录高亮
   updateTOCActive();
 
+  // 宽屏常驻目录：章节切换（含自动连播）时让当前章保持可见
+  if (window.matchMedia('(min-width: 1024px)').matches) {
+    if (virtualList && !tocKeyword) virtualList.scrollToIndex(idx);
+    else {
+      const active = document.querySelector('.sidebar a.active');
+      if (active) active.scrollIntoView({ block: 'nearest' });
+    }
+  }
+
   updateMediaSession();
   updateHash();
 
