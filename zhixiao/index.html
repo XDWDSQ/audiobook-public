@@ -1725,20 +1725,6 @@ window.addEventListener('hashchange', () => { applyHashRoute(); });
 window.addEventListener('error', (e) => { console.error('Global error:', e.error || e.message); });
 window.addEventListener('unhandledrejection', (e) => { console.error('Unhandled promise rejection:', e.reason); });
 
-// ===== 性能监控 (LCP) =====
-if ('PerformanceObserver' in window) {
-  try {
-    const po = new PerformanceObserver((list) => {
-      for (const entry of list.getEntries()) {
-        if (entry.entryType === 'largest-contentful-paint') {
-          console.log('LCP:', Math.round(entry.renderTime || entry.loadTime), 'ms');
-        }
-      }
-    });
-    po.observe({ type: 'largest-contentful-paint', buffered: true });
-  } catch (_) {}
-}
-
 // ===== 离线缓存管理（SW 消息通道驱动：预取走 PREFETCH_AUDIO，统计走 QUERY_CACHED_AUDIO/CACHE_INFO） =====
 (() => {
   /* 注册 Service Worker（更新后自动接管，避免旧 SW 消息 API 缺失导致预取丢失）

@@ -306,8 +306,8 @@
                     </div>
                     <div class="about__cell">
                         <span class="about__dot" aria-hidden="true">时</span>
-                        <span class="about__label">共 46 小时</span>
-                        <span class="about__hint">超过 1.8 万段</span>
+                        <span class="about__label"><!--s:about-duration-->共 46 小时<!--/s--></span>
+                        <span class="about__hint"><!--s:about-segments-->超过 1.9 万段<!--/s--></span>
                     </div>
                 </div>
             </section>
@@ -1343,22 +1343,6 @@
     </style>
 
     <script>
-        // 性能监控
-        if ('performance' in window && 'PerformanceObserver' in window) {
-            try {
-                const observer = new PerformanceObserver((list) => {
-                    for (const entry of list.getEntries()) {
-                        if (entry.entryType === 'largest-contentful-paint') {
-                            console.log('LCP:', entry.renderTime || entry.loadTime);
-                        }
-                    }
-                });
-                observer.observe({ entryTypes: ['largest-contentful-paint'] });
-            } catch (e) {
-                console.error('Performance observer error:', e);
-            }
-        }
-
         // 主题切换
         (function () {
             'use strict';
@@ -1434,37 +1418,14 @@
             });
         });
 
-        // 图片懒加载
-        if ('IntersectionObserver' in window) {
-            var imageObserver = new IntersectionObserver(function(entries, observer) {
-                entries.forEach(function(entry) {
-                    if (entry.isIntersecting) {
-                        var img = entry.target;
-                        if (img.dataset.src) {
-                            img.src = img.dataset.src;
-                            img.removeAttribute('data-src');
-                            observer.unobserve(img);
-                        }
-                    }
-                });
-            });
-
-            var images = document.querySelectorAll('img[data-src]');
-            images.forEach(function(img) {
-                imageObserver.observe(img);
-            });
-        }
-
         // 错误边界
         window.addEventListener('error', function(e) {
             console.error('Global error:', e.error);
-            // 可以在这里添加错误上报逻辑
         });
 
         // 未处理的Promise拒绝
         window.addEventListener('unhandledrejection', function(e) {
             console.error('Unhandled promise rejection:', e.reason);
-            // 可以在这里添加错误上报逻辑
         });
     </script>
 </body>
