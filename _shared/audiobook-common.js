@@ -94,9 +94,8 @@
    * @returns {Array<Object>} 章节数组（id/title/duration/audio/hash/segments）
    */
   function normalizeChapters(data) {
-    if (data && typeof data === 'object') {
-      window.BOOK_INFO = data.book || null;
-      if (Array.isArray(data.chapters)) data = data.chapters;
+    if (data && typeof data === 'object' && Array.isArray(data.chapters)) {
+      data = data.chapters;
     }
     if (!Array.isArray(data)) return [];
     return data.map(function (ch) {

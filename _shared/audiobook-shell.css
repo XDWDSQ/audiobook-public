@@ -558,6 +558,10 @@ header { animation-delay: .05s; }
   .sidebar a:hover { background: transparent; border-left-color: transparent; padding-left: 16px; }
   .sidebar a:hover::before { transform: scaleY(0); }
   .sidebar a:active { background: var(--surface-light); }
+  /* 触屏段落热区加高：inline 垂直 padding 不参与行盒计算，零回流；
+     相邻段落点击区几乎相接，长文本手机上更好点中 */
+  .seg { padding-top: 5px; padding-bottom: 5px; }
+
   /* 触屏禁用菜单按钮 90° 旋转 + 标题下划线扫过，节电 */
   .menu-btn:hover { transform: none; }
   .chapter-title::after { animation: none; width: 56px; }
