@@ -856,25 +856,31 @@ overlay.addEventListener('click', closeSidebar);
     });
   }
 
-  // --- 5. 播放进度持久化（统一格式；卸载时绕过节流直写最新值）---
-  window.addEventListener('beforeunload', function () {
-    if (CHAPTERS.length > 0) {
-      try {
-        localStorage.setItem(
-          'audiobook-progress-' + BOOK_ID,
-          JSON.stringify({
-            chapterId: currentIdx,
-            currentTime: audio.currentTime,
-            volume: audio.volume,
-            playbackRate: audio.playbackRate,
-            timestamp: Date.now()
-          })
-        );
-      } catch (_) {}
-    }
+  // --- 5. 播放进度持久化（统一格式；离开页面时绕过节流直写最新值）---
+  // beforeunload 在移动端（iOS Safari / Android Chrome 后台杀页、bfcache）常不触发，
+  // 必须同时挂 pagehide 与 visibilitychange=hidden，否则手机最多丢 5 秒进度。
+  function flushProgress() {
+    if (CHAPTERS.length === 0) return;
+    try {
+      localStorage.setItem(
+        'audiobook-progress-' + BOOK_ID,
+        JSON.stringify({
+          chapterId: currentIdx,
+          currentTime: audio.currentTime,
+          volume: audio.volume,
+          playbackRate: audio.playbackRate,
+          timestamp: Date.now()
+        })
+      );
+    } catch (_) {}
+  }
+  window.addEventListener('beforeunload', flushProgress);
+  window.addEventListener('pagehide', flushProgress);
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) flushProgress();
   });
 
-  // --- 6. 播放进度持久化（见上方 beforeunload；timeupdate 节流保存）---
+  // --- 6. timeupdate 节流保存与 flushProgress 互补（见上）---
 })();
 
 // ===== 继续播放提示（单一进度源；loadData 完成后调用） =====
@@ -949,7 +955,7 @@ window.addEventListener('unhandledrejection', (e) => { console.error('Unhandled 
    * 不带参数时用户在缓存窗口内刷新仍会命中旧 SW（例如音频 Range 转发缺陷的 v11）。
    * 版本化 scriptURL 会强制浏览器拉取指定版本，更新两步到位（与 sw.js 内 VERSION 同步递增；
    * 配合 common.js 的 controllerchange 自动刷新，旧 SW 用户一次访问即收敛到新版本）。 */
-  AB.registerServiceWorker && AB.registerServiceWorker('sw.js?v=15');
+  AB.registerServiceWorker && AB.registerServiceWorker('sw.js?v=16');
 
   const cacheToggle = document.getElementById('cacheToggle');
   const cachePopup = document.getElementById('cachePopup');

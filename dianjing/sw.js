@@ -1,5 +1,7 @@
-/* sw.js — 电竞群像有声书 Service Worker (v15)
+/* sw.js — 电竞群像有声书 Service Worker (v16)
  *
+ * v16 修正：首播真正边下边播——媒体响应改挂 headersReady（响应头就绪即返回），
+ *            不再等整包下载+写缓存完成（v13-v15 实际行为是整包缓冲）。
  * v15：audiobook-shell.css 纳入静态预缓存清单（无缓存语义变化）。
  * v14 性能改进：serveRange 改 Blob 零拷贝切片（seek 不再整章复制进 JS 内存）；
  * touchAudioMeta 5 分钟节流（seek 密集时不再每请求开一次 IndexedDB）。
@@ -28,7 +30,7 @@
  */
 
 const SW_ID = 'dianjing';
-const VERSION = 15;
+const VERSION = 16;
 const CACHE_PREFIX = 'audiobook-hub-';
 
 const PAGE_CACHE   = `page-${CACHE_PREFIX}${SW_ID}-v${VERSION}`;
@@ -278,12 +280,13 @@ function cacheFirst(cacheName, request) {
  *   - 中段 Range（拖进度条）等整包入缓存后本地精确切片，Content-Range 不说谎；
  *   - 已缓存命中走 serveRange 本地切片（同 v12）。 */
 
-const audioLoads = new Map(); // url -> { ready, mediaResponse, mediaClaimed }
+const audioLoads = new Map(); // url -> { ready, headersReady, mediaResponse, mediaClaimed }
 
 function startAudioLoad(url) {
   const existing = audioLoads.get(url);
   if (existing) return existing;
-  const load = { ready: null, mediaResponse: null, mediaClaimed: false };
+  const load = { ready: null, headersReady: null, _headersDone: null, mediaResponse: null, mediaClaimed: false };
+  load.headersReady = new Promise((res) => { load._headersDone = res; });
   load.ready = (async () => {
     try {
       const resp = await fetch(url);
@@ -302,6 +305,7 @@ function startAudioLoad(url) {
         if (load.mediaClaimed) {
           load.mediaResponse = new Response(buf, { status: 200, statusText: 'OK', headers });
         }
+        load._headersDone();
         await cache.put(new Request(url), new Response(buf, { status: 200, statusText: 'OK', headers })).catch(() => {});
         if (buf.byteLength) updateAudioMeta(url, buf.byteLength);
         evictAudioIfNeeded();
@@ -314,12 +318,14 @@ function startAudioLoad(url) {
         'Accept-Ranges': 'bytes'
       };
       load.mediaResponse = new Response(media, { status: 200, statusText: 'OK', headers });
+      load._headersDone(); // 首播不等整包：响应头就绪即交还媒体流，缓存写在后台继续
       await cache.put(new Request(url), new Response(store, { status: 200, statusText: 'OK', headers }));
       updateAudioMeta(url, size);
       evictAudioIfNeeded();
     } catch (_) {
       /* 单章失败由下次请求/预取重试 */
     } finally {
+      load._headersDone();
       audioLoads.delete(url);
       /* 纯预取场景下没人认领媒体分支，及时取消释放 tee 缓冲 */
       if (!load.mediaClaimed && load.mediaResponse) {
@@ -354,9 +360,9 @@ function respondAudio(request) {
       const fromZero = !m || (m[1] !== '' && parseInt(m[1], 10) === 0);
       const load = startAudioLoad(url);
       if (fromZero && !load.mediaClaimed) {
-        /* 首播：不等整包，直接流式转发（mediaResponse 只能交给一个媒体元素） */
+        /* 首播：响应头就绪即流式转发，不等整包（mediaResponse 只能交给一个媒体元素） */
         load.mediaClaimed = true;
-        return load.ready.then(() =>
+        return load.headersReady.then(() =>
           load.mediaResponse || new Response('', { status: 504, statusText: 'Upstream failed' })
         );
       }

@@ -196,7 +196,7 @@
         if (!audio.duration || !Number.isFinite(time)) return;
         audio.currentTime = Math.max(0, Math.min(audio.duration, time));
       };
-      safe(() => navigator.mediaSession.setActionHandler('play', () => audio.play()));
+      safe(() => navigator.mediaSession.setActionHandler('play', () => { const p = audio.play(); if (p && p.catch) p.catch(function () {}); }));
       safe(() => navigator.mediaSession.setActionHandler('pause', () => audio.pause()));
       safe(() => navigator.mediaSession.setActionHandler('seekbackward', () => seek(-15)));
       safe(() => navigator.mediaSession.setActionHandler('seekforward', () => seek(15)));
@@ -471,13 +471,15 @@
         '<div class="ab-resume-prompt__icon" aria-hidden="true">▶</div>' +
         '<div class="ab-resume-prompt__body">' +
           '<div class="ab-resume-prompt__title" id="ab-resume-title">继续播放</div>' +
-          '<div class="ab-resume-prompt__desc" id="ab-resume-desc">' + chTitle + ' · ' + timeStr + '</div>' +
+          '<div class="ab-resume-prompt__desc" id="ab-resume-desc"></div>' +
         '</div>' +
         '<div class="ab-resume-prompt__actions">' +
           '<button class="ab-resume-prompt__btn ab-resume-prompt__btn--primary" id="ab-resume-confirm" type="button">继续</button>' +
           '<button class="ab-resume-prompt__btn" id="ab-resume-cancel" type="button">从头开始</button>' +
         '</div>' +
       '</div>';
+    // 章节标题属内容文本：textContent 渲染（硬规则，禁拼入 innerHTML）
+    prompt.querySelector('#ab-resume-desc').textContent = chTitle + ' · ' + timeStr;
 
     document.body.appendChild(prompt);
 
@@ -855,6 +857,8 @@
       // 输入框内不触发
       const tag = e.target.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      // 焦点在按钮上时，空格/回车属按钮原生激活，避免与全局快捷键双触发
+      if (tag === 'BUTTON' && (e.key === ' ' || e.key === 'Enter')) return;
       if (e.target.isContentEditable) return;
 
       // 修饰键组合跳过
