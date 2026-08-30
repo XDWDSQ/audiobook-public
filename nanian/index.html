@@ -120,6 +120,8 @@ header {
   display: inline-flex;
   align-items: center;
   gap: 12px;
+  min-width: 0;
+  max-width: 100%;
   text-decoration: none;
   color: var(--text);
 }
@@ -132,9 +134,9 @@ header {
   transition: transform .25s cubic-bezier(.22,.61,.36,1);
 }
 .brand:hover .brand-mark { transform: scale(1.06) rotate(-3deg); }
-.brand-body { display: flex; flex-direction: column; line-height: 1.1; text-align: left; }
-.brand-title { font-size: 1.5rem; font-weight: 400; letter-spacing: 0.4em; color: var(--accent); }
-.brand-sub { font-size: 0.7rem; color: var(--text-dim); letter-spacing: 0.18em; margin-top: 3px; }
+.brand-body { display: flex; flex-direction: column; line-height: 1.1; text-align: left; min-width: 0; }
+.brand-title { font-size: 1.5rem; font-weight: 400; letter-spacing: 0.4em; color: var(--accent); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.brand-sub { font-size: 0.7rem; color: var(--text-dim); letter-spacing: 0.18em; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .header-btns {
   position: absolute;
   right: 16px;
@@ -571,6 +573,9 @@ header { animation-delay: .05s; }
 
 @media (max-width: 768px) {
   header { padding: 14px 16px 12px; }
+  /* 四字长书名在窄屏收缩省略，不与左右两侧悬浮按钮重叠：
+     预留左菜单(36+16) + 右按钮 3×36+2×8+16 + 间隙 */
+  .brand { max-width: calc(100% - 224px); }
   .brand-title { font-size: 1.3rem; }
   .brand-mark { width: 34px; height: 34px; font-size: 17px; }
   .menu-btn { left: 12px; }
@@ -589,7 +594,9 @@ header { animation-delay: .05s; }
   .sidebar h3 { font-size: 1rem; }
 }
 @media (max-width: 480px) {
-  .brand-title { font-size: 1.15rem; letter-spacing: 0.3em; }
+  /* 预留左菜单(40+12) + 右按钮 3×40+2×8+12（含安装按钮）+ 间隙；字距收紧让四字标题尽量完整显示 */
+  .brand { max-width: calc(100% - 208px); }
+  .brand-title { font-size: 1.05rem; letter-spacing: 0.18em; }
   .brand-sub { font-size: 0.65rem; }
   .brand-mark { width: 32px; height: 32px; font-size: 16px; }
   .icon-btn { width: 34px; height: 34px; font-size: 0.9rem; }
@@ -636,6 +643,8 @@ header { animation-delay: .05s; }
   font-size: 10px; font-weight: 700;
   display: grid; place-items: center; padding: 0 4px;
 }
+/* display:grid 会压过 hidden 属性的 UA 样式，必须显式关闭，否则徽标「0」常驻盖住正文 */
+.cache-badge[hidden] { display: none; }
 .cache-popup {
   display: none; position: absolute; right: 0; bottom: 52px;
   width: 280px; padding: 16px; border-radius: 20px;
@@ -855,7 +864,7 @@ header { animation-delay: .05s; }
   <a class="brand" href="../index.html" title="返回有声书馆">
     <span class="brand-mark" aria-hidden="true">听</span>
     <span class="brand-body">
-      <span class="brand-title">那 年 高 中</span>
+      <span class="brand-title">那年高中</span>
       <span class="brand-sub">有声书馆</span>
     </span>
   </a>
@@ -1735,8 +1744,9 @@ if ('PerformanceObserver' in window) {
   /* 注册 Service Worker（更新后自动接管，避免旧 SW 消息 API 缺失导致预取丢失）
    * 注册 URL 带版本参数：sw.js 被 GitHub Pages 缓存 max-age=600（10 分钟），
    * 不带参数时用户在缓存窗口内刷新仍会命中旧 SW（例如音频 Range 转发缺陷的 v11）。
-   * 版本化 scriptURL 会强制浏览器拉取指定版本，更新两步到位（与 sw.js 内 VERSION 同步递增）。 */
-  AB.registerServiceWorker && AB.registerServiceWorker('sw.js?v=12');
+   * 版本化 scriptURL 会强制浏览器拉取指定版本，更新两步到位（与 sw.js 内 VERSION 同步递增；
+   * 配合 common.js 的 controllerchange 自动刷新，旧 SW 用户一次访问即收敛到新版本）。 */
+  AB.registerServiceWorker && AB.registerServiceWorker('sw.js?v=13');
 
   const cacheToggle = document.getElementById('cacheToggle');
   const cachePopup = document.getElementById('cachePopup');

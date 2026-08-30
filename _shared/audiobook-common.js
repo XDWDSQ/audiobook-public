@@ -1320,6 +1320,8 @@
   /**
    * 注册 Service Worker；检测到新版本时立即 skipWaiting 接管，
    * 避免旧 SW（无新消息 API）导致 PREFETCH_AUDIO 等消息丢失。
+   * 若注册时已有旧 SW 在控制本页，新版本接管（controllerchange）后自动刷新一次，
+   * 保证页面 HTML 与 SW 同代——否则旧 SW 用户要手动刷两次才能拿到新版本。
    * @param {string} swPath - SW 脚本路径（相对当前页面）
    * @param {Object} [options] - 配置
    * @param {Function} [options.onReady] - 注册完成回调 (registration)
@@ -1328,6 +1330,15 @@
   function registerServiceWorker(swPath, options) {
     options = options || {};
     if (!('serviceWorker' in navigator)) return Promise.resolve(null);
+    const hadController = !!navigator.serviceWorker.controller;
+    let refreshed = false;
+    if (hadController) {
+      navigator.serviceWorker.addEventListener('controllerchange', function () {
+        if (refreshed) return;
+        refreshed = true;
+        window.location.reload();
+      });
+    }
     return navigator.serviceWorker.register(swPath).then(function (reg) {
       const skipWaiting = function () {
         if (reg.waiting) { reg.waiting.postMessage('SKIP_WAITING'); return; }

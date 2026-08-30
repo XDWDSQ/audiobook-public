@@ -1,4 +1,4 @@
-/* sw.js — 知晓有声书 Service Worker (v11)
+/* sw.js — 知晓有声书 Service Worker (v13)
  *
  * 统一缓存策略：
  *   page-cache   — HTML 页面：network-first，离线回退缓存
@@ -6,7 +6,8 @@
  *                  运行时先回缓存再后台更新，首屏不再等网络）
  *   static-cache — CSS / JS / 图片：stale-while-revalidate
  *   font-cache   — 字体文件：cache-first，长期缓存
- *   audio-cache  — 音频文件：cache-first，容量上限（650MB）+ LRU 淘汰；
+ *   audio-cache  — 音频文件：整文件单飞下载 + 首播流式转发（边下边播），
+ *                  后台重建响应头入缓存；容量上限（650MB）+ LRU 淘汰；
  *                  播放器侧 URL 带 ?v=hash，文件变化时自动失效
  *
  * 命名空间前缀：audiobook-hub-
@@ -23,7 +24,7 @@
  */
 
 const SW_ID = 'zhixiao';
-const VERSION = 12;
+const VERSION = 13;
 const CACHE_PREFIX = 'audiobook-hub-';
 
 const PAGE_CACHE   = `page-${CACHE_PREFIX}${SW_ID}-v${VERSION}`;
@@ -237,60 +238,116 @@ function serveRange(cached, request) {
   }));
 }
 
-// CORS 过滤会剥掉 Accept-Ranges / Content-Length 等头，缓存前重建，
-// 保证缓存命中时媒体元素仍可 seek。
-function buildAudioResponse(resp) {
-  return resp.arrayBuffer().then((buf) => new Response(new Uint8Array(buf), {
-    status: 200,
-    statusText: 'OK',
-    headers: {
-      'Content-Type': resp.headers.get('content-type') || 'audio/mpeg',
-      'Content-Length': String(buf.byteLength),
-      'Accept-Ranges': 'bytes'
-    }
-  }));
-}
-
-// 策略 1: cache-first（音频、字体）
-function cacheFirst(cacheName, request, trackAudio) {
+// 策略 1: cache-first（字体）
+function cacheFirst(cacheName, request) {
   return caches.open(cacheName).then((cache) =>
     cache.match(request).then((cached) => {
-      if (cached) {
-        if (trackAudio) touchAudioMeta(request.url);
-        const ranged = trackAudio ? serveRange(cached, request) : null;
-        if (ranged) return ranged;
-        return cached;
-      }
+      if (cached) return cached;
       return fetch(request).then((resp) => {
-        // 音频 Range 请求未命中缓存：直接转发 206 部分流经 SW 后，长流在播放中途
-        // 会数据源中断（PIPELINE_ERROR_READ，线上 Fastly 复现）。改为去掉 Range
-        // 拉取全量 200 → 重建响应头整体入缓存 → 再从缓存按 Range 切片返回 206。
-        const isAudioRange = trackAudio && !!request.headers.get('range');
-        const audioReq = isAudioRange ? new Request(request.url, { mode: request.mode }) : request;
-        return fetch(audioReq).then((resp) => {
-          if (resp && resp.status === 200) {
-            if (trackAudio) {
-              // 估算大小并更新元数据；以重建头的响应入缓存
-              resp.clone().arrayBuffer().then((buf) => {
-                updateAudioMeta(request.url, buf.byteLength);
-                evictAudioIfNeeded();
-              }).catch(() => {});
-              return buildAudioResponse(resp.clone()).then((audioCopy) =>
-                cache.put(request, audioCopy).then(() => {
-                  if (isAudioRange) {
-                    const ranged = serveRange(audioCopy, request);
-                    if (ranged) return ranged;
-                  }
-                  return audioCopy;
-                })
-              ).catch(() => resp);
-            }
-            const copy = resp.clone();
-            cache.put(request, copy).catch(() => {});
-          }
-          return resp;
-        }).catch(() => new Response('', { status: 503, statusText: 'Offline' }));
-      });
+        if (resp && resp.status === 200) {
+          const copy = resp.clone();
+          cache.put(request, copy).catch(() => {});
+        }
+        return resp;
+      }).catch(() => new Response('', { status: 503, statusText: 'Offline' }));
+    })
+  );
+}
+
+/* ---------- 音频：整文件单飞 + 边下边播 ----------
+ * v12 的痛点：Range 未命中时先拉整包、arrayBuffer 落缓存后才响应媒体元素，
+ * 移动端首播要等整章下完（6MB / 几百 KB/s ≈ 10s+，期间一直 0:00），观感就是「播不了」。
+ * v13：
+ *   - 整文件下载单飞（audioLoads 去重）：媒体元素与预取共享同一次下载，不抢双倍带宽；
+ *   - 首次请求（bytes=0- 或无 Range）直接把网络流转发给媒体元素，首字节即时到达，
+ *     同时 tee 一份在后台重建响应头写入缓存（保证缓存命中仍可 seek）；
+ *   - 中段 Range（拖进度条）等整包入缓存后本地精确切片，Content-Range 不说谎；
+ *   - 已缓存命中走 serveRange 本地切片（同 v12）。 */
+
+const audioLoads = new Map(); // url -> { ready, mediaResponse, mediaClaimed }
+
+function startAudioLoad(url) {
+  const existing = audioLoads.get(url);
+  if (existing) return existing;
+  const load = { ready: null, mediaResponse: null, mediaClaimed: false };
+  load.ready = (async () => {
+    try {
+      const resp = await fetch(url);
+      if (!resp || resp.status !== 200 || !resp.body) return;
+      const ct = resp.headers.get('content-type') || 'audio/mpeg';
+      const size = Number(resp.headers.get('content-length')) || 0;
+      const cache = await caches.open(AUDIO_CACHE);
+      if (!size) {
+        /* 上游缺 Content-Length（罕见）：流式路径无法构造响应头，退回整包缓冲 */
+        const buf = await resp.arrayBuffer();
+        const headers = {
+          'Content-Type': ct,
+          'Content-Length': String(buf.byteLength),
+          'Accept-Ranges': 'bytes'
+        };
+        if (load.mediaClaimed) {
+          load.mediaResponse = new Response(buf, { status: 200, statusText: 'OK', headers });
+        }
+        await cache.put(new Request(url), new Response(buf, { status: 200, statusText: 'OK', headers })).catch(() => {});
+        if (buf.byteLength) updateAudioMeta(url, buf.byteLength);
+        evictAudioIfNeeded();
+        return;
+      }
+      const [media, store] = resp.body.tee();
+      const headers = {
+        'Content-Type': ct,
+        'Content-Length': String(size),
+        'Accept-Ranges': 'bytes'
+      };
+      load.mediaResponse = new Response(media, { status: 200, statusText: 'OK', headers });
+      await cache.put(new Request(url), new Response(store, { status: 200, statusText: 'OK', headers }));
+      updateAudioMeta(url, size);
+      evictAudioIfNeeded();
+    } catch (_) {
+      /* 单章失败由下次请求/预取重试 */
+    } finally {
+      audioLoads.delete(url);
+      /* 纯预取场景下没人认领媒体分支，及时取消释放 tee 缓冲 */
+      if (!load.mediaClaimed && load.mediaResponse) {
+        try { load.mediaResponse.body.cancel(); } catch (_) {}
+      }
+    }
+  })();
+  audioLoads.set(url, load);
+  return load;
+}
+
+function waitCacheSlice(load, cache, url, request) {
+  return load.ready.then(() => cache.match(url)).then((full) => {
+    if (!full) return new Response('', { status: 504, statusText: 'Upstream failed' });
+    const ranged = serveRange(full, request);
+    return ranged || full;
+  });
+}
+
+/* 音频请求统一入口（cache-first：命中即切片，未命中走单飞下载） */
+function respondAudio(request) {
+  const url = request.url;
+  return caches.open(AUDIO_CACHE).then((cache) =>
+    cache.match(url).then((cached) => {
+      if (cached) {
+        touchAudioMeta(url);
+        const ranged = serveRange(cached, request);
+        return ranged || cached;
+      }
+      const range = request.headers.get('range');
+      const m = range && String(range).trim().match(/^bytes=(\d*)-(\d*)$/);
+      const fromZero = !m || (m[1] !== '' && parseInt(m[1], 10) === 0);
+      const load = startAudioLoad(url);
+      if (fromZero && !load.mediaClaimed) {
+        /* 首播：不等整包，直接流式转发（mediaResponse 只能交给一个媒体元素） */
+        load.mediaClaimed = true;
+        return load.ready.then(() =>
+          load.mediaResponse || new Response('', { status: 504, statusText: 'Upstream failed' })
+        );
+      }
+      /* 中段 Range 或第二次并发请求：等整包入缓存后本地切片 */
+      return waitCacheSlice(load, cache, url, request);
     })
   );
 }
@@ -371,7 +428,8 @@ self.addEventListener('message', (event) => {
     return;
   }
 
-  // 串行预下载音频（120ms 间隔留给网络栈与渲染；PREFETCH_STOP 可中止）
+  // 串行预下载音频（120ms 间隔留给网络栈与渲染；PREFETCH_STOP 可中止；
+  // 下载走 startAudioLoad 单飞：媒体元素若正在听同一章则复用同一次下载，不抢带宽）
   if (data.type === 'PREFETCH_AUDIO') {
     const urls = data.urls || [];
     const runId = data.runId || 0;
@@ -380,27 +438,11 @@ self.addEventListener('message', (event) => {
       caches.open(AUDIO_CACHE).then((cache) => (async () => {
         for (const url of urls) {
           if (prefetchStopFlag) break;
-          const hit = await cache.match(url).catch(() => null);
-          if (hit) continue; // 已缓存，跳过
           try {
-            const resp = await fetch(url, { mode: 'cors' });
-            if (resp && resp.status === 200) {
-              // 重建响应头（Accept-Ranges/Content-Length），保证缓存命中可 seek
-              const buf = await resp.arrayBuffer().catch(() => null);
-              if (buf) {
-                updateAudioMeta(url, buf.byteLength);
-                const audioCopy = new Response(new Uint8Array(buf), {
-                  status: 200,
-                  statusText: 'OK',
-                  headers: {
-                    'Content-Type': resp.headers.get('content-type') || 'audio/mpeg',
-                    'Content-Length': String(buf.byteLength),
-                    'Accept-Ranges': 'bytes'
-                  }
-                });
-                await cache.put(url, audioCopy).catch(() => {});
-              }
-            }
+            const hit = await cache.match(url).catch(() => null);
+            if (hit) continue; // 已缓存，跳过
+            const load = startAudioLoad(url);
+            await load.ready;
           } catch (_) {
             /* 单章失败不阻塞队列；断网时由 online 事件重发 */
           }
@@ -482,15 +524,15 @@ self.addEventListener('fetch', (event) => {
 
   const path = url.pathname;
 
-  // 1. 音频：cache-first + LRU（URL 带 ?v=hash，文件更新后自动换新条目）
+  // 1. 音频：cache-first + LRU + 边下边播（URL 带 ?v=hash，文件更新后自动换新条目）
   if (isAudioRequest(path)) {
-    event.respondWith(cacheFirst(AUDIO_CACHE, req, true));
+    event.respondWith(respondAudio(req).catch(() => new Response('', { status: 503, statusText: 'Offline' })));
     return;
   }
 
   // 2. 字体：cache-first 长期缓存
   if (isFontRequest(path)) {
-    event.respondWith(cacheFirst(FONT_CACHE, req, false));
+    event.respondWith(cacheFirst(FONT_CACHE, req));
     return;
   }
 
