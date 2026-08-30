@@ -129,11 +129,11 @@
                         <div class="hero__plate-divider"></div>
                         <div class="hero__plate-grid">
                             <div class="hero__plate-item">
-                                <span class="hero__plate-num hero__plate-num--sm"><!--s:plate-duration-->24<small>h</small> 23<small>m</small><!--/s--></span>
+                                <span class="hero__plate-num hero__plate-num--sm"><!--s:plate-duration-->46<small>h</small> 43<small>m</small><!--/s--></span>
                                 <span class="hero__plate-label">总 时 长</span>
                             </div>
                             <div class="hero__plate-item">
-                                <span class="hero__plate-num hero__plate-num--sm"><!--s:plate-segments-->10,663<!--/s--></span>
+                                <span class="hero__plate-num hero__plate-num--sm"><!--s:plate-segments-->18,633<!--/s--></span>
                                 <span class="hero__plate-label">声 音 段 落</span>
                             </div>
                         </div>
@@ -258,7 +258,7 @@
                             <p class="book-card__desc">
                                 一诺退役，把指挥位留给了一个没打过 KPL 的新射手。
                                 从质疑声里接手，到与辅助大帅并肩夺冠。三声部分离演绎——
-                                旁白沉稳、台词入戏。<!--s:dianjing-note-->已合成 44 / 90 章，持续更新中<!--/s-->。
+                                旁白沉稳、台词入戏。<!--s:dianjing-note-->已合成 90 / 90 章，持续更新中<!--/s-->。
                             </p>
                             <dl class="book-card__stats">
                                 <div class="book-card__stat">
@@ -267,11 +267,11 @@
                                 </div>
                                 <div class="book-card__stat">
                                     <dt>可听</dt>
-                                    <dd><!--s:dianjing-avail-->44<small>章</small><!--/s--></dd>
+                                    <dd><!--s:dianjing-avail-->90<small>章</small><!--/s--></dd>
                                 </div>
                                 <div class="book-card__stat">
                                     <dt>段落</dt>
-                                    <dd><!--s:dianjing-segs-->0<!--/s--></dd>
+                                    <dd><!--s:dianjing-segs-->7,970<!--/s--></dd>
                                 </div>
                             </dl>
                             <a class="book-card__cta" href="dianjing/index.html">
@@ -357,6 +357,12 @@
             --gold-soft: rgba(216, 173, 104, 0.14);
             --shadow: 0 24px 64px rgba(0, 0, 0, 0.32);
             --shadow-soft: 0 12px 34px rgba(0, 0, 0, 0.24);
+        }
+
+        html {
+            -webkit-text-size-adjust: 100%;
+            text-size-adjust: 100%;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
@@ -1007,6 +1013,7 @@
         .book-card__cta {
             align-self: flex-start;
             margin-top: auto;
+            box-sizing: border-box;
             display: inline-flex;
             align-items: center;
             gap: 10px;
@@ -1260,7 +1267,25 @@
             .book-card__stats { gap: 8px; }
             .book-card__stat { border-radius: 16px; padding: 12px 12px; }
             .book-card__stat dd { font-size: 19px; }
-            .about__row { grid-template-columns: 1fr; }
+            .book-card__cta { width: 100%; justify-content: center; padding: 14px 20px; }
+            /* About：移动端保持三列紧凑（缩小圆点/字号，避免三级堆叠拉长页面） */
+            .about__row { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+            .about__cell { padding: 18px 8px 16px; gap: 5px; border-radius: 20px; }
+            .about__dot { width: 40px; height: 40px; font-size: 16px; margin-bottom: 8px; }
+            .about__label { font-size: 13.5px; }
+            .about__hint { font-size: 10.5px; }
+            /* 内容节奏收紧 */
+            .books__grid { gap: 20px; }
+            .section-head { margin: 44px 0 32px; }
+            .hero__tags { gap: 8px; }
+            .hero__tag { padding: 7px 15px; font-size: 12px; }
+            .marquee { margin-top: 44px; }
+            /* 移动端性能：背景光斑静止化 + 降透明度，毛玻璃降档 */
+            .page-bg__blob { animation: none; opacity: 0.35; }
+            .topbar, .hero__plate, .marquee, .about__cell {
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+            }
             .marquee { border-radius: 24px; }
             .marquee::before, .marquee::after { border-radius: 24px 0 0 24px; }
             .marquee::after { border-radius: 0 24px 24px 0; }
@@ -1275,6 +1300,19 @@
             .book-cover__title { font-size: 34px; }
             .book-cover__sub { font-size: 10px; }
             .book-card__stat dd { font-size: 17px; }
+        }
+        @media (max-width: 360px) {
+            /* 小屏顶栏：隐藏英文副标，避免品牌区挤压导航 */
+            .brand__sub { display: none; }
+            /* 统计数字缩小，杜绝 "15h 51m" 折行 */
+            .book-card__stat { padding: 10px 8px; border-radius: 14px; }
+            .book-card__stat dd { font-size: 16px; }
+            .book-card__stat dd small { font-size: 11px; }
+            .book-card__cta { padding: 13px 16px; }
+            .about__cell { padding: 14px 6px 14px; }
+            .about__dot { width: 34px; height: 34px; font-size: 14px; }
+            .about__label { font-size: 12px; letter-spacing: 0.02em; }
+            .about__hint { font-size: 9.5px; }
         }
 
         /* ── 触摸设备优化 ── */
