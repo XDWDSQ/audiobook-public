@@ -469,7 +469,9 @@ function loadChapter(idx, autoplay) {
     const frag = document.createDocumentFragment();
     ch.segments.forEach((seg, si) => {
       const span = document.createElement('span');
-      span.className = 'seg';
+      // 首段若与章节标题重复（合成时把章名当作 0:00 旁白读了一遍），
+      // 大标题已展示章名，正文里隐藏这段避免"标题混入正文"的观感（超短章尤其明显）。
+      span.className = (si === 0 && seg.t && seg.t === ch.title) ? 'seg seg--dup' : 'seg';
       span.dataset.idx = si;
       span.tabIndex = 0;
       span.setAttribute('role', 'button');
@@ -960,6 +962,11 @@ function checkResumeProgress() {
   if (!ch || !progress.currentTime || progress.currentTime < 5) return;
   if (progress.currentTime >= ch.duration - 5) return;
 
+  // 用户用 hash 显式跳到了别的章节（如 #chapter=12），说明此刻不想恢复旧进度：
+  // 跳过提示，避免"当前在第 12 章、提示却指向第 13 章"的错位。
+  const hashM = String(location.hash || '').match(/#chapter=(\d+)/);
+  if (hashM && Number(hashM[1]) - 1 !== chIdx) return;
+
   // 进度较新（7 天内）才提示
   const age = Date.now() - (progress.timestamp || 0);
   if (age > 7 * 24 * 60 * 60 * 1000) return;
@@ -1020,7 +1027,7 @@ window.addEventListener('unhandledrejection', (e) => { console.error('Unhandled 
    * 不带参数时用户在缓存窗口内刷新仍会命中旧 SW（例如音频 Range 转发缺陷的 v11）。
    * 版本化 scriptURL 会强制浏览器拉取指定版本，更新两步到位（与 sw.js 内 VERSION 同步递增；
    * 配合 common.js 的 controllerchange 自动刷新，旧 SW 用户一次访问即收敛到新版本）。 */
-  AB.registerServiceWorker && AB.registerServiceWorker('sw.js?v=16');
+  AB.registerServiceWorker && AB.registerServiceWorker('sw.js?v=17');
 
   const cacheToggle = document.getElementById('cacheToggle');
   const cachePopup = document.getElementById('cachePopup');

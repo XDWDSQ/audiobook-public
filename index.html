@@ -1531,6 +1531,17 @@
             });
         });
 
+        // Service Worker：让着陆页可离线访问，并为「安装为应用」提供 SW 前提
+        // （浏览器要求页面受 SW 控制且满足 manifest 才派发 beforeinstallprompt）。
+        // scope 限定站点根，仅接管首页外壳；三本书的播放器/音频由各自目录下的 sw.js 管理。
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('sw.js?v=1', { scope: './' }).catch(function(e) {
+                    console.error('SW 注册失败:', e);
+                });
+            });
+        }
+
         // 错误边界
         window.addEventListener('error', function(e) {
             console.error('Global error:', e.error);

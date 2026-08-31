@@ -1,5 +1,8 @@
-/* sw.js — 那年高中有声书 Service Worker (v16)
+/* sw.js — 那年高中有声书 Service Worker (v17)
  *
+ * v17：随共享播放器逻辑更新递增（正文首段章名旁白不再重复渲染、"继续播放"提示
+ *      响应回车/可点击且手动跳章时不再错位）。版本递增触发 activate 清理旧缓存，
+ *      使仍被旧 SW 接管的用户一次访问即收敛到最新 data.json 与脚本。
  * v16 修正：首播真正边下边播——媒体响应改挂 headersReady（响应头就绪即返回），
  *            不再等整包下载+写缓存完成（v13-v15 实际行为是整包缓冲）。
  * v15：audiobook-shell.css 纳入静态预缓存清单（无缓存语义变化）。
@@ -30,7 +33,7 @@
  */
 
 const SW_ID = 'nanian';
-const VERSION = 16;
+const VERSION = 17;
 const CACHE_PREFIX = 'audiobook-hub-';
 
 const PAGE_CACHE   = `page-${CACHE_PREFIX}${SW_ID}-v${VERSION}`;

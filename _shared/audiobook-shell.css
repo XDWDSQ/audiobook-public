@@ -247,6 +247,8 @@ header {
 .seg.flash {
   animation: ab-seg-flash .7s ease;
 }
+/* 首段章名旁白：大标题已展示，正文隐藏避免重复（仍可点击定位到 0:00） */
+.seg.seg--dup { display: none; }
 @keyframes ab-seg-flash {
   0%   { background: var(--accent); color: #fff; box-shadow: 0 0 0 4px var(--accent); transform: scale(1.04); }
   100% { background: var(--highlight); color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); transform: scale(1); }

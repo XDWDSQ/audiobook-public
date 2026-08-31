@@ -517,14 +517,29 @@
       close();
       if (typeof opts.onCancel === 'function') opts.onCancel();
     });
-    // Esc 关闭（视为取消，不触发回调）
-    prompt.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
+    // 提示条正文（标题/描述）整体可点击 = 继续播放，方便触屏与鼠标用户
+    prompt.querySelector('.ab-resume-prompt__body').addEventListener('click', () => {
+      close();
+      opts.onConfirm(progress);
+    });
+    // 回车/空格 = 继续播放（播报文案承诺的行为）；Esc = 取消
+    // 用捕获阶段监听，避免焦点落在按钮上时被全局快捷键或按钮原生行为吞掉
+    function onKey(e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        e.stopPropagation();
+        close();
+        opts.onConfirm(progress);
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
         e.stopPropagation();
         close();
         if (typeof opts.onCancel === 'function') opts.onCancel();
       }
-    });
+    }
+    document.addEventListener('keydown', onKey, true);
+    const _origClose = close;
+    close = function () { document.removeEventListener('keydown', onKey, true); _origClose(); };
 
     // 自动消失
     const autoDismiss = typeof opts.autoDismiss === 'number' ? opts.autoDismiss : 8000;
