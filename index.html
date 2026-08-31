@@ -28,6 +28,13 @@
     <script>/* 主题前置初始化：与播放器共用 audiobook-theme 键，深色用户不见浅色闪屏 */
     try{var t=localStorage.getItem('audiobook-theme');if(t==='dark'||(t!=='light'&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.classList.add('dark');document.documentElement.dataset.theme='dark';}}catch(e){}</script>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='30' fill='%23efe2cc'/><text x='50' y='50' text-anchor='middle' dominant-baseline='central' font-size='56' fill='%23b66b3f' font-family='serif' font-weight='600'>听</text></svg>">
+    <!-- PWA：根 manifest 只在被引用的页面生效，iOS 安装图标必须是 PNG（不接受 SVG data-URI） -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="有声书馆">
+    <meta name="application-name" content="有声书馆">
 
     <!-- 结构化数据 -->
     <script type="application/ld+json">
@@ -129,7 +136,7 @@
                         <div class="hero__plate-divider"></div>
                         <div class="hero__plate-grid">
                             <div class="hero__plate-item">
-                                <span class="hero__plate-num hero__plate-num--sm"><!--s:plate-duration-->45<small>h</small> 50<small>m</small><!--/s--></span>
+                                <span class="hero__plate-num hero__plate-num--sm"><!--s:plate-duration-->45<small>h</small> 49<small>m</small><!--/s--></span>
                                 <span class="hero__plate-label">总 时 长</span>
                             </div>
                             <div class="hero__plate-item">
@@ -251,7 +258,7 @@
                         </div>
                         <div class="book-card__body">
                             <div class="book-card__meta">
-                                <span class="book-card__badge book-card__badge--sticker">长篇 · 第三部（试听）</span>
+                                <span class="book-card__badge book-card__badge--sticker">长篇 · 第三部</span>
                                 <span class="book-card__author">原创 · 电竞双男主</span>
                             </div>
                             <h3 class="book-card__title">电竞群像</h3>
@@ -266,8 +273,8 @@
                                     <dd><!--s:dianjing-ch-->90<!--/s--></dd>
                                 </div>
                                 <div class="book-card__stat">
-                                    <dt>可听</dt>
-                                    <dd><!--s:dianjing-avail-->90<small>章</small><!--/s--></dd>
+                                    <dt>时长</dt>
+                                    <dd><!--s:dianjing-dur-->21<small>h</small> 27<small>m</small><!--/s--></dd>
                                 </div>
                                 <div class="book-card__stat">
                                     <dt>段落</dt>
@@ -315,7 +322,7 @@
                     </div>
                     <div class="about__cell">
                         <span class="about__dot" aria-hidden="true">时</span>
-                        <span class="about__label"><!--s:about-duration-->共 45 小时 50 分<!--/s--></span>
+                        <span class="about__label"><!--s:about-duration-->共 45 小时 49 分<!--/s--></span>
                         <span class="about__hint"><!--s:about-segments-->超过 1.8 万段<!--/s--></span>
                     </div>
                 </div>

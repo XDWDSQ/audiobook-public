@@ -1282,12 +1282,17 @@
     }
 
     function onInstallClick() {
-      if (!_deferredPrompt) return;
+      if (!_deferredPrompt) {
+        showToast('当前环境不支持安装为应用');
+        return;
+      }
       _deferredPrompt.prompt();
       _deferredPrompt.userChoice.then(function (choiceResult) {
         if (choiceResult.outcome === 'accepted') {
           if (typeof options.onInstalled === 'function') options.onInstalled();
           showToast('应用安装中...');
+        } else {
+          showToast('已取消安装');
         }
         _deferredPrompt = null;
         updateButton();

@@ -447,6 +447,10 @@ function closeSidebar() {
 // ===== 章节渲染 =====
 function loadChapter(idx, autoplay) {
   if (idx < 0 || idx >= CHAPTERS.length) return;
+  if (tocKeyword) {
+    document.getElementById('tocSearch').value = '';
+    renderTOC('');
+  }
   currentIdx = idx;
   const ch = CHAPTERS[idx];
   const reader = document.getElementById('reader');
