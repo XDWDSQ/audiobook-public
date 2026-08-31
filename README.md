@@ -7,12 +7,15 @@
 | 路径 | 内容 | 来源 |
 | --- | --- | --- |
 | `index.html` | 有声书馆着陆页 | `nanagao-redesign/pages/index.html` |
+| `sw.js` | 着陆页根级 Service Worker（外壳离线 + 安装为应用；不介入三书） | `nanagao-redesign/pages/sw.js` |
+| `manifest.json` / `icon-*.png` | 站点级 PWA 清单与图标 | 本目录直接维护（图标可由 `scripts/gen_pwa_icons.py` 重生成） |
+| `404.html` | 404 页（三书快捷入口的章数/时长由 `scripts/gen_landing_stats.py` 写入） | 本目录即事实源（无源码副本） |
+| `sitemap.xml` / `robots.txt` / `og-cover.png` | SEO/爬虫/分享卡片 | 顶层站点配置，本目录直接维护 |
 | `zhixiao/` | 《知晓》播放器与章节 | `novel1/audiobook/` |
 | `dianjing/` | 《电竞群像》播放器与章节 | 书皮由 `scripts/gen_dianjing_site.py` 生成（模板 `novel1/audiobook/`）；`data.json` 由 `scripts/sync_site.py` 从 `novel3/audio/output/` 同步（压缩为 compact 写出） |
 | `nanian/` | 《那年高中》播放器与章节 | 书皮由 `scripts/gen_nanian_site.py` 生成（模板 `novel1/audiobook/`）；`data.json`/音频以本目录为事实源 |
 | `CNAME` | 生产自定义域名 | 固定为 `audiobook-hub.site` |
 | `.nojekyll` | 禁用 Jekyll 处理 | 必须保留 |
-| `robots.txt` | 爬虫规则 | 顶层站点配置 |
 
 ## 同步方法
 
