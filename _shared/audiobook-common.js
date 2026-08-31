@@ -525,6 +525,8 @@
     // 回车/空格 = 继续播放（播报文案承诺的行为）；Esc = 取消
     // 用捕获阶段监听，避免焦点落在按钮上时被全局快捷键或按钮原生行为吞掉
     function onKey(e) {
+      // 焦点显式落在「从头开始」上时，回车/空格走按钮原生取消，不劫持为继续
+      if (e.target === cancelBtn) return;
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
         e.stopPropagation();
