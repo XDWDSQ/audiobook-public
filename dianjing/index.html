@@ -185,6 +185,10 @@ let scrollResumeTimer = null;
 let lastActiveSegIdx = -1;
 let sleepTimer = null; // 集成节赋值；章节结束处理需要
 let virtualList = null; // 目录虚拟滚动实例
+let audioLoadToken = 0; // 每次切换音频源递增，防止旧章节的重试/回调作用到新章节
+let audioRetryCount = 0; // 当前章节音频加载失败的静默重试次数
+let wantPlay = false; // 用户/连播的播放意图，重试成功后据此自动恢复播放
+let audioLoadingUiTimer = 0; // 加载态延迟显示定时器（避免缓存命中时闪现）
 
 let isFirstRender = true;
 
@@ -469,7 +473,7 @@ function loadChapter(idx, autoplay) {
       span.addEventListener('click', () => {
         if (audio.duration) {
           audio.currentTime = seg.s + 0.01;
-          if (!isPlaying) { audio.play().catch(() => {}); }
+          if (!isPlaying) { wantPlay = true; audio.play().catch(() => {}); }
           highlightSeg(si);
           span.classList.remove('flash');
           // 使用 animationend 清 class，避免强制重排
@@ -497,6 +501,8 @@ function loadChapter(idx, autoplay) {
 
   // 更新播放器
   playerTitle.textContent = ch.title;
+  audioLoadToken++;
+  audioRetryCount = 0;
   audio.src = ABAudioSrc ? ABAudioSrc(ch) : ch.audio;
   audio.playbackRate = SPEED_STEPS[speedIdx];
   playBtn.disabled = false;
@@ -531,7 +537,7 @@ function loadChapter(idx, autoplay) {
   // 自动播放：等待音频就绪后再 play()，避免移动浏览器（iOS Safari / Chrome Android）
   // 在 src 改变后立即 play() 时因未加载完抛 NotAllowedError 被 catch 静默吞掉，
   // 导致章节末尾跳转后听不见声音。
-  if (autoplay) tryPlayAfterReady();
+  if (autoplay) { wantPlay = true; tryPlayAfterReady(); }
 }
 
 /* 在 canplay / loadeddata 时再尝试播放；带过期保护避免事件链断裂。
@@ -559,8 +565,10 @@ function tryPlayAfterReady() {
 // ===== 播放控制 =====
 function togglePlay() {
   if (audio.paused) {
+    wantPlay = true;
     audio.play().catch(() => {});
   } else {
+    wantPlay = false;
     audio.pause();
   }
 }
@@ -569,17 +577,61 @@ playBtn.addEventListener('click', togglePlay);
 
 audio.addEventListener('play', () => {
   isPlaying = true;
+  wantPlay = true;
   playBtn.classList.add('playing');
   playBtn.setAttribute('aria-label', '暂停');
 });
 audio.addEventListener('pause', () => {
   isPlaying = false;
+  wantPlay = false;
   playBtn.classList.remove('playing');
   playBtn.setAttribute('aria-label', '播放');
 });
 
+/* 播放按钮加载态：切换音频源后显示转圈，延迟 160ms 避免缓存命中时闪现 */
+function setAudioLoading(on) {
+  clearTimeout(audioLoadingUiTimer);
+  if (on) {
+    audioLoadingUiTimer = setTimeout(() => {
+      playBtn.classList.add('audio-loading');
+      playBtn.setAttribute('aria-label', '音频加载中');
+    }, 160);
+  } else {
+    playBtn.classList.remove('audio-loading');
+    playBtn.setAttribute('aria-label', isPlaying ? '暂停' : '播放');
+  }
+}
+
+audio.addEventListener('loadstart', () => setAudioLoading(true));
+audio.addEventListener('canplay', () => setAudioLoading(false));
+audio.addEventListener('playing', () => setAudioLoading(false));
+
 audio.addEventListener('error', () => {
-  /* 网络或解码失败：清晰提示用户，避免沉默。 */
+  /* MEDIA_ERR_ABORTED(1)：切换章节等导致的中断，不是真正的加载失败 */
+  if (audio.error && audio.error.code === 1) return;
+  if (!audio.currentSrc) return;
+  const token = audioLoadToken;
+  if (audioRetryCount < 2) {
+    /* 首载偶发失败（如 SW/网络瞬断）：静默重试，不打扰用户 */
+    audioRetryCount++;
+    const cur = audio.currentTime;
+    const resumeAt = (isFinite(cur) && cur > 0.5) ? cur : 0;
+    setTimeout(() => {
+      if (token !== audioLoadToken) return; // 已切换章节，放弃重试
+      audio.load();
+      if (resumeAt > 0) {
+        const restorePos = () => {
+          audio.removeEventListener('loadedmetadata', restorePos);
+          if (token === audioLoadToken) audio.currentTime = resumeAt;
+        };
+        audio.addEventListener('loadedmetadata', restorePos);
+      }
+      if (wantPlay) tryPlayAfterReady();
+    }, 350 * audioRetryCount);
+    return;
+  }
+  /* 重试耗尽：清晰提示用户，点击播放按钮可再次触发加载 */
+  setAudioLoading(false);
   showToast && showToast('音频加载失败，请检查网络后重试', null, 'error');
   // 内联错误条
   var bar = document.querySelector('.player-bar');

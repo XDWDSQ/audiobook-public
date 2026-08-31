@@ -502,6 +502,21 @@ header { animation-delay: .05s; }
 .play-btn:hover:not(:disabled) { transform: scale(1.05); box-shadow: 0 6px 16px color-mix(in srgb, var(--accent) 30%, transparent); }
 .play-btn:active:not(:disabled) { transform: scale(.96); }
 
+/* 播放按钮：音频加载/重试中的转圈状态 */
+.play-btn.audio-loading .icon-play, .play-btn.audio-loading .icon-pause { opacity: 0; transform: translate(-50%,-50%) scale(.5); }
+.play-btn.audio-loading::after {
+  content: '';
+  position: absolute; top: 50%; left: 50%;
+  width: 18px; height: 18px; margin: -9px 0 0 -9px;
+  border: 2px solid color-mix(in srgb, var(--bg) 40%, transparent);
+  border-top-color: var(--bg);
+  border-radius: 50%;
+  animation: spin .9s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .play-btn.audio-loading::after { animation-duration: 2.5s; }
+}
+
 /* speed-btn / font-size-btn：按下反馈 */
 .speed-btn, .font-size-btn { transition: background .18s ease, border-color .18s ease, color .18s ease, transform .18s cubic-bezier(.22,.61,.36,1); }
 .speed-btn:active, .font-size-btn:active { transform: scale(.92); }
