@@ -607,7 +607,10 @@ function setAudioLoading(on) {
 }
 
 audio.addEventListener('loadstart', () => setAudioLoading(true));
-audio.addEventListener('canplay', () => setAudioLoading(false));
+audio.addEventListener('canplay', () => {
+  audioRetryCount = 0; // 加载成功即清零，避免同一章节后续偶发错误提前耗尽重试次数
+  setAudioLoading(false);
+});
 audio.addEventListener('playing', () => setAudioLoading(false));
 
 audio.addEventListener('error', () => {
@@ -615,11 +618,12 @@ audio.addEventListener('error', () => {
   if (audio.error && audio.error.code === 1) return;
   if (!audio.currentSrc) return;
   const token = audioLoadToken;
-  if (audioRetryCount < 2) {
-    /* 首载偶发失败（如 SW/网络瞬断）：静默重试，不打扰用户 */
+  /* 首载偶发失败（如 SW/网络瞬断）：静默重试，间隔逐次拉长，尽量在报错前自愈 */
+  if (audioRetryCount < 3) {
     audioRetryCount++;
     const cur = audio.currentTime;
     const resumeAt = (isFinite(cur) && cur > 0.5) ? cur : 0;
+    const delay = [400, 900, 1600][audioRetryCount - 1] || 1600;
     setTimeout(() => {
       if (token !== audioLoadToken) return; // 已切换章节，放弃重试
       audio.load();
@@ -631,7 +635,7 @@ audio.addEventListener('error', () => {
         audio.addEventListener('loadedmetadata', restorePos);
       }
       if (wantPlay) tryPlayAfterReady();
-    }, 350 * audioRetryCount);
+    }, delay);
     return;
   }
   /* 重试耗尽：清晰提示用户，点击播放按钮可再次触发加载 */

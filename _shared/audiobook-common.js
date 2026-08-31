@@ -1286,6 +1286,8 @@
         showToast('当前环境不支持安装为应用');
         return;
       }
+      /* 先给出可见反馈再弹系统安装框，避免部分浏览器 prompt() 静默失败时“点击无反应” */
+      showToast('正在打开安装窗口…');
       _deferredPrompt.prompt();
       _deferredPrompt.userChoice.then(function (choiceResult) {
         if (choiceResult.outcome === 'accepted') {
