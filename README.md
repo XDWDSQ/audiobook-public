@@ -35,9 +35,14 @@ python scripts/sync_site.py --check      # 只检查漂移（有差异退出码 
 
 ## 发布到生产
 
-本目录内容即公开部署仓库 `XDWDSQ/audiobook-public` 的**根目录**。发布为手工通道：
-先在源码目录跑生成链（`gen_landing_stats.py` / `gen_dianjing_site.py` / `gen_nanian_site.py` / `sync_site.py`），
-再把本地 `site-dist/` 的变更（**含章节音频**）同步到该仓库工作副本并提交推送（保留 `CNAME` 与
+本目录内容即公开部署仓库 `XDWDSQ/audiobook-public` 的**根目录**。实际发布以一键脚本为准
+（含章节音频，需手动执行）：
+
+```bash
+python scripts/publish_site.py           # 生成链 → 镜像 → commit → push（幂等）
+```
+
+手工兜底：把本地 `site-dist/` 的变更同步到该仓库的工作副本并推送（保留 `CNAME` 与
 `.nojekyll`），GitHub Pages 会自动构建。
 
 ## 禁止事项
@@ -58,4 +63,4 @@ python scripts/sync_site.py --check      # 只检查漂移（有差异退出码 
 - [ ] Console 无错误
 - [ ] Git diff 只包含预期产物
 
-部署与发布流程见源码仓库 [ARCHITECTURE.md](../ARCHITECTURE.md) 第 3 节，排障见 [CLAUDE.md](../CLAUDE.md) 排障速查。
+部署与发布流程见 [ARCHITECTURE.md](../ARCHITECTURE.md) 第 3 节，排障见 [CLAUDE.md](../CLAUDE.md) 排障速查。

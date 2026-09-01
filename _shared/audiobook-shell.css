@@ -147,7 +147,9 @@ header {
   color: var(--text-dim);
   text-decoration: none;
   font-size: 0.85rem;
-  transition: background 0.22s ease, color 0.22s ease, border-left-color 0.22s ease, padding-left 0.22s ease;
+  /* 不做 padding-left 位移过渡：目录整列重排的布局抖动代价高于 3px 位移的观感收益，
+     hover 反馈由背景色 + 左侧 ::before 指示条承担 */
+  transition: background 0.22s ease, color 0.22s ease, border-left-color 0.22s ease;
   border-left: 3px solid transparent;
   border-radius: 0 14px 14px 0;
   margin: 1px 0;
@@ -169,7 +171,6 @@ header {
 .sidebar a:hover {
   color: var(--text);
   background: var(--accent-glow);
-  padding-left: 19px;
 }
 .sidebar a:hover::before {
   transform: scaleY(0.65);
@@ -384,8 +385,7 @@ header {
   padding: 60px 20px;
   color: var(--text-dim);
 }
-.loading p { animation: pulse 1.4s ease infinite; }
-@keyframes pulse { 0%, 100% { opacity: .5; } 50% { opacity: 1; } }
+
 .loading .spinner {
   display: inline-block;
   width: 32px; height: 32px;
@@ -560,8 +560,11 @@ header { animation-delay: .05s; }
   .icon-btn { width: 34px; height: 34px; font-size: 0.9rem; }
   .reader { padding: 16px 14px 24px; }
   .chapter-content { font-size: 0.9rem; }
-  .player-bar { padding: 6px 10px; gap: 6px; flex-wrap: wrap; }
-  .player-bar .nav-btns { order: 10; width: 100%; justify-content: center; }
+  /* 播放栏两行收束：行1 = 播放键 + 标题/进度（info flex:1 吃满自然换行），
+     行2 = 全部控件居中；nav-btns 不再独占一行（原三行布局浪费纵向空间）。
+     行距由下方触控目标断点的 row-gap: 2px 统一控制 */
+  .player-bar { padding: 6px 10px; gap: 6px; flex-wrap: wrap; justify-content: center; }
+  .player-bar .nav-btns { order: 10; }
   .player-bar .speed-btn, .player-bar .font-size-btn { font-size: 0.68rem; }
   .time-label { font-size: 0.65rem; min-width: 32px; }
 }
@@ -572,7 +575,7 @@ header { animation-delay: .05s; }
     background: var(--surface-light); border-color: var(--border); color: var(--text);
   }
   .icon-btn:active, .nav-btn:active { transform: scale(0.92); }
-  .sidebar a:hover { background: transparent; border-left-color: transparent; padding-left: 16px; }
+  .sidebar a:hover { background: transparent; border-left-color: transparent; }
   .sidebar a:hover::before { transform: scaleY(0); }
   .sidebar a:active { background: var(--surface-light); }
   /* 触屏段落热区加高：inline 垂直 padding 不参与行盒计算，零回流；
@@ -638,9 +641,9 @@ header { animation-delay: .05s; }
 .cache-btn.primary { background: var(--accent); color: var(--bg); border-color: var(--accent); }
 .cache-btn.primary:hover { opacity: 0.85; }
 .cache-btn:disabled { opacity: .45; cursor: not-allowed; }
-/* 移动端：避让底部播放器，移到导航条下方 */
+/* 移动端：避让底部播放器（两行布局后的栏高 + 间隙），移到导航条上方 */
 @media (max-width: 480px) {
-  .cache-panel { right: 12px; bottom: 130px; }
+  .cache-panel { right: 12px; bottom: 112px; }
   .cache-toggle { width: 40px; height: 40px; }
   .cache-popup { width: calc(100vw - 24px); max-width: 320px; }
 }

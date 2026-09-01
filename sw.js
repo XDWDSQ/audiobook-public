@@ -1,4 +1,8 @@
-/* sw.js — 有声书馆着陆页 Service Worker (v1)
+/* sw.js — 有声书馆着陆页 Service Worker (v2)
+ *
+ * v2：install 预缓存改逐 URL（原 addAll 原子失败被静默吞掉，缓存可能整批落空）；
+ *     staleWhileRevalidate 无缓存+离线兜底改在 Promise resolve 后判空
+ *     （原 `cached || network || 503` 中 network 恒真值，503 为死代码）。
  *
  * 作用：让着陆页（首页）可离线访问，并为「安装为应用」提供必要的 SW 前提
  *       （浏览器要求页面受 SW 控制且满足 manifest 才会派发 beforeinstallprompt）。
@@ -13,7 +17,7 @@
  */
 
 const SW_ID = 'landing';
-const VERSION = 1;
+const VERSION = 2;
 const CACHE_PREFIX = 'audiobook-hub-';
 
 const PAGE_CACHE = `page-${CACHE_PREFIX}${SW_ID}-v${VERSION}`;
@@ -25,11 +29,17 @@ const SHELL = {
 };
 
 self.addEventListener('install', (event) => {
+  // 逐 URL 预缓存：addAll 是原子操作，任一 404 会整批落空且难以定位；
+  // 单条失败仅 console.warn 留痕，不阻断 install
+  const addAll = (cacheName, urls) =>
+    caches.open(cacheName).then((c) =>
+      Promise.all(urls.map((u) =>
+        c.add(u).catch((e) => console.warn('[landing-sw] 预缓存失败:', u, e && e.message))
+      ))
+    );
   event.waitUntil(
-    Promise.all([
-      caches.open(PAGE_CACHE).then((c) => c.addAll(SHELL.page).catch(() => {})),
-      caches.open(STATIC_CACHE).then((c) => c.addAll(SHELL.static).catch(() => {})),
-    ]).then(() => self.skipWaiting())
+    Promise.all([addAll(PAGE_CACHE, SHELL.page), addAll(STATIC_CACHE, SHELL.static)])
+      .then(() => self.skipWaiting())
   );
 });
 
@@ -78,7 +88,9 @@ function staleWhileRevalidate(cacheName, request) {
           return resp;
         })
         .catch(() => cached || null);
-      return cached || network || new Response('', { status: 503, statusText: 'Offline' });
+      // cached 为空时 network 是 Promise（恒真值），必须在其 resolve 后再判空，
+      // 否则无缓存+离线的请求会以 TypeError 失败而非受控的 503
+      return cached || network.then((r) => r || new Response('', { status: 503, statusText: 'Offline' }));
     })
   );
 }

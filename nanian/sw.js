@@ -284,6 +284,7 @@ function cacheFirst(cacheName, request) {
  *   - 已缓存命中走 serveRange 本地切片（同 v12）。 */
 
 const audioLoads = new Map(); // url -> { ready, headersReady, mediaResponse, mediaClaimed }
+let audioCacheGen = 0; // CLEAR_AUDIO_CACHE 代次：在途下载据此放弃写入，避免复活已清缓存
 
 function startAudioLoad(url) {
   const existing = audioLoads.get(url);
@@ -292,6 +293,7 @@ function startAudioLoad(url) {
   load.headersReady = new Promise((res) => { load._headersDone = res; });
   load.ready = (async () => {
     try {
+      const gen = audioCacheGen;
       const resp = await fetch(url);
       if (!resp || resp.status !== 200 || !resp.body) return;
       const ct = resp.headers.get('content-type') || 'audio/mpeg';
@@ -309,6 +311,7 @@ function startAudioLoad(url) {
           load.mediaResponse = new Response(buf, { status: 200, statusText: 'OK', headers });
         }
         load._headersDone();
+        if (gen !== audioCacheGen) return; // 缓存已清除：放弃写入与元数据，避免复活已清缓存
         await cache.put(new Request(url), new Response(buf, { status: 200, statusText: 'OK', headers })).catch(() => {});
         if (buf.byteLength) updateAudioMeta(url, buf.byteLength);
         evictAudioIfNeeded();
@@ -322,6 +325,7 @@ function startAudioLoad(url) {
       };
       load.mediaResponse = new Response(media, { status: 200, statusText: 'OK', headers });
       load._headersDone(); // 首播不等整包：响应头就绪即交还媒体流，缓存写在后台继续
+      if (gen !== audioCacheGen) return; // 缓存已清除：放弃写入与元数据，避免复活已清缓存
       await cache.put(new Request(url), new Response(store, { status: 200, statusText: 'OK', headers }));
       updateAudioMeta(url, size);
       evictAudioIfNeeded();
@@ -360,7 +364,10 @@ function respondAudio(request) {
       }
       const range = request.headers.get('range');
       const m = range && String(range).trim().match(/^bytes=(\d*)-(\d*)$/);
-      const fromZero = !m || (m[1] !== '' && parseInt(m[1], 10) === 0);
+      // 仅「无 Range」或「bytes=0-（无上限）」按首播流式转发；带上限的 0 起点
+      // （如 Safari/AVFoundation 首播前发的 bytes=0-1 探测）必须走缓存切片回 206，
+      // 否则对端判定资源不支持 Range，本次会话内拖进度条失效
+      const fromZero = !m || (m[1] !== '' && parseInt(m[1], 10) === 0 && m[2] === '');
       const load = startAudioLoad(url);
       if (fromZero && !load.mediaClaimed) {
         /* 首播：响应头就绪即流式转发，不等整包（mediaResponse 只能交给一个媒体元素） */
@@ -405,7 +412,9 @@ function staleWhileRevalidate(cacheName, request) {
         }
         return resp;
       }).catch(() => cached || null);
-      return cached || networkPromise || new Response('', { status: 503, statusText: 'Offline' });
+      // cached 为空时 networkPromise 是 Promise（恒真值），须在其 resolve 后再判空，
+      // 否则无缓存+离线的请求以 TypeError 失败而非受控的 503
+      return cached || networkPromise.then((r) => r || new Response('', { status: 503, statusText: 'Offline' }));
     })
   );
 }
@@ -413,11 +422,17 @@ function staleWhileRevalidate(cacheName, request) {
 /* ---------- 生命周期事件 ---------- */
 
 self.addEventListener('install', (event) => {
+  // 逐 URL 预缓存：addAll 是原子操作，任一 404/瞬断会整批落空且被静默吞掉；
+  // 单条失败仅 console.warn 留痕，不阻断 install（与着陆页根级 SW 同款）
+  const addAll = (cacheName, urls) =>
+    caches.open(cacheName).then((c) =>
+      Promise.all(urls.map((u) =>
+        c.add(u).catch((e) => console.warn('[book-sw] 预缓存失败:', u, e && e.message))
+      ))
+    );
   event.waitUntil(
-    Promise.all([
-      caches.open(PAGE_CACHE).then((cache) => cache.addAll(SHELL_ASSETS.page).catch(() => {})),
-      caches.open(STATIC_CACHE).then((cache) => cache.addAll(SHELL_ASSETS.static).catch(() => {}))
-    ]).then(() => self.skipWaiting())
+    Promise.all([addAll(PAGE_CACHE, SHELL_ASSETS.page), addAll(STATIC_CACHE, SHELL_ASSETS.static)])
+      .then(() => self.skipWaiting())
   );
 });
 
@@ -429,7 +444,11 @@ self.addEventListener('activate', (event) => {
         k.includes(CACHE_PREFIX + SW_ID + '-') &&
         !ALL_CACHES.includes(k)
       ).map((k) => caches.delete(k))
-    )).then(() => self.clients.claim())
+    )).then((deleted) => {
+      // 旧版本缓存被清理时同步清 IndexedDB 音频元数据，
+      // 避免幻影条目干扰缓存统计与 LRU 淘汰排序
+      if (deleted.some(Boolean)) return clearAllAudioMeta();
+    }).then(() => self.clients.claim())
   );
 });
 
@@ -501,6 +520,8 @@ self.addEventListener('message', (event) => {
 
   // 清空音频缓存
   if (data.type === 'CLEAR_AUDIO_CACHE') {
+    prefetchStopFlag = true; // 中止进行中的预取轮次，避免清完后被回填
+    audioCacheGen++;         // 在途下载比对代次后放弃写入，避免复活已清缓存
     event.waitUntil(
       Promise.all([
         caches.delete(AUDIO_CACHE),

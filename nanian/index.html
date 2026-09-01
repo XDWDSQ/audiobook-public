@@ -447,6 +447,12 @@ function closeSidebar() {
 // ===== 章节渲染 =====
 function loadChapter(idx, autoplay) {
   if (idx < 0 || idx >= CHAPTERS.length) return;
+  // 同章重复调用（hash 路由后的二次加载 / 目录点击当前章）早退：
+  // 不重置 audio.src，避免播放中的章节被从头重播；仅在明确播放意图且暂停时补播放
+  if (idx === currentIdx && segElements.length) {
+    if (autoplay && audio.paused) { wantPlay = true; tryPlayAfterReady(); }
+    return;
+  }
   if (tocKeyword) {
     document.getElementById('tocSearch').value = '';
     renderTOC('');
@@ -471,7 +477,11 @@ function loadChapter(idx, autoplay) {
       const span = document.createElement('span');
       // 首段若与章节标题重复（合成时把章名当作 0:00 旁白读了一遍），
       // 大标题已展示章名，正文里隐藏这段避免"标题混入正文"的观感（超短章尤其明显）。
-      span.className = (si === 0 && seg.t && seg.t === ch.title) ? 'seg seg--dup' : 'seg';
+      // nanian 首段为「那年高中 第1章 …」含书名前缀，严格相等永不命中——
+      // 改 endsWith + 长度上限（书名+空格），dianjing/nanian 首段为正常正文不受影响。
+      const isDupTitle = si === 0 && seg.t && ch.title &&
+        seg.t.endsWith(ch.title) && seg.t.length <= ch.title.length + 8;
+      span.className = isDupTitle ? 'seg seg--dup' : 'seg';
       span.dataset.idx = si;
       span.tabIndex = 0;
       span.setAttribute('role', 'button');
@@ -550,12 +560,14 @@ function loadChapter(idx, autoplay) {
  * 仅在自动连播时使用，避免打断用户手动暂停的意图。 */
 function tryPlayAfterReady() {
   const a = audio;
+  const token = audioLoadToken; // 切章后残留的监听/兜底定时器不得在新章上自动播放
   let done = false;
   const tryOnce = () => {
     if (done) return;
     done = true;
     a.removeEventListener('canplay', tryOnce);
     a.removeEventListener('loadeddata', tryOnce);
+    if (token !== audioLoadToken) return; // 已切换章节，放弃（保留用户暂停意图）
     a.play().catch(() => {
       /* 兜底：play() 被拒绝时（极少数浏览器的 autoplay 策略），提示用户手动点击 */
       showToast && showToast('请点击播放按钮继续收听');
@@ -675,6 +687,7 @@ audio.addEventListener('loadedmetadata', () => {
 });
 
 // 统一的 timeupdate 监听器：进度条 + 文本高亮 + 节流保存 + 锁屏位置同步
+let lastAriaSec = -1; // aria-valuenow 上次写入的秒数（秒级节流）
 audio.addEventListener('timeupdate', () => {
   const cur = audio.currentTime;
   const dur = audio.duration;
@@ -682,9 +695,14 @@ audio.addEventListener('timeupdate', () => {
     const ratio = cur / dur;
     progressFill.style.width = (ratio * 100) + '%';
     progressThumb.style.left = (ratio * 100) + '%';
-    // aria 数值统一用秒（与 loadedmetadata 的 valuemax 同单位）+ 人类可读文本
-    progressTrack.setAttribute('aria-valuenow', String(Math.round(cur)));
-    progressTrack.setAttribute('aria-valuetext', fmtTime(cur) + ' / ' + fmtTime(dur));
+    // aria 数值统一用秒（与 loadedmetadata 的 valuemax 同单位）+ 人类可读文本；
+    // 秒数变化才更新（timeupdate 约 4Hz，避免每次触发可访问性树更新）
+    const sec = Math.round(cur);
+    if (sec !== lastAriaSec) {
+      lastAriaSec = sec;
+      progressTrack.setAttribute('aria-valuenow', String(sec));
+      progressTrack.setAttribute('aria-valuetext', fmtTime(cur) + ' / ' + fmtTime(dur));
+    }
   }
   curTimeLabel.textContent = fmtTime(cur);
 
@@ -709,9 +727,13 @@ audio.addEventListener('timeupdate', () => {
 
 // 进度条拖拽
 let isDragging = false;
+let dragRect = null;        // 拖拽期间缓存（播放栏定高不动），避免每事件强制同步布局
+let dragRafPending = false; // rAF 节流：每帧最多一次 seek（mousemove 可超帧率触发）
 function seekFromEvent(e) {
-  const rect = progressTrack.getBoundingClientRect();
-  const x = (e.clientX || (e.touches && e.touches[0].clientX)) - rect.left;
+  const rect = dragRect || progressTrack.getBoundingClientRect();
+  // clientX 可能为 0（视口最左缘），不能用 || 判空；touch 事件取 touches[0]
+  const cx = (e.clientX != null) ? e.clientX : (e.touches && e.touches[0] && e.touches[0].clientX);
+  const x = cx - rect.left;
   const ratio = Math.max(0, Math.min(1, x / rect.width));
   if (audio.duration) {
     audio.currentTime = ratio * audio.duration;
@@ -719,25 +741,43 @@ function seekFromEvent(e) {
     progressThumb.style.left = (ratio * 100) + '%';
   }
 }
-progressTrack.addEventListener('mousedown', (e) => { isDragging = true; progressTrack.classList.add('is-dragging'); seekFromEvent(e); });
-document.addEventListener('mousemove', (e) => { if (isDragging) seekFromEvent(e); });
-document.addEventListener('mouseup', () => { isDragging = false; progressTrack.classList.remove('is-dragging'); });
-progressTrack.addEventListener('touchstart', (e) => { isDragging = true; progressTrack.classList.add('is-dragging'); seekFromEvent(e); }, { passive: true });
-progressTrack.addEventListener('touchmove', (e) => { if (isDragging) seekFromEvent(e); }, { passive: true });
-progressTrack.addEventListener('touchend', () => { isDragging = false; progressTrack.classList.remove('is-dragging'); });
+function onDragMove(e) {
+  if (!isDragging || dragRafPending) return;
+  dragRafPending = true;
+  requestAnimationFrame(() => { dragRafPending = false; if (isDragging) seekFromEvent(e); });
+}
+function endDrag(e) {
+  if (isDragging && e) seekFromEvent(e); // mouseup 末次提交，保证落点准确（touchend 无触点坐标，不传事件）
+  isDragging = false;
+  dragRect = null;
+  progressTrack.classList.remove('is-dragging');
+}
+progressTrack.addEventListener('mousedown', (e) => { isDragging = true; dragRect = progressTrack.getBoundingClientRect(); progressTrack.classList.add('is-dragging'); seekFromEvent(e); });
+document.addEventListener('mousemove', onDragMove);
+document.addEventListener('mouseup', endDrag);
+progressTrack.addEventListener('touchstart', (e) => { isDragging = true; dragRect = progressTrack.getBoundingClientRect(); progressTrack.classList.add('is-dragging'); seekFromEvent(e); }, { passive: true });
+progressTrack.addEventListener('touchmove', onDragMove, { passive: true });
+progressTrack.addEventListener('touchend', () => endDrag());
 
 // 进度条悬停气泡
 function showTooltip(e) {
   const rect = progressTrack.getBoundingClientRect();
   const dur = audio.duration;
   if (!dur) { progressTooltip.classList.remove('show'); return; }
-  const x = (e.clientX || (e.touches && e.touches[0].clientX)) - rect.left;
+  const cx = (e.clientX != null) ? e.clientX : (e.touches && e.touches[0] && e.touches[0].clientX);
+  const x = cx - rect.left;
   const ratio = Math.max(0, Math.min(1, x / rect.width));
   progressTooltip.style.left = (ratio * 100) + '%';
   progressTooltip.textContent = fmtTime(ratio * dur) + ' / ' + fmtTime(dur);
   progressTooltip.classList.add('show');
 }
-progressTrack.addEventListener('mousemove', showTooltip);
+// mousemove 高频触发且含 getBoundingClientRect 测量，rAF 节流合并到每帧一次
+let tooltipRafPending = false;
+progressTrack.addEventListener('mousemove', (e) => {
+  if (tooltipRafPending) return;
+  tooltipRafPending = true;
+  requestAnimationFrame(() => { tooltipRafPending = false; showTooltip(e); });
+});
 progressTrack.addEventListener('mouseleave', () => progressTooltip.classList.remove('show'));
 
 // 键盘控制进度条
@@ -747,6 +787,9 @@ progressTrack.addEventListener('keydown', (e) => {
   if (e.key === 'ArrowLeft') { e.preventDefault(); audio.currentTime = Math.max(0, audio.currentTime - delta); }
   if (e.key === 'ArrowRight') { e.preventDefault(); audio.currentTime = Math.min(audio.duration, audio.currentTime + delta); }
 });
+
+// 阅读容器（highlightSeg 热路径与用户滚动检测共用，避免重复查询 DOM）
+const readerEl = document.getElementById('reader');
 
 // 高亮段（仅更新变化的节点，避免每帧遍历整章，减少重绘/回流）
 function highlightSeg(idx) {
@@ -760,7 +803,6 @@ function highlightSeg(idx) {
   lastActiveSegIdx = idx;
   // 播放中自动滚动跟随；用户手动滚动时暂停跟随
   if (!userScrolling) {
-    const readerEl = document.getElementById('reader');
     const rect = node.getBoundingClientRect();
     const containerRect = readerEl.getBoundingClientRect();
     if (rect.top < containerRect.top + 80 || rect.bottom > containerRect.bottom - 80) {
@@ -771,7 +813,6 @@ function highlightSeg(idx) {
 
 // 用户滚动检测：滑动时暂停跟随，停止 3 秒后恢复
 (function() {
-  const readerEl = document.getElementById('reader');
   if (!readerEl) return;
   const markScrolling = () => {
     userScrolling = true;
@@ -867,7 +908,7 @@ overlay.addEventListener('click', closeSidebar);
   }
 
   // --- 3. 键盘快捷键扩展 ---
-  AB.initKeyboardShortcuts(audio, {
+  const kbShortcuts = AB.initKeyboardShortcuts(audio, {
     seekSmall: 5,
     seekLarge: 10,
     onPrevChapter: function () {
@@ -889,11 +930,12 @@ overlay.addEventListener('click', closeSidebar);
     ]
   });
 
-  // 帮助按钮
+  // 帮助按钮（与 ? 键一致，展示含 F/Esc 扩展项的完整快捷键列表）
   const helpBtn = document.getElementById('helpBtn');
   if (helpBtn) {
     helpBtn.addEventListener('click', function () {
-      AB.showShortcutsHelp();
+      if (kbShortcuts && kbShortcuts.showHelp) kbShortcuts.showHelp();
+      else AB.showShortcutsHelp();
     });
   }
 
@@ -979,7 +1021,9 @@ function checkResumeProgress() {
         loadChapter(idx, false);
       }
       // 等音频就绪后 seek
+      const tk = audioLoadToken; // 加载失败/用户切章后，残留监听不得在新章上 seek+播放
       const doSeek = function () {
+        if (tk !== audioLoadToken) { audio.removeEventListener('canplay', doSeek); return; }
         if (audio.duration && p.currentTime < audio.duration) {
           audio.currentTime = p.currentTime;
         }
@@ -1150,6 +1194,8 @@ window.addEventListener('unhandledrejection', (e) => { console.error('Unhandled 
   /* 清除全部缓存（仅删音频缓存，外壳不受影响；由 SW 执行并广播） */
   function clearCache() {
     prefetching = false;
+    // 先停预取再清缓存（SW 侧 CLEAR 也会中止，此处显式发双保险，语义自洽）
+    AB.sendToServiceWorker && AB.sendToServiceWorker({ type: 'PREFETCH_STOP' });
     AB.sendToServiceWorker && AB.sendToServiceWorker({ type: 'CLEAR_AUDIO_CACHE' });
     cachedCount = 0;
     renderCacheUI();

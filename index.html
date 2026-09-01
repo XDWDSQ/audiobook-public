@@ -1536,7 +1536,7 @@
         // scope 限定站点根，仅接管首页外壳；三本书的播放器/音频由各自目录下的 sw.js 管理。
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function() {
-                navigator.serviceWorker.register('sw.js?v=1', { scope: './' }).catch(function(e) {
+                navigator.serviceWorker.register('sw.js?v=2', { scope: './' }).catch(function(e) {
                     console.error('SW 注册失败:', e);
                 });
             });

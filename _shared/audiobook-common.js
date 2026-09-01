@@ -239,7 +239,9 @@
     const last = store[key] || 0;
     if (now - last < intervalMs) return false;
     store[key] = now;
-    try { localStorage.setItem(key, value); return true; } catch (_) { return false; }
+    // value 可传惰性工厂：通过节流检查后才求值，调用方省去被丢弃的序列化开销
+    const v = (typeof value === 'function') ? value() : value;
+    try { localStorage.setItem(key, v); return true; } catch (_) { return false; }
   }
 
   /* ---------- Toast ---------- */
@@ -395,8 +397,9 @@
   function saveProgress(bookId, data) {
     if (!bookId) return false;
     const key = PROGRESS_KEY_PREFIX + bookId;
-    const payload = JSON.stringify(Object.assign({ timestamp: Date.now() }, data || {}));
-    return saveThrottled(key, payload, PROGRESS_THROTTLE_MS, _progressStore);
+    // 惰性序列化：timeupdate 约 4Hz 调用，仅 1/20 通过节流检查，stringify 移入工厂
+    const buildPayload = () => JSON.stringify(Object.assign({ timestamp: Date.now() }, data || {}));
+    return saveThrottled(key, buildPayload, PROGRESS_THROTTLE_MS, _progressStore);
   }
 
   /**
@@ -445,6 +448,9 @@
     delete _progressStore[key];
   }
 
+  // 当前活动的"继续播放"提示实例（二次调用时先完整 close，见 showResumePrompt）
+  let _activeResumePrompt = null;
+
   /**
    * 显示"继续播放"提示
    * @param {Object} progress - 进度数据
@@ -458,14 +464,15 @@
     opts = opts || {};
     if (!progress || typeof opts.onConfirm !== 'function') return;
 
-    // 移除已有的提示
-    const existing = document.getElementById('ab-resume-prompt');
-    if (existing) existing.remove();
+    // 已有提示走 close() 完整清理（keydown 监听/自动消失定时器/焦点陷阱）；
+    // 直接 remove() 节点会把旧实例的监听器与闭包永久挂在 document 上
+    if (_activeResumePrompt) { _activeResumePrompt.close(); _activeResumePrompt = null; }
 
     const prompt = document.createElement('div');
     prompt.id = 'ab-resume-prompt';
     prompt.className = 'ab-resume-prompt';
     prompt.setAttribute('role', 'dialog');
+    prompt.setAttribute('aria-modal', 'true');
     prompt.setAttribute('aria-labelledby', 'ab-resume-title');
     prompt.setAttribute('aria-describedby', 'ab-resume-desc');
 
@@ -549,13 +556,17 @@
       dismissTimer = setTimeout(close, autoDismiss);
     }
 
-    // 焦点管理
-    trapFocus(prompt, document.activeElement);
+    // 焦点管理（用户已在输入框/编辑区交互时不夺取焦点，仅保留 aria-live 播报；
+    // releaseFocus 在无陷阱时是安全无操作）
+    const activeEl = document.activeElement;
+    const userTyping = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.isContentEditable);
+    if (!userTyping) trapFocus(prompt, activeEl);
 
     // 屏幕阅读器播报
     announce('检测到上次播放进度：' + chTitle + '，' + timeStr + '，按回车继续播放');
 
-    return { close: close };
+    _activeResumePrompt = { close: close };
+    return _activeResumePrompt;
   }
 
   /* ================================================================
@@ -637,7 +648,6 @@
       container.innerHTML = '';
       container.appendChild(frag);
       return {
-        updateActive: function () {},
         scrollToIndex: function (idx) {
           const el = container.children[idx];
           if (el) el.scrollIntoView({ block: 'nearest' });
@@ -649,7 +659,6 @@
 
     // 虚拟滚动实现
     let scrollTop = 0;
-    let activeIndex = options.activeIndex != null ? options.activeIndex : -1;
     let currentItems = items.slice();
     let rafId = null;
 
@@ -737,13 +746,6 @@
 
     return {
       /**
-       * 更新激活项高亮（外部调用，根据当前索引更新样式）
-       * 注意：实际高亮由 renderItem 函数内部处理，这里只提供滚动到激活项的能力
-       */
-      updateActive: function (idx) {
-        activeIndex = idx;
-      },
-      /**
        * 滚动到指定索引
        */
       scrollToIndex: function (idx) {
@@ -794,7 +796,6 @@
 
   let _shortcutsHelpVisible = false;
   let _shortcutsHelpEl = null;
-  let _keyboardHandlerBound = false;
 
   /**
    * 初始化键盘快捷键
@@ -903,8 +904,11 @@
       // 输入框内不触发
       const tag = e.target.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
-      // 焦点在按钮上时，空格/回车属按钮原生激活，避免与全局快捷键双触发
-      if (tag === 'BUTTON' && (e.key === ' ' || e.key === 'Enter')) return;
+      // 焦点在按钮类元素（原生 button 或 role=button 的段落/目录项）上时，
+      // 空格/回车属元素自身激活行为，全局快捷键跳过避免双触发
+      // （此前只豁免原生 BUTTON，.seg/目录项的 Space 会先定位/切章又被全局暂停）
+      if ((tag === 'BUTTON' || (e.target.closest && e.target.closest('[role="button"]'))) &&
+          (e.key === ' ' || e.key === 'Enter')) return;
       // 焦点在进度条（role=slider）上时方向键由滑条自身处理，全局跳过避免双倍跳转
       if (e.target.getAttribute && e.target.getAttribute('role') === 'slider' &&
           e.key.indexOf('Arrow') === 0) return;
@@ -977,12 +981,14 @@
     }
 
     document.addEventListener('keydown', onKeyDown);
-    _keyboardHandlerBound = true;
 
     return {
       destroy: function () {
         document.removeEventListener('keydown', onKeyDown);
-        _keyboardHandlerBound = false;
+      },
+      // 与 ? 键一致展示完整快捷键列表（含 extraShortcuts），供帮助按钮调用
+      showHelp: function () {
+        showShortcutsHelp(allShortcuts);
       }
     };
   }
@@ -1009,10 +1015,10 @@
     shortcuts.forEach(function (s) {
       itemsHTML +=
         '<div class="ab-shortcuts-item">' +
-          '<div class="ab-shortcuts-keys"><kbd>' + s.key + '</kbd></div>' +
+          '<div class="ab-shortcuts-keys"><kbd>' + escapeHTML(s.key) + '</kbd></div>' +
           '<div class="ab-shortcuts-info">' +
-            '<div class="ab-shortcuts-label">' + s.label + '</div>' +
-            (s.description ? '<div class="ab-shortcuts-desc">' + s.description + '</div>' : '') +
+            '<div class="ab-shortcuts-label">' + escapeHTML(s.label) + '</div>' +
+            (s.description ? '<div class="ab-shortcuts-desc">' + escapeHTML(s.description) + '</div>' : '') +
           '</div>' +
         '</div>';
     });
@@ -1205,8 +1211,13 @@
      */
     function onChapterEnded() {
       if (mode === 'chapter') {
-        startFade();
-        // 淡出结束后会自动暂停
+        // 音频已结束：10s 淡出在无声中进行无意义，且淡出结束时的 pause()
+        // 会误伤此间用户的手动播放——直接暂停并清理
+        clear();
+        audio.pause();
+        if (typeof options.onEnd === 'function') options.onEnd();
+        showToast('本章已结束，已暂停播放');
+        announce('本章已结束，已暂停播放');
       }
     }
 
