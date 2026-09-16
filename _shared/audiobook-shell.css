@@ -116,12 +116,15 @@ header {
   background: var(--surface);
   border-right: 1px solid var(--border);
   overflow-y: auto;
-  transition: left 0.3s ease;
+  /* 关闭态不仅移出视口，还要移出可访问性树与 Tab 序列（JS 侧同步 inert/aria-hidden，
+     visibility 延迟到滑出动画结束后生效，打开时立即生效） */
+  visibility: hidden;
+  transition: left 0.3s ease, visibility 0s linear 0.3s;
   z-index: 200;
   padding: 20px 0;
   contain: layout style;
 }
-.sidebar.open { left: 0; }
+.sidebar.open { left: 0; visibility: visible; transition: left 0.3s ease, visibility 0s; }
 .sidebar-overlay {
   position: fixed;
   inset: 0;
@@ -560,10 +563,12 @@ header { animation-delay: .05s; }
   .icon-btn { width: 34px; height: 34px; font-size: 0.9rem; }
   .reader { padding: 16px 14px 24px; }
   .chapter-content { font-size: 0.9rem; }
-  /* 播放栏两行收束：行1 = 播放键 + 标题/进度（info flex:1 吃满自然换行），
-     行2 = 全部控件居中；nav-btns 不再独占一行（原三行布局浪费纵向空间）。
-     行距由下方触控目标断点的 row-gap: 2px 统一控制 */
+  /* 播放栏两行收束：行1 = 播放键 + 标题/进度，行2 = 全部控件居中；nav-btns 不独占一行。
+     info 的 flex-basis 必须占满「播放键以外的整行」：只给 flex:1 + min-width:0 时，
+     390px 下 info 会被压到 ~66px 使 flex-wrap 永不触发，进度条宽度算成 0、时间标签重叠。
+     44px(播放键) + 6px(gap) = 50px */
   .player-bar { padding: 6px 10px; gap: 6px; flex-wrap: wrap; justify-content: center; }
+  .player-bar .player-info { flex: 1 1 calc(100% - 50px); }
   .player-bar .nav-btns { order: 10; }
   .player-bar .speed-btn, .player-bar .font-size-btn { font-size: 0.68rem; }
   .time-label { font-size: 0.65rem; min-width: 32px; }
@@ -684,8 +689,9 @@ header { animation-delay: .05s; }
 .sidebar-overlay { display: block; opacity: 0; visibility: hidden; transition: opacity .3s ease, visibility 0s linear .32s; }
 .sidebar-overlay.show { opacity: 1; visibility: visible; transition: opacity .3s ease; }
 
-/* 侧栏滑动缓动升级 */
-.sidebar { transition: left .38s cubic-bezier(.22,.61,.36,1); }
+/* 侧栏滑动缓动升级（visibility 延迟与基础规则保持同口径） */
+.sidebar { transition: left .38s cubic-bezier(.22,.61,.36,1), visibility 0s linear .38s; }
+.sidebar.open { transition: left .38s cubic-bezier(.22,.61,.36,1), visibility 0s; }
 
 /* 目录条目：打开侧栏时才播 stagger（配合 JS 逐项 delay） */
 .sidebar a { animation: none; }
@@ -745,6 +751,8 @@ header { animation-delay: .05s; }
     padding: 12px 0 20px;
     border-top: none;
     transition: none;
+    /* 宽屏目录常驻：覆盖抽屉态的隐藏与 inert 口径 */
+    visibility: visible;
     z-index: auto;
   }
   /* 打开/关闭类不再影响布局（无遮罩、无动画） */
