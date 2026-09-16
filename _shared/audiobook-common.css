@@ -103,10 +103,6 @@ body {
   overscroll-behavior-y: none;
   -webkit-overflow-scrolling: touch;
 }
-body.no-scroll {
-  overflow: hidden;
-  overscroll-behavior: contain;
-}
 button, a, [role="button"], input, select, textarea, label, .seg, .segment {
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
@@ -338,7 +334,7 @@ a:focus-visible,
   z-index: 0;
 }
 /* 播放进度条应在缓冲条上方 */
-.progress-fill, .seek-fill {
+.progress-fill {
   position: relative;
   z-index: 1;
 }

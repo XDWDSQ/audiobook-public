@@ -106,16 +106,20 @@ header {
   transform: translateY(-50%);
 }
 
-/* 侧边目录 */
+/* 侧边目录（flex 列：标题/搜索固定，#toc 占满剩余高度并独立滚动——
+   虚拟列表依赖 #toc 是有界滚动容器，旧实现滚动发生在 .sidebar 上导致虚拟回收失效） */
 .sidebar {
   position: fixed;
   left: -320px;
   top: 0;
   width: 300px;
   height: 100vh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
   background: var(--surface);
   border-right: 1px solid var(--border);
-  overflow-y: auto;
+  overflow: hidden;
   /* 关闭态不仅移出视口，还要移出可访问性树与 Tab 序列（JS 侧同步 inert/aria-hidden，
      visibility 延迟到滑出动画结束后生效，打开时立即生效） */
   visibility: hidden;
@@ -123,6 +127,13 @@ header {
   z-index: 200;
   padding: 20px 0;
   contain: layout style;
+}
+.sidebar > h3,
+.sidebar-search { flex-shrink: 0; }
+#toc {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
 }
 .sidebar.open { left: 0; visibility: visible; transition: left 0.3s ease, visibility 0s; }
 .sidebar-overlay {
@@ -657,8 +668,11 @@ header { animation-delay: .05s; }
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
   header { padding-top: calc(16px + env(safe-area-inset-top)); }
   .player-bar { padding-bottom: calc(10px + env(safe-area-inset-bottom)); }
-  /* 抽屉目录同样避开顶部刘海（独立于 header 的定位层） */
-  .sidebar { padding-top: calc(20px + env(safe-area-inset-top)); }
+  /* 抽屉目录同样避开顶部刘海（独立于 header 的定位层）；底部横条遮挡由 #toc 之外的留白处理 */
+  .sidebar {
+    padding-top: calc(20px + env(safe-area-inset-top));
+    padding-bottom: calc(20px + env(safe-area-inset-bottom));
+  }
 }
 
 /* 高对比度模式 */
@@ -814,7 +828,7 @@ header { animation-delay: .05s; }
 }
 /* 手机横屏：压缩头部与留白，把高度留给正文 */
 @media (orientation: landscape) and (max-height: 500px) {
-  header { padding: 8px 16px 7px; padding-top: 8px; padding-top: max(8px, env(safe-area-inset-top)); }
+  header { padding: 8px 16px 7px; padding-top: max(8px, env(safe-area-inset-top)); }
   .brand-mark { width: 28px; height: 28px; font-size: 14px; border-radius: 10px; }
   .brand-title { font-size: 1rem; }
   .brand-sub { display: none; }

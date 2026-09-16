@@ -27,7 +27,7 @@
 <meta name="twitter:description" content="校园双向暗恋长篇有声书，全 40 章。窗外的眼睛，晚自习的风。">
 <meta name="twitter:image" content="https://audiobook-hub.site/og-cover.png">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23efe2cc'/><text x='50' y='50' text-anchor='middle' dominant-baseline='central' font-size='56' fill='%23b66b3f' font-family='serif' font-weight='600'>听</text></svg>">
-<link rel="apple-touch-icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect width='180' height='180' rx='40' fill='%23efe2cc'/><text x='90' y='90' text-anchor='middle' dominant-baseline='central' font-size='100' fill='%23b66b3f' font-family='serif' font-weight='600'>听</text></svg>">
+<link rel="apple-touch-icon" href="icon-192.png">
 <link rel="manifest" href="manifest.json">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -180,7 +180,6 @@ let currentIdx = 0;
 let isPlaying = false;
 let speedIdx = 0;
 let segElements = [];
-let autoPlayNext = true;
 let userScrolling = false;
 let scrollResumeTimer = null;
 let lastActiveSegIdx = -1;
@@ -249,7 +248,7 @@ async function loadData() {
     currentIdx = Math.min(Math.max(startIdx, 0), CHAPTERS.length - 1);
     applyHashRoute();
     loadChapter(currentIdx, false);
-    if (typeof checkResumeProgress === 'function') setTimeout(checkResumeProgress, 800);
+    setTimeout(checkResumeProgress, 800);
     window.__nanianStartCache && window.__nanianStartCache();
   } catch(e) {
     document.getElementById('initLoading').innerHTML = AB.errorHTML('加载失败: ' + (e && e.message || e), 'retryLoadBtn');
@@ -540,7 +539,9 @@ function loadChapter(idx, autoplay) {
         else if (e.key === 'Home') target = segElements[0];
         else if (e.key === 'End') target = segElements[segElements.length - 1];
         if (target) {
+          // 阻止冒泡到全局快捷键：否则方向键同时「移动段落焦点」和「seek/调音量」
           e.preventDefault();
+          e.stopPropagation();
           target.tabIndex = 0;
           span.tabIndex = -1;
           target.focus();
@@ -722,7 +723,7 @@ audio.addEventListener('ended', () => {
     sleepTimer.onChapterEnded();
     return;
   }
-  if (autoPlayNext && currentIdx < CHAPTERS.length - 1) {
+  if (currentIdx < CHAPTERS.length - 1) {
     loadChapter(currentIdx + 1, true);
   }
 });
@@ -862,7 +863,10 @@ function highlightSeg(idx) {
     const rect = node.getBoundingClientRect();
     const containerRect = readerEl.getBoundingClientRect();
     if (rect.top < containerRect.top + 80 || rect.bottom > containerRect.bottom - 80) {
-      node.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      node.scrollIntoView({
+        behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+        block: 'center'
+      });
     }
   }
 }
@@ -904,12 +908,14 @@ fwd15Btn.addEventListener('click', () => seekBy(15));
     if (i >= 0) speedIdx = i;
   } catch (_) {}
   speedBtn.textContent = SPEED_STEPS[speedIdx].toFixed(2).replace(/\.?0+$/, '') + 'x';
+  speedBtn.setAttribute('aria-label', '播放速度：当前 ' + speedBtn.textContent + ' 倍');
 })();
 function applySpeed(rate, silent) {
   speedIdx = SPEED_STEPS.indexOf(rate);
   if (speedIdx < 0) { speedIdx = 2; rate = SPEED_STEPS[2]; }
   audio.playbackRate = rate;
   speedBtn.textContent = rate.toFixed(2).replace(/\.?0+$/, '') + 'x';
+  speedBtn.setAttribute('aria-label', '播放速度：当前 ' + speedBtn.textContent + ' 倍');
   try { localStorage.setItem(SPEED_KEY, String(rate)); } catch (_) {}
   if (!silent) announce && announce('播放速度 ' + speedBtn.textContent + ' 倍');
 }
@@ -937,9 +943,11 @@ overlay.addEventListener('click', closeSidebar);
     if (!timerBtn) return;
     if (result === 0) {
       timerBtn.textContent = '定时';
+      timerBtn.setAttribute('aria-label', '定时关闭：未启用');
       timerBtn.classList.remove('active');
     } else if (result === 'chapter') {
       timerBtn.textContent = '本章';
+      timerBtn.setAttribute('aria-label', '定时关闭：播完本章后暂停');
       timerBtn.classList.add('active');
     }
   }
@@ -949,10 +957,12 @@ overlay.addEventListener('click', closeSidebar);
       onTick: function (remaining) {
         const mins = Math.ceil(remaining / 60000);
         timerBtn.textContent = mins + '分';
+        timerBtn.setAttribute('aria-label', '定时关闭：剩余 ' + mins + ' 分钟');
         timerBtn.classList.add('active');
       },
       onEnd: function () {
         timerBtn.textContent = '定时';
+        timerBtn.setAttribute('aria-label', '定时关闭：未启用');
         timerBtn.classList.remove('active');
       }
     });
@@ -997,8 +1007,19 @@ overlay.addEventListener('click', closeSidebar);
 
   // nanian 特有快捷键（F 字号、Esc 关闭侧栏）
   document.addEventListener('keydown', function (e) {
-    // Esc 优先级最高：焦点在搜索框内时也要能关抽屉（trap 释放后焦点回菜单按钮）
     if (e.key === 'Escape') {
+      // 快捷键帮助打开时由公共库关闭帮助，本处理器不再连带关侧栏（一次 Esc 只关最上层）
+      if (document.getElementById('ab-shortcuts-help')) return;
+      // 离线缓存弹层打开时先关弹层并归还焦点
+      var cp = document.getElementById('cachePopup');
+      if (cp && cp.classList.contains('open')) {
+        cp.classList.remove('open');
+        var ct = document.getElementById('cacheToggle');
+        if (ct) { ct.setAttribute('aria-expanded', 'false'); ct.focus(); }
+        e.preventDefault();
+        return;
+      }
+      // 焦点在搜索框内时也要能关抽屉（trap 释放后焦点回菜单按钮）
       if (sidebar.classList.contains('open')) { e.preventDefault(); closeSidebar(); }
       return;
     }
@@ -1129,7 +1150,7 @@ window.addEventListener('unhandledrejection', (e) => { console.error('Unhandled 
    * 不带参数时用户在缓存窗口内刷新仍会命中旧 SW（例如音频 Range 转发缺陷的 v11）。
    * 版本化 scriptURL 会强制浏览器拉取指定版本，更新两步到位（与 sw.js 内 VERSION 同步递增；
    * 配合 common.js 的 controllerchange 自动刷新，旧 SW 用户一次访问即收敛到新版本）。 */
-  AB.registerServiceWorker && AB.registerServiceWorker('sw.js?v=17');
+  AB.registerServiceWorker && AB.registerServiceWorker('sw.js?v=18');
 
   const cacheToggle = document.getElementById('cacheToggle');
   const cachePopup = document.getElementById('cachePopup');

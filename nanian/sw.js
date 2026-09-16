@@ -1,8 +1,9 @@
-/* sw.js — 那年高中有声书 Service Worker (v17)
+/* sw.js — 那年高中有声书 Service Worker (v18)
  *
+ * v18：随共享播放器逻辑更新递增（"继续播放"提示不再劫持输入框内的回车/空格）。
+ *      版本递增触发 activate 清理旧缓存，使仍被旧 SW 接管的用户一次访问即收敛。
  * v17：随共享播放器逻辑更新递增（正文首段章名旁白不再重复渲染、"继续播放"提示
- *      响应回车/可点击且手动跳章时不再错位）。版本递增触发 activate 清理旧缓存，
- *      使仍被旧 SW 接管的用户一次访问即收敛到最新 data.json 与脚本。
+ *      响应回车/可点击且手动跳章时不再错位）。
  * v16 修正：首播真正边下边播——媒体响应改挂 headersReady（响应头就绪即返回），
  *            不再等整包下载+写缓存完成（v13-v15 实际行为是整包缓冲）。
  * v15：audiobook-shell.css 纳入静态预缓存清单（无缓存语义变化）。
@@ -33,7 +34,7 @@
  */
 
 const SW_ID = 'nanian';
-const VERSION = 17;
+const VERSION = 18;
 const CACHE_PREFIX = 'audiobook-hub-';
 
 const PAGE_CACHE   = `page-${CACHE_PREFIX}${SW_ID}-v${VERSION}`;
@@ -455,6 +456,9 @@ self.addEventListener('activate', (event) => {
 /* ---------- 消息处理 ---------- */
 
 let prefetchStopFlag = false;
+// 按客户端隔离的预取停止标记：多标签页时 A 页点暂停不能杀掉 B 页的预取轮次
+// （旧实现全局单标志，B 页停止/重开都会干扰 A 页）；无 event.source 时退化到全局标志
+const stoppedClients = new Set();
 
 self.addEventListener('message', (event) => {
   if (event.data === 'SKIP_WAITING') {
@@ -464,9 +468,10 @@ self.addEventListener('message', (event) => {
 
   const data = event.data || {};
 
-  // 中止当前预取轮次（页面点击"暂停"时发出）
+  // 中止当前客户端的预取轮次（页面点击"暂停"时发出）
   if (data.type === 'PREFETCH_STOP') {
-    prefetchStopFlag = true;
+    if (event.source) stoppedClients.add(event.source.id);
+    else prefetchStopFlag = true;
     return;
   }
 
@@ -475,11 +480,13 @@ self.addEventListener('message', (event) => {
   if (data.type === 'PREFETCH_AUDIO') {
     const urls = data.urls || [];
     const runId = data.runId || 0;
+    const clientId = event.source ? event.source.id : null;
+    if (clientId) stoppedClients.delete(clientId);
     prefetchStopFlag = false;
     event.waitUntil(
       caches.open(AUDIO_CACHE).then((cache) => (async () => {
         for (const url of urls) {
-          if (prefetchStopFlag) break;
+          if (prefetchStopFlag || (clientId && stoppedClients.has(clientId))) break;
           try {
             const hit = await cache.match(url).catch(() => null);
             if (hit) continue; // 已缓存，跳过

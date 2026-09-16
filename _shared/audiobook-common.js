@@ -292,6 +292,7 @@
   let _trapContainer = null;
   let _trapTrigger = null;
   let _trapHandler = null;
+  let _trapFocusTimer = null;
 
   /**
    * 在指定容器内锁定焦点循环（用于模态框/侧边栏）
@@ -318,15 +319,20 @@
       }
     };
     document.addEventListener('keydown', _trapHandler, true);
-    // 聚焦容器内第一个可交互元素
+    // 聚焦容器内第一个可交互元素（延迟等待滑入动画/节点插入；句柄保存以便
+    // 60ms 内就释放陷阱时取消，否则焦点会被弹回已关闭的容器）
     const first = container.querySelector('a[href], button:not([disabled]), input:not([disabled])');
-    if (first) window.setTimeout(() => first.focus(), 60);
+    if (first) _trapFocusTimer = window.setTimeout(() => first.focus(), 60);
   }
 
   function releaseFocus() {
     if (_trapHandler) {
       document.removeEventListener('keydown', _trapHandler, true);
       _trapHandler = null;
+    }
+    if (_trapFocusTimer) {
+      clearTimeout(_trapFocusTimer);
+      _trapFocusTimer = null;
     }
     if (_trapTrigger && _trapTrigger.focus) {
       _trapTrigger.focus();
@@ -341,20 +347,32 @@
    * @param {HTMLElement} el - 要过渡的元素
    * @param {Function} renderFn - 内容渲染函数，在淡出后执行
    */
+  // 每个元素的切换代次：190ms 退场窗口内连续切章时，只让最新一次的定时器渲染，
+  // 否则旧章 renderFn 晚执行会把正文渲染回旧章（回闪）并误清新章的入场态
+  const _crossFadeGen = new WeakMap();
   function crossFade(el, renderFn) {
     if (!el || typeof renderFn !== 'function') { if (renderFn) renderFn(); return; }
     const RM = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (RM) { renderFn(); return; }
+    const gen = (_crossFadeGen.get(el) || 0) + 1;
+    _crossFadeGen.set(el, gen);
+    el.classList.remove('ab-switch-enter');
     el.classList.add('ab-switching');
     // 等待退场过渡完成（180ms）再执行渲染
     window.setTimeout(() => {
+      if (_crossFadeGen.get(el) !== gen) return; // 已有更新的切换，本次作废
       renderFn();
       el.classList.remove('ab-switching');
       el.classList.add('ab-switch-enter');
-      const onEnd = () => { el.classList.remove('ab-switch-enter'); el.removeEventListener('animationend', onEnd); };
+      const onEnd = () => {
+        el.removeEventListener('animationend', onEnd);
+        if (_crossFadeGen.get(el) === gen) el.classList.remove('ab-switch-enter');
+      };
       el.addEventListener('animationend', onEnd);
       // 兜底：若 animationend 未触发，400ms 后强制清除
-      window.setTimeout(() => el.classList.remove('ab-switch-enter'), 400);
+      window.setTimeout(() => {
+        if (_crossFadeGen.get(el) === gen) el.classList.remove('ab-switch-enter');
+      }, 400);
     }, 190);
   }
 
@@ -534,6 +552,11 @@
     function onKey(e) {
       // 焦点显式落在「从头开始」上时，回车/空格走按钮原生取消，不劫持为继续
       if (e.target === cancelBtn) return;
+      // 焦点在输入框/编辑区时不劫持（提示弹出期间用户可能在搜索框打字，
+      // 回车/空格属输入行为，Esc 也不应误触「继续播放」）
+      const tag = e.target && e.target.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' ||
+          (e.target && e.target.isContentEditable)) return;
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
         e.stopPropagation();
@@ -1118,6 +1141,29 @@
       durationMs = 0;
     }
 
+    function finish() {
+      // deadline 到点（无论淡出是否走完）：清理定时器、暂停、恢复音量并通知。
+      // 旧实现到点时调用 clear()，会把仍在进行的淡出取消并恢复音量却不暂停，
+      // 导致定时结束后音频继续播放（淡出窗口 10s 而 tick 为 1s，几乎必然踩中）。
+      if (timerId) {
+        clearInterval(timerId);
+        timerId = null;
+      }
+      if (fadeRafId) {
+        cancelAnimationFrame(fadeRafId);
+        fadeRafId = null;
+      }
+      audio.pause();
+      audio.volume = originalVolume; // 恢复音量设置
+      fading = false;
+      mode = 'off';
+      deadline = 0;
+      durationMs = 0;
+      if (typeof options.onEnd === 'function') options.onEnd();
+      showToast('定时结束，已暂停播放');
+      announce('定时结束，已暂停播放');
+    }
+
     function fadeLoop() {
       if (!fading) return;
       const elapsed = Date.now() - fadeStartTime;
@@ -1126,14 +1172,7 @@
       audio.volume = Math.max(0, fadeStartVolume * (1 - progress));
 
       if (progress >= 1) {
-        // 淡出完成
-        audio.pause();
-        audio.volume = originalVolume; // 恢复音量设置
-        fading = false;
-        clear();
-        if (typeof options.onEnd === 'function') options.onEnd();
-        showToast('定时结束，已暂停播放');
-        announce('定时结束，已暂停播放');
+        finish();
         return;
       }
       fadeRafId = requestAnimationFrame(fadeLoop);
@@ -1159,8 +1198,10 @@
         startFade();
       }
 
+      // 到点：淡出可能尚未走完（interval 1s 粒度，启动淡出时剩余约 9–10s），
+      // 仍必须立即暂停——finish 会取消淡出并保证 onEnd 只触发一次
       if (remaining <= 0) {
-        clear();
+        finish();
       }
     }
 
