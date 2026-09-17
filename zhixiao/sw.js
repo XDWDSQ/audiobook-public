@@ -1,5 +1,10 @@
-/* sw.js — 知晓有声书 Service Worker (v18)
+/* sw.js — 知晓有声书 Service Worker (v20)
  *
+ * v20：随共享播放器逻辑更新递增（焦点陷阱改可嵌套栈 + 模态背景 inert、
+ *      自动消失提示不再抢焦点、正文段落去掉 role=button）。
+ *      版本递增触发 activate 清理旧缓存，使仍被旧 SW 接管的用户一次访问即收敛。
+ * v19：随共享播放器逻辑更新递增（倍速文案收敛为 ABCommon.fmtRate，无缓存语义变化）。
+ *      版本递增触发 activate 清理旧缓存，使仍被旧 SW 接管的用户一次访问即收敛。
  * v18：随共享播放器逻辑更新递增（"继续播放"提示不再劫持输入框内的回车/空格）。
  *      版本递增触发 activate 清理旧缓存，使仍被旧 SW 接管的用户一次访问即收敛。
  * v17：随共享播放器逻辑更新递增（正文首段章名旁白不再重复渲染、"继续播放"提示
@@ -34,7 +39,7 @@
  */
 
 const SW_ID = 'zhixiao';
-const VERSION = 18;
+const VERSION = 20;
 const CACHE_PREFIX = 'audiobook-hub-';
 
 const PAGE_CACHE   = `page-${CACHE_PREFIX}${SW_ID}-v${VERSION}`;

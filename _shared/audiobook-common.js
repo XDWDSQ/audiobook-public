@@ -4,6 +4,7 @@
  *
  * API:
  *   ABCommon.fmtTime(seconds)               -> "1:23" / "1:02:03"
+ *   ABCommon.fmtRate(rate)                  -> 精简倍速文案数字 "1" / "1.25"（调用方拼 x/倍）
  *   ABCommon.SPEED_STEPS                    -> 倍速 8 档 [0.5..2.5]
  *   ABCommon.normalizeChapters(data)        -> data.json → v2 章节数组（v1 兜底映射）
  *   ABCommon.audioSrc(chapter)              -> 带 ?v=hash 的音频 URL
@@ -18,8 +19,8 @@
  *   ABCommon.saveThrottled(key, val, ms, store)  -> 节流写入 localStorage
  *   ABCommon.showToast(msg, host?, variant?)  -> 显示 Toast (variant: success/error)
  *   ABCommon.announce(message)              -> 屏幕阅读器播报
- *   ABCommon.trapFocus(container, trigger?) -> 焦点陷阱 (模态框用)
- *   ABCommon.releaseFocus()                 -> 释放焦点陷阱
+ *   ABCommon.trapFocus(container, trigger?, options?) -> 焦点陷阱 (模态框用，可嵌套；返回句柄)
+ *   ABCommon.releaseFocus(trap?, restoreFocus?)      -> 释放陷阱 (传句柄只释放自己)
  *   ABCommon.crossFade(el, renderFn)        -> 章节切换淡入淡出过渡
  *   ABCommon.emptyHTML(text, actionLabel?, actionId?) -> 空状态 HTML 字符串
  *   ABCommon.errorHTML(msg, retryId?)       -> 错误状态 HTML 字符串
@@ -70,6 +71,11 @@
 
   /* ---------- 倍速档位（页面按钮与键盘快捷键共用） ---------- */
   const SPEED_STEPS = [0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.5];
+
+  /* ---------- 倍速展示文案：1.00→"1"、1.25→"1.25"、2.50→"2.5" ---------- */
+  function fmtRate(rate) {
+    return Number(rate).toFixed(2).replace(/\.?0+$/, '');
+  }
 
   /* ---------- 段文本净化（历史数据兜底） ---------- */
   /**
@@ -288,57 +294,115 @@
     window.setTimeout(() => { el.textContent = String(message || ''); }, 30);
   }
 
-  /* ---------- 焦点陷阱 ---------- */
-  let _trapContainer = null;
-  let _trapTrigger = null;
-  let _trapHandler = null;
-  let _trapFocusTimer = null;
+  /* ---------- 焦点陷阱（可嵌套的栈） ----------
+     同一时刻只有栈顶陷阱生效，下层暂停、释放后自动恢复。历史上这里是单例：
+     帮助面板打开时 trapFocus 会先 releaseFocus() 把抽屉的陷阱拆掉，两个模态
+     共用一份状态，关闭其中任意一个都会让另一个的焦点锁定永久丢失
+     （抽屉仍开着且遮罩仍在，但 Tab 可以直接穿透到被遮住的下层内容）。 */
+  const FOCUSABLE_SELECTOR =
+    'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), ' +
+    'textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+  const _trapStack = [];
 
   /**
-   * 在指定容器内锁定焦点循环（用于模态框/侧边栏）
+   * 在指定容器内锁定焦点循环（用于模态框/侧边栏）。可嵌套。
    * @param {HTMLElement} container - 要锁定焦点的容器
    * @param {HTMLElement} [trigger] - 关闭后焦点返回的元素，默认为当前活动元素
+   * @param {Object} [options] - { inertBackground: true } 时把容器外的 body 子节点设为 inert
+   * @returns {Object|null} 陷阱句柄；释放时回传给 releaseFocus（只释放自己）
    */
-  function trapFocus(container, trigger) {
-    if (!container) return;
-    releaseFocus();
-    _trapContainer = container;
-    _trapTrigger = trigger || document.activeElement;
-    _trapHandler = function (e) {
+  function trapFocus(container, trigger, options) {
+    if (!container) return null;
+    const top = _trapStack[_trapStack.length - 1];
+    if (top) suspendTrap(top);
+    const trap = {
+      container: container,
+      trigger: trigger || document.activeElement,
+      inertBackground: !!(options && options.inertBackground),
+      handler: null,
+      focusTimer: null
+    };
+    trap.handler = function (e) {
       if (e.key !== 'Tab') return;
-      const focusable = _trapContainer.querySelectorAll(
-        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
-      );
+      const focusable = container.querySelectorAll(FOCUSABLE_SELECTOR);
       if (!focusable.length) return;
       const first = focusable[0];
       const last = focusable[focusable.length - 1];
       if (e.shiftKey) {
         if (document.activeElement === first) { e.preventDefault(); last.focus(); }
-      } else {
-        if (document.activeElement === last) { e.preventDefault(); first.focus(); }
-      }
+      } else if (document.activeElement === last) { e.preventDefault(); first.focus(); }
     };
-    document.addEventListener('keydown', _trapHandler, true);
-    // 聚焦容器内第一个可交互元素（延迟等待滑入动画/节点插入；句柄保存以便
-    // 60ms 内就释放陷阱时取消，否则焦点会被弹回已关闭的容器）
-    const first = container.querySelector('a[href], button:not([disabled]), input:not([disabled])');
-    if (first) _trapFocusTimer = window.setTimeout(() => first.focus(), 60);
+    _trapStack.push(trap);
+    document.addEventListener('keydown', trap.handler, true);
+    // 延迟等滑入动画/节点插入；句柄保存以便 60ms 内就释放陷阱时取消，
+    // 否则焦点会被弹回已关闭的容器
+    const first = container.querySelector(FOCUSABLE_SELECTOR);
+    if (first) trap.focusTimer = window.setTimeout(function () { first.focus(); }, 60);
+    syncBackgroundInert();
+    return trap;
   }
 
-  function releaseFocus() {
-    if (_trapHandler) {
-      document.removeEventListener('keydown', _trapHandler, true);
-      _trapHandler = null;
+  function suspendTrap(trap) {
+    document.removeEventListener('keydown', trap.handler, true);
+    if (trap.focusTimer) { clearTimeout(trap.focusTimer); trap.focusTimer = null; }
+  }
+
+  /**
+   * 释放焦点陷阱。
+   * @param {Object} [trap] - trapFocus 返回的句柄；省略时释放栈顶（兼容旧调用）
+   * @param {boolean} [restoreFocus=true] - 是否把焦点交还打开该陷阱的元素
+   *   （自动消失的提示不应抢焦点：用户可能已把焦点移到别处）
+   */
+  function releaseFocus(trap, restoreFocus) {
+    const idx = trap ? _trapStack.indexOf(trap) : _trapStack.length - 1;
+    if (idx < 0) return; // 已释放或不属于自己：绝不误拆别人的陷阱
+    const wasTop = idx === _trapStack.length - 1;
+    const removed = _trapStack.splice(idx, 1)[0];
+    suspendTrap(removed);
+    if (!wasTop) return; // 释放的是下层陷阱：焦点与 inert 仍归上层所有
+    // 先按新栈顶刷新背景 inert，再回焦：inert 子树内的元素无法获得焦点，
+    // 顺序颠倒会让「关闭后把焦点交还触发元素」静默失效（焦点掉回 body）
+    syncBackgroundInert();
+    if (restoreFocus !== false && removed.trigger && removed.trigger.focus) {
+      removed.trigger.focus();
     }
-    if (_trapFocusTimer) {
-      clearTimeout(_trapFocusTimer);
-      _trapFocusTimer = null;
+    const top = _trapStack[_trapStack.length - 1];
+    if (top) {
+      // 下层恢复：仅在焦点已逃出容器时才拉回，避免覆盖上面刚做的焦点交还
+      document.addEventListener('keydown', top.handler, true);
+      if (!top.container.contains(document.activeElement)) {
+        const first = top.container.querySelector(FOCUSABLE_SELECTOR);
+        if (first) first.focus();
+      }
     }
-    if (_trapTrigger && _trapTrigger.focus) {
-      _trapTrigger.focus();
-    }
-    _trapContainer = null;
-    _trapTrigger = null;
+  }
+
+  /**
+   * 按栈顶陷阱同步背景 inert：模态打开期间容器外的 body 子节点移出
+   * 可访问性树与 Tab 序列（否则读屏仍能浏览模态背后的内容）。
+   * 只动本函数标记过的节点，并记录/还原其原有 inert，避免与元素自身的
+   * inert 语义（如抽屉关闭态）互相覆盖。
+   */
+  function syncBackgroundInert() {
+    const top = _trapStack[_trapStack.length - 1];
+    const keep = top && top.inertBackground ? top.container : null;
+    const kids = Array.prototype.slice.call(document.body.children);
+    kids.forEach(function (el) {
+      const tag = el.tagName;
+      if (tag === 'SCRIPT' || tag === 'STYLE' || tag === 'LINK' || el.id === 'ab-sr-status') return;
+      const marked = el.getAttribute('data-ab-inert') === '1';
+      if (keep && el !== keep && !el.contains(keep)) {
+        if (!marked) {
+          el.setAttribute('data-ab-inert', '1');
+          el.setAttribute('data-ab-inert-prev', el.inert ? '1' : '0');
+        }
+        el.inert = true;
+      } else if (marked) {
+        el.inert = el.getAttribute('data-ab-inert-prev') === '1';
+        el.removeAttribute('data-ab-inert');
+        el.removeAttribute('data-ab-inert-prev');
+      }
+    });
   }
 
   /* ---------- 章节切换过渡 ---------- */
@@ -350,10 +414,11 @@
   // 每个元素的切换代次：190ms 退场窗口内连续切章时，只让最新一次的定时器渲染，
   // 否则旧章 renderFn 晚执行会把正文渲染回旧章（回闪）并误清新章的入场态
   const _crossFadeGen = new WeakMap();
+  // 减少动效偏好只查一次（crossFade 每次切章都调用，matchMedia 每次都返回新对象）
+  const _reducedMotionMql = window.matchMedia('(prefers-reduced-motion: reduce)');
   function crossFade(el, renderFn) {
     if (!el || typeof renderFn !== 'function') { if (renderFn) renderFn(); return; }
-    const RM = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (RM) { renderFn(); return; }
+    if (_reducedMotionMql.matches) { renderFn(); return; }
     const gen = (_crossFadeGen.get(el) || 0) + 1;
     _crossFadeGen.set(el, gen);
     el.classList.remove('ab-switch-enter');
@@ -524,12 +589,20 @@
 
     let dismissTimer = null;
     let closed = false;
+    let resumeTrap = null;
 
-    function close() {
+    /**
+     * 关闭提示条。
+     * @param {boolean} [restoreFocus=true] - 是否把焦点交还打开时的元素。
+     *   自动消失路径传 false：这 8 秒内用户可能已把焦点移到别处，
+     *   弹层自己消失时抢焦点（且无播报）会被读屏用户当成焦点凭空丢失。
+     */
+    function close(restoreFocus) {
       if (closed) return;
       closed = true;
       if (dismissTimer) { clearTimeout(dismissTimer); dismissTimer = null; }
-      releaseFocus();
+      document.removeEventListener('keydown', onKey, true);
+      releaseFocus(resumeTrap, restoreFocus !== false);
       prompt.classList.remove('show');
       setTimeout(() => { if (prompt.parentNode) prompt.parentNode.removeChild(prompt); }, 300);
     }
@@ -570,20 +643,19 @@
       }
     }
     document.addEventListener('keydown', onKey, true);
-    const _origClose = close;
-    close = function () { document.removeEventListener('keydown', onKey, true); _origClose(); };
 
-    // 自动消失
+    // 自动消失（不回收焦点：见 close 的 restoreFocus 说明）
     const autoDismiss = typeof opts.autoDismiss === 'number' ? opts.autoDismiss : 8000;
     if (autoDismiss > 0) {
-      dismissTimer = setTimeout(close, autoDismiss);
+      dismissTimer = setTimeout(function () { close(false); }, autoDismiss);
     }
 
     // 焦点管理（用户已在输入框/编辑区交互时不夺取焦点，仅保留 aria-live 播报；
-    // releaseFocus 在无陷阱时是安全无操作）
+    // releaseFocus 在无陷阱时是安全无操作）。提示条声明了 aria-modal，
+    // 因此同时把背景设为 inert，否则读屏仍能浏览模态背后的正文。
     const activeEl = document.activeElement;
     const userTyping = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.isContentEditable);
-    if (!userTyping) trapFocus(prompt, activeEl);
+    if (!userTyping) resumeTrap = trapFocus(prompt, activeEl, { inertBackground: true });
 
     // 屏幕阅读器播报
     announce('检测到上次播放进度：' + chTitle + '，' + timeStr + '，按回车继续播放');
@@ -819,6 +891,7 @@
 
   let _shortcutsHelpVisible = false;
   let _shortcutsHelpEl = null;
+  let _shortcutsHelpTrap = null;
 
   /**
    * 初始化键盘快捷键
@@ -870,8 +943,8 @@
       if (typeof options.onSpeedChange === 'function') {
         options.onSpeedChange(speedSteps[newIdx]);
       }
-      showToast('播放速度：' + speedSteps[newIdx].toFixed(2).replace(/\.?0+$/, '') + 'x');
-      announce('播放速度 ' + speedSteps[newIdx].toFixed(2).replace(/\.?0+$/, '') + ' 倍');
+      showToast('播放速度：' + fmtRate(speedSteps[newIdx]) + 'x');
+      announce('播放速度 ' + fmtRate(speedSteps[newIdx]) + ' 倍');
     }
 
     function adjustVolume(delta) {
@@ -929,7 +1002,8 @@
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
       // 焦点在按钮类元素（原生 button 或 role=button 的段落/目录项）上时，
       // 空格/回车属元素自身激活行为，全局快捷键跳过避免双触发
-      // （此前只豁免原生 BUTTON，.seg/目录项的 Space 会先定位/切章又被全局暂停）
+      // （原生 BUTTON 与 role=button 元素——如目录项；正文段落不带 role=button，
+      //   改由段落自身的 keydown 处理器 preventDefault + stopPropagation 消费这两个键）
       if ((tag === 'BUTTON' || (e.target.closest && e.target.closest('[role="button"]'))) &&
           (e.key === ' ' || e.key === 'Enter')) return;
       // 焦点在进度条（role=slider）上时方向键由滑条自身处理，全局跳过避免双倍跳转
@@ -1065,8 +1139,8 @@
       requestAnimationFrame(function () { overlay.classList.add('show'); });
     });
 
-    // 焦点陷阱
-    trapFocus(overlay, document.activeElement);
+    // 焦点陷阱（帮助面板声明了 aria-modal：同时把背景设为 inert）
+    _shortcutsHelpTrap = trapFocus(overlay, document.activeElement, { inertBackground: true });
 
     // 关闭按钮
     overlay.querySelector('.ab-shortcuts-close').addEventListener('click', hideShortcutsHelp);
@@ -1082,7 +1156,9 @@
   function hideShortcutsHelp() {
     if (!_shortcutsHelpVisible || !_shortcutsHelpEl) return;
     _shortcutsHelpEl.classList.remove('show');
-    releaseFocus();
+    // 只释放自己的陷阱：若其下还有抽屉等模态，会自动恢复其焦点锁定
+    releaseFocus(_shortcutsHelpTrap);
+    _shortcutsHelpTrap = null;
     setTimeout(function () {
       if (_shortcutsHelpEl && _shortcutsHelpEl.parentNode) {
         _shortcutsHelpEl.parentNode.removeChild(_shortcutsHelpEl);
@@ -1264,16 +1340,23 @@
 
     /**
      * 循环切换定时时长；数组可含 'chapter'（播完本章暂停）。
+     *
+     * 当前档位下标必须按 mode 判定，不能把非倒计时模式的 durationMs 当作
+     * 「0 分钟」去 indexOf：数组里 0 表示关闭档，若它不在末位（如页面传入的
+     * [15,30,45,60,'chapter',0]），'chapter' 态会算出关闭档的下标、跳到数组
+     * 首项，于是「关闭」永远不可达（用户开了定时就关不掉）。
+     *
      * @param {Array<number|string>} cycle - 循环数组，默认 [15, 30, 45, 60, 0]
      * @returns {number|string} 当前设置（0 表示关闭，'chapter' 表示本章结束暂停）
      */
     function cycle(cycleArr) {
       cycleArr = cycleArr || [15, 30, 45, 60, 0];
-      let currentMinutes = 0;
+      let idx = -1; // -1 表示当前未启用 → 下一项为数组首项
       if (mode === 'countdown') {
-        currentMinutes = Math.round(durationMs / 60000);
+        idx = cycleArr.indexOf(Math.round(durationMs / 60000));
+      } else if (mode === 'chapter') {
+        idx = cycleArr.indexOf('chapter');
       }
-      const idx = cycleArr.indexOf(currentMinutes);
       const next = cycleArr[(idx + 1) % cycleArr.length];
       if (next === 0) {
         cancel();
@@ -1553,6 +1636,7 @@
   /* ---------- 暴露 API ---------- */
   global.ABCommon = {
     fmtTime: fmtTime,
+    fmtRate: fmtRate,
     SPEED_STEPS: SPEED_STEPS,
     normalizeChapters: normalizeChapters,
     audioSrc: audioSrc,

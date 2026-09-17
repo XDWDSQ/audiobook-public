@@ -43,6 +43,9 @@
         var r = document.documentElement;
         r.classList.remove('light', 'dark');
         r.classList.add(t);
+        // data-theme 是全站（播放器与共享 shell.css）认的主题事实源，本页此前只写类名；
+        // 两处一起写，避免将来任何共享样式挂到 [data-theme] 上时本页失效
+        r.setAttribute('data-theme', t);
     } catch (e) {}
 })();
 </script>
@@ -271,34 +274,38 @@ html.dark .theme-toggle__moon{opacity:1;transform:none;color:var(--gold)}
 
 <main id="main" class="error-wrap">
 <div class="error-illustration" aria-hidden="true">
+<!-- 飘落的书页：位移放在外层 <g>，内层 <g class="page-N"> 只承载 CSS 动画。
+     SVG 的 transform 是表现属性，优先级低于任何 CSS 声明，动画期间的 transform
+     只取关键帧值——若把 translate 写在带动画的元素上，三页会全部落到 (0,0)
+     完全重合（reduced-motion 下动画为 none，属性生效、三页才分离）。 -->
 <svg viewBox="0 0 220 180" xmlns="http://www.w3.org/2000/svg">
 <!-- 飘落的书页 1 -->
-<g class="page-1" transform="translate(20, 10)">
+<g transform="translate(20, 10)"><g class="page-1">
 <rect x="0" y="0" width="50" height="66" rx="4" fill="var(--panel)" stroke="var(--line)" stroke-width="1.5"/>
 <line x1="8" y1="14" x2="42" y2="14" stroke="var(--line)" stroke-width="1.5" stroke-linecap="round"/>
 <line x1="8" y1="24" x2="38" y2="24" stroke="var(--line)" stroke-width="1.5" stroke-linecap="round"/>
 <line x1="8" y1="34" x2="42" y2="34" stroke="var(--line)" stroke-width="1.5" stroke-linecap="round"/>
 <line x1="8" y1="44" x2="30" y2="44" stroke="var(--line)" stroke-width="1.5" stroke-linecap="round"/>
 <line x1="8" y1="54" x2="36" y2="54" stroke="var(--line)" stroke-width="1.5" stroke-linecap="round"/>
-</g>
+</g></g>
 <!-- 飘落的书页 2 -->
-<g class="page-2" transform="translate(85, 25)">
+<g transform="translate(85, 25)"><g class="page-2">
 <rect x="0" y="0" width="50" height="66" rx="4" fill="var(--panel)" stroke="var(--accent)" stroke-width="1.5" opacity="0.9"/>
 <line x1="8" y1="14" x2="42" y2="14" stroke="var(--accent-soft)" stroke-width="2" stroke-linecap="round"/>
 <line x1="8" y1="24" x2="38" y2="24" stroke="var(--line)" stroke-width="1.5" stroke-linecap="round"/>
 <line x1="8" y1="34" x2="42" y2="34" stroke="var(--line)" stroke-width="1.5" stroke-linecap="round"/>
 <line x1="8" y1="44" x2="30" y2="44" stroke="var(--line)" stroke-width="1.5" stroke-linecap="round"/>
 <line x1="8" y1="54" x2="36" y2="54" stroke="var(--line)" stroke-width="1.5" stroke-linecap="round"/>
-</g>
+</g></g>
 <!-- 飘落的书页 3 -->
-<g class="page-3" transform="translate(150, 10)">
+<g transform="translate(150, 10)"><g class="page-3">
 <rect x="0" y="0" width="50" height="66" rx="4" fill="var(--panel)" stroke="var(--line)" stroke-width="1.5"/>
 <line x1="8" y1="14" x2="42" y2="14" stroke="var(--line)" stroke-width="1.5" stroke-linecap="round"/>
 <line x1="8" y1="24" x2="38" y2="24" stroke="var(--line)" stroke-width="1.5" stroke-linecap="round"/>
 <line x1="8" y1="34" x2="42" y2="34" stroke="var(--line)" stroke-width="1.5" stroke-linecap="round"/>
 <line x1="8" y1="44" x2="30" y2="44" stroke="var(--line)" stroke-width="1.5" stroke-linecap="round"/>
 <line x1="8" y1="54" x2="36" y2="54" stroke="var(--line)" stroke-width="1.5" stroke-linecap="round"/>
-</g>
+</g></g>
 <!-- 问号装饰 -->
 <text x="110" y="150" text-anchor="middle" font-family="serif" font-size="28" fill="var(--accent)" opacity="0.5">?</text>
 </svg>
@@ -336,7 +343,7 @@ html.dark .theme-toggle__moon{opacity:1;transform:none;color:var(--gold)}
 <a href="/dianjing/" class="error-book">
 <span class="error-book__badge">VOL. III</span>
 <span class="error-book__title">电竞群像</span>
-<p class="error-book__meta"><!--s:err-dianjing-ch-->90<!--/s--> 章 · <!--s:err-dianjing-dur-->19h 20m<!--/s--></p>
+<p class="error-book__meta"><!--s:err-dianjing-ch-->90<!--/s--> 章 · <!--s:err-dianjing-dur-->19h 30m<!--/s--></p>
 </a>
 </div>
 </main>
@@ -363,6 +370,7 @@ html.dark .theme-toggle__moon{opacity:1;transform:none;color:var(--gold)}
             try {
                 var isDark = root.classList.toggle('dark');
                 root.classList.toggle('light', !isDark);
+                root.setAttribute('data-theme', isDark ? 'dark' : 'light');
                 btn.setAttribute('aria-pressed', isDark ? 'true' : 'false');
                 localStorage.setItem('audiobook-theme', isDark ? 'dark' : 'light');
             } catch (e) {}

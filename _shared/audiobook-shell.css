@@ -16,6 +16,10 @@
   --highlight: rgba(182,107,63,0.10);
   --gold: #c7954f;
   --border: #e5d8c9;
+  /* 底部安全区（iOS 底部横条/手势区）。播放栏会因它变高，而浮动面板是固定定位，
+     因此固定避让量的地方都必须叠加同一个变量，否则面板会压住播放栏顶部。
+     env() 不被支持时该声明被丢弃，用点统一写 var(--safe-bottom, 0px) 兜底。 */
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 [data-theme="dark"] {
   color-scheme: dark;
@@ -485,9 +489,12 @@ header { animation-delay: .05s; }
 }
 @keyframes ab-underline { to { width: 56px; } }
 
-/* 侧边栏切换图标动效 */
+/* 侧边栏切换图标动效。hover 分支必须保留 translateY(-50%) 居中值：
+   .menu-btn 的垂直居中完全依赖它（top:50% + translateY(-50%)），
+   只写 rotate 会把 transform 整个替换掉，按钮下跳半个自身高度
+   （触屏 @media (hover:none) 下 tap 后 :hover 持续存在，是持久外观错误）。 */
 .menu-btn { transition: transform .35s cubic-bezier(.22,.61,.36,1), background .22s ease, border-color .22s ease; }
-.menu-btn:hover { transform: rotate(90deg) translateY(0); }
+.menu-btn:hover { transform: translateY(-50%) rotate(90deg); }
 
 /* icon-btn：统一提升 */
 .icon-btn { transition: background .22s ease, border-color .22s ease, color .22s ease, transform .22s cubic-bezier(.22,.61,.36,1); }
@@ -554,7 +561,10 @@ header { animation-delay: .05s; }
   .header-btns { right: 12px; }
   .reader { padding: 20px 16px 30px; }
   .chapter-title { font-size: 1.2rem; }
-  .chapter-content { font-size: 0.95rem; line-height: 1.9; }
+  /* 必须带上 .reader 前缀：基础规则（:456 .reader .chapter-content）特异性 0,2,0
+     高于裸 .chapter-content（0,1,0），媒体查询不提升特异性，裸选择器永远不生效、
+     手机正文会恒用桌面 1.05rem 基准。字号仍需乘 --reading-size 以保留阅读字号调节。 */
+  .reader .chapter-content { font-size: calc(0.95rem * var(--reading-size, 1)); line-height: 1.9; }
   .player-bar { padding: 8px 12px; gap: 8px; }
   .play-btn { width: 44px; height: 44px; font-size: 1rem; }
   .speed-btn, .font-size-btn { padding: 4px 8px; font-size: 0.72rem; }
@@ -573,7 +583,7 @@ header { animation-delay: .05s; }
   .brand-mark { width: 32px; height: 32px; font-size: 16px; }
   .icon-btn { width: 34px; height: 34px; font-size: 0.9rem; }
   .reader { padding: 16px 14px 24px; }
-  .chapter-content { font-size: 0.9rem; }
+  .reader .chapter-content { font-size: calc(0.9rem * var(--reading-size, 1)); }
   /* 播放栏两行收束：行1 = 播放键 + 标题/进度，行2 = 全部控件居中；nav-btns 不独占一行。
      info 的 flex-basis 必须占满「播放键以外的整行」：只给 flex:1 + min-width:0 时，
      390px 下 info 会被压到 ~66px 使 flex-wrap 永不触发，进度条宽度算成 0、时间标签重叠。
@@ -598,15 +608,17 @@ header { animation-delay: .05s; }
      相邻段落点击区几乎相接，长文本手机上更好点中 */
   .seg { padding-top: 5px; padding-bottom: 5px; }
 
-  /* 触屏禁用菜单按钮 90° 旋转 + 标题下划线扫过，节电 */
-  .menu-btn:hover { transform: none; }
+  /* 触屏禁用菜单按钮 90° 旋转 + 标题下划线扫过，节电
+     （transform 仍需保留 translateY(-50%)：居中值不能丢，否则按钮下移半个高度） */
+  .menu-btn:hover { transform: translateY(-50%); }
   .chapter-title::after { animation: none; width: 56px; }
   .progress-track:hover { height: 6px; }
 }
 
-/* 离线缓存浮动面板（持续自动缓存） */
+/* 离线缓存浮动面板（持续自动缓存）。bottom 必须叠加 --safe-bottom：
+   播放栏自身带 env() 下边距，面板不跟随就会在刘海屏上压住播放栏。 */
 .cache-panel {
-  position: fixed; z-index: 25; right: 16px; bottom: 100px;
+  position: fixed; z-index: 25; right: 16px; bottom: calc(100px + var(--safe-bottom, 0px));
 }
 .cache-toggle {
   width: 42px; height: 42px; border-radius: 50%;
@@ -659,7 +671,7 @@ header { animation-delay: .05s; }
 .cache-btn:disabled { opacity: .45; cursor: not-allowed; }
 /* 移动端：避让底部播放器（两行布局后的栏高 + 间隙），移到导航条上方 */
 @media (max-width: 480px) {
-  .cache-panel { right: 12px; bottom: 112px; }
+  .cache-panel { right: 12px; bottom: calc(112px + var(--safe-bottom, 0px)); }
   .cache-toggle { width: 40px; height: 40px; }
   .cache-popup { width: calc(100vw - 24px); max-width: 320px; }
 }
@@ -667,7 +679,7 @@ header { animation-delay: .05s; }
 /* 安全区域适配（刘海屏/底部横条） */
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
   header { padding-top: calc(16px + env(safe-area-inset-top)); }
-  .player-bar { padding-bottom: calc(10px + env(safe-area-inset-bottom)); }
+  .player-bar { padding-bottom: calc(10px + var(--safe-bottom, 0px)); }
   /* 抽屉目录同样避开顶部刘海（独立于 header 的定位层）；底部横条遮挡由 #toc 之外的留白处理 */
   .sidebar {
     padding-top: calc(20px + env(safe-area-inset-top));
@@ -839,5 +851,5 @@ header { animation-delay: .05s; }
   .chapter-title { font-size: 1.05rem; margin-bottom: 12px; padding-bottom: 8px; }
   .chapter-content { line-height: 1.8; }
   .player-bar { padding-top: 6px; }
-  .cache-panel { bottom: 64px; }
+  .cache-panel { bottom: calc(64px + var(--safe-bottom, 0px)); }
 }

@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>电竞群像 · 有声书 | 有声书馆</title>
-<meta name="description" content="《电竞群像》有声书，免费收听，支持文本同步高亮、倍速播放、章节目录与断点续听。全 90 章，约 19 小时 20 分。">
+<meta name="description" content="《电竞群像》有声书，免费收听，支持文本同步高亮、倍速播放、章节目录与断点续听。全 90 章，约 19 小时 30 分。">
 <meta name="keywords" content="电竞群像,有声书,有声小说,电竞,双男主,原创长篇,一诺,大帅">
 <meta name="author" content="有声书馆">
 <meta name="robots" content="index,follow,max-image-preview:large">
@@ -47,7 +47,7 @@
   "url": "https://audiobook-hub.site/dianjing/",
   "description": "双男主电竞群像长篇有声书。从一诺退役接手，到与辅助大帅并肩夺冠，成长与并肩的故事。",
   "inLanguage": "zh-CN",
-  "duration": "PT19H20M",
+  "duration": "PT19H30M",
   "numberOfChapters": "90",
   "readBy": {
     "@type": "Person",
@@ -166,7 +166,7 @@ try{var t=localStorage.getItem('audiobook-theme');if(t==null)t=localStorage.getI
 const AB = window.ABCommon;
 if (!AB) { document.body.insertAdjacentHTML('beforeend', '<p style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;color:#000;padding:16px;border-radius:8px;z-index:99999">共享脚本未加载</p>'); }
 const {
-  fmtTime, findActiveSeg, normalizeChapters: ABNormalize, audioSrc: ABAudioSrc,
+  fmtTime, fmtRate, findActiveSeg, normalizeChapters: ABNormalize, audioSrc: ABAudioSrc,
   applyHashRoute: ABHashRoute, updateHash: ABUpdateHash,
   updateMediaSession: ABUpdateMediaSession, updateMediaSessionPosition: ABUpdatePosition,
   showToast, announce
@@ -213,6 +213,11 @@ const topProgress = document.getElementById('topProgress');
 const sidebar = document.getElementById('sidebar');
 const overlay = document.getElementById('overlay');
 
+// 常用媒体查询只创建一次：MediaQueryList 每次 matchMedia 都是新对象，
+// 而 highlightSeg（播放中每个段边界都调用）与 loadChapter 都在热路径上
+const reducedMotionMql = window.matchMedia('(prefers-reduced-motion: reduce)');
+const narrowMql = window.matchMedia('(max-width: 768px)');
+
 // ===== 主题（共享逻辑，存储键按书参数化） =====
 AB.initTheme && AB.initTheme({
   key: 'dianjing_theme',
@@ -238,6 +243,12 @@ async function loadData() {
     if (!resp.ok) throw new Error('HTTP ' + resp.status);
     const raw = await resp.json();
     CHAPTERS = ABNormalize ? ABNormalize(raw) : ((raw && raw.chapters) || raw || []);
+    // 归一化后为空（data.json 被中间层换成 HTML 错误页/字段全空）必须走错误分支：
+    // 否则 currentIdx 被钳成 -1、loadChapter 早退，页面只剩空白正文 + 隐藏的骨架屏
+    // 且没有任何提示，用户无从判断是加载失败还是书本来就空。
+    if (!Array.isArray(CHAPTERS) || CHAPTERS.length === 0) {
+      throw new Error('章节数据为空或格式异常');
+    }
     document.getElementById('initLoading').style.display = 'none';
     // >50 章走虚拟滚动：initVirtualList 会整块重建，跳过全量 buildTOC 省一次 DOM 构建
     if (CHAPTERS.length <= 50) buildTOC();
@@ -251,6 +262,14 @@ async function loadData() {
     setTimeout(checkResumeProgress, 800);
     window.__dianjingStartCache && window.__dianjingStartCache();
   } catch(e) {
+    // 章节数据没加载成功 → __dianjingStartCache 不会执行，缓存面板会永远停在「检测中…」。
+    // 直接按 DOM 定位（此处的 IIFE 作用域拿不到缓存面板的局部变量），给出明确失败态。
+    const cacheStatus = document.getElementById('cacheStatusText');
+    if (cacheStatus) {
+      cacheStatus.textContent = '数据未加载';
+      cacheStatus.className = 'cache-status offline';
+      cacheStatus.title = '章节数据加载失败，缓存功能暂不可用';
+    }
     document.getElementById('initLoading').innerHTML = AB.errorHTML('加载失败: ' + (e && e.message || e), 'retryLoadBtn');
     var retryBtn = document.getElementById('retryLoadBtn');
     if (retryBtn) retryBtn.addEventListener('click', function() {
@@ -267,7 +286,7 @@ let tocBreakpointBound = false; // 断点监听只绑一次，重建虚拟列表
 
 function tocItemHeight() {
   // 移动端行高更大（padding 12px 20px + 0.9rem 字号）
-  return window.matchMedia('(max-width: 768px)').matches ? 46 : 44;
+  return narrowMql.matches ? 46 : 44;
 }
 
 function filterChapters(keyword) {
@@ -374,7 +393,7 @@ function initVirtualList() {
   // 断点切换时重建行高（移动端行高更大）；监听器只注册一次
   if (!tocBreakpointBound) {
     tocBreakpointBound = true;
-    window.matchMedia('(max-width: 768px)').addEventListener('change', function () {
+    narrowMql.addEventListener('change', function () {
       if (!virtualList) return;
       const kw = tocKeyword;
       virtualList.destroy();
@@ -429,6 +448,7 @@ document.getElementById('tocSearch').addEventListener('input', (e) => {
 // 宽屏（≥1024px）目录常驻、无抽屉概念；窄屏关闭态必须移出可访问性树，
 // 否则屏幕外的章节链接仍占据 Tab 序列（inert 同时屏蔽读屏与点击，CSS visibility 兜底）
 var drawerMql = window.matchMedia('(min-width: 1024px)');
+var drawerTrap = null; // 抽屉的焦点陷阱句柄（openSidebar 建立、closeSidebar 释放）
 function applyDrawerAccessibility(open) {
   if (drawerMql.matches) {
     sidebar.removeAttribute('aria-hidden');
@@ -445,7 +465,8 @@ function openSidebar() {
   menuBtn.setAttribute('aria-expanded', 'true');
   menuBtn.setAttribute('aria-label', '关闭章节目录');
   applyDrawerAccessibility(true);
-  AB.trapFocus(sidebar, menuBtn);
+  // 保存陷阱句柄：释放时只释放自己，避免把其上层模态（如快捷键帮助）的陷阱误拆
+  drawerTrap = AB.trapFocus(sidebar, menuBtn);
   setTimeout(function () {
     if (virtualList && !tocKeyword) virtualList.scrollToIndex(currentIdx);
   }, 350);
@@ -457,7 +478,8 @@ function closeSidebar() {
   menuBtn.setAttribute('aria-expanded', 'false');
   menuBtn.setAttribute('aria-label', '打开章节目录');
   applyDrawerAccessibility(false);
-  AB.releaseFocus();
+  AB.releaseFocus(drawerTrap);
+  drawerTrap = null;
 }
 // 跨断点切换（如旋转屏幕）：宽屏立即解除隐藏，回到窄屏按开合态重算
 if (drawerMql.addEventListener) {
@@ -513,7 +535,10 @@ function loadChapter(idx, autoplay) {
       // roving tabindex：全章只有一个 tab 停止点（当前高亮段），其余 -1，
       // 方向键在段落间移动焦点；初始锚点由 highlightSeg 统一指定
       span.tabIndex = -1;
-      span.setAttribute('role', 'button');
+      // 不给段落加 role="button"：正文是「可点击定位的文本」，不是按钮。
+      // 加 role 会让读屏把整章逐段播报成 N 个按钮、段落文本语义全部丢失，
+      // 而键盘可达性并不依赖它（roving tabindex + 下面的 Enter/Space 处理即可），
+      // 「可定位」这一能力已在快捷键帮助面板中登记。
       span.textContent = seg.t;
       span.addEventListener('click', () => {
         if (audio.duration) {
@@ -532,7 +557,15 @@ function loadChapter(idx, autoplay) {
         span.tabIndex = 0;
       });
       span.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); span.click(); return; }
+        if (e.key === 'Enter' || e.key === ' ') {
+          // 段落自己消费 Enter/Space（定位播放）并阻断冒泡：全局快捷键靠
+          // closest('[role="button"]') 豁免交互元素，而段落已不带 role=button
+          // （避免整章被读屏播报成 N 个按钮），不阻断会让空格同时触发全局播放/暂停
+          e.preventDefault();
+          e.stopPropagation();
+          span.click();
+          return;
+        }
         var target = null;
         if (e.key === 'ArrowDown' || e.key === 'ArrowRight') target = segElements[si + 1];
         else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') target = segElements[si - 1];
@@ -567,10 +600,25 @@ function loadChapter(idx, autoplay) {
   audioLoadToken++;
   audioRetryCount = 0;
   audio.src = ABAudioSrc ? ABAudioSrc(ch) : ch.audio;
+  // 赋 src 会走媒体加载算法：playbackRate 被重置回 defaultPlaybackRate，
+  // 两个都要写（defaultPlaybackRate 由 applySpeed 维护，这里再显式兜一次）
+  audio.defaultPlaybackRate = SPEED_STEPS[speedIdx];
   audio.playbackRate = SPEED_STEPS[speedIdx];
   playBtn.disabled = false;
   prevBtn.disabled = (idx === 0);
   nextBtn.disabled = (idx === CHAPTERS.length - 1);
+
+  // 重置章节进度 UI：换 src 后新音频 duration 为 NaN，timeupdate 里的 dur>0 守卫
+  // 不会覆盖旧值——弱网/SW 首播流式转发（响应头先回、metadata 更晚）时进度条会长时间
+  // 停在上章位置；loadedmetadata 又会把 aria-valuemax 换成新时长而 valuenow 仍是旧秒数，
+  // 读屏得到的滑块状态自相矛盾。与初始 DOM 取值保持一致（0:00 / 0）。
+  lastAriaSec = -1;
+  progressFill.style.width = '0';
+  progressThumb.style.left = '0';
+  progressTrack.setAttribute('aria-valuenow', '0');
+  progressTrack.setAttribute('aria-valuetext', '0:00 / 0:00');
+  curTimeLabel.textContent = '0:00';
+  durTimeLabel.textContent = '0:00';
 
   // 更新顶部进度条（带动画）
   topProgress.style.width = '0';
@@ -583,7 +631,7 @@ function loadChapter(idx, autoplay) {
   updateTOCActive();
 
   // 宽屏常驻目录：章节切换（含自动连播）时让当前章保持可见
-  if (window.matchMedia('(min-width: 1024px)').matches) {
+  if (drawerMql.matches) {
     if (virtualList && !tocKeyword) virtualList.scrollToIndex(idx);
     else {
       const active = document.querySelector('.sidebar a.active');
@@ -742,16 +790,20 @@ audio.addEventListener('timeupdate', () => {
     const ratio = cur / dur;
     progressFill.style.width = (ratio * 100) + '%';
     progressThumb.style.left = (ratio * 100) + '%';
-    // aria 数值统一用秒（与 loadedmetadata 的 valuemax 同单位）+ 人类可读文本；
-    // 秒数变化才更新（timeupdate 约 4Hz，避免每次触发可访问性树更新）
-    const sec = Math.round(cur);
-    if (sec !== lastAriaSec) {
-      lastAriaSec = sec;
+  }
+  // 时间标签与 aria 同属「秒级」信息：fmtTime 最小粒度就是秒，而 timeupdate
+  // 约 4Hz——原先每次都无条件写 curTimeLabel，约 3/4 是重复写同一字符串，
+  // 仍会失效该行内元素并触发后续样式处理。统一并入秒级节流分支。
+  const sec = Math.round(cur);
+  if (sec !== lastAriaSec) {
+    lastAriaSec = sec;
+    curTimeLabel.textContent = fmtTime(cur);
+    if (dur > 0) {
+      // aria 数值统一用秒（与 loadedmetadata 的 valuemax 同单位）+ 人类可读文本
       progressTrack.setAttribute('aria-valuenow', String(sec));
       progressTrack.setAttribute('aria-valuetext', fmtTime(cur) + ' / ' + fmtTime(dur));
     }
   }
-  curTimeLabel.textContent = fmtTime(cur);
 
   // 文本高亮跟随（二分查找）
   const ch = CHAPTERS[currentIdx];
@@ -864,7 +916,7 @@ function highlightSeg(idx) {
     const containerRect = readerEl.getBoundingClientRect();
     if (rect.top < containerRect.top + 80 || rect.bottom > containerRect.bottom - 80) {
       node.scrollIntoView({
-        behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+        behavior: reducedMotionMql.matches ? 'auto' : 'smooth',
         block: 'center'
       });
     }
@@ -907,14 +959,18 @@ fwd15Btn.addEventListener('click', () => seekBy(15));
     const i = SPEED_STEPS.indexOf(saved);
     if (i >= 0) speedIdx = i;
   } catch (_) {}
-  speedBtn.textContent = SPEED_STEPS[speedIdx].toFixed(2).replace(/\.?0+$/, '') + 'x';
+  speedBtn.textContent = fmtRate(SPEED_STEPS[speedIdx]) + 'x';
   speedBtn.setAttribute('aria-label', '播放速度：当前 ' + speedBtn.textContent + ' 倍');
 })();
 function applySpeed(rate, silent) {
   speedIdx = SPEED_STEPS.indexOf(rate);
   if (speedIdx < 0) { speedIdx = 2; rate = SPEED_STEPS[2]; }
   audio.playbackRate = rate;
-  speedBtn.textContent = rate.toFixed(2).replace(/\.?0+$/, '') + 'x';
+  // defaultPlaybackRate 必须同步：媒体加载算法会把 playbackRate 重置回
+  // defaultPlaybackRate（实测 audio.load() 后 1.5x 变回 1.0x），而错误重试路径
+  // 正是靠 audio.load() 自愈——不设它会出现「按钮显示 1.5x、实际按 1.0x 播」
+  audio.defaultPlaybackRate = rate;
+  speedBtn.textContent = fmtRate(rate) + 'x';
   speedBtn.setAttribute('aria-label', '播放速度：当前 ' + speedBtn.textContent + ' 倍');
   try { localStorage.setItem(SPEED_KEY, String(rate)); } catch (_) {}
   if (!silent) announce && announce('播放速度 ' + speedBtn.textContent + ' 倍');
@@ -992,7 +1048,10 @@ overlay.addEventListener('click', closeSidebar);
     },
     extraShortcuts: [
       { key: 'F', label: '字号调节', description: '调节阅读字号大小' },
-      { key: 'Esc', label: '关闭侧栏', description: '关闭章节目录侧边栏' }
+      { key: 'Esc', label: '关闭侧栏', description: '关闭章节目录侧边栏' },
+      // 正文段落本身不带 role=button（避免整章被读屏播报成 N 个按钮），
+      // 因此「Tab 进入正文 + 方向键逐段 + 回车定位」这条能力在此登记
+      { key: 'Tab', label: '正文段落定位', description: 'Tab 聚焦当前段落后：方向键逐段移动，回车/空格从该段开始播放' }
     ]
   });
 
@@ -1150,7 +1209,7 @@ window.addEventListener('unhandledrejection', (e) => { console.error('Unhandled 
    * 不带参数时用户在缓存窗口内刷新仍会命中旧 SW（例如音频 Range 转发缺陷的 v11）。
    * 版本化 scriptURL 会强制浏览器拉取指定版本，更新两步到位（与 sw.js 内 VERSION 同步递增；
    * 配合 common.js 的 controllerchange 自动刷新，旧 SW 用户一次访问即收敛到新版本）。 */
-  AB.registerServiceWorker && AB.registerServiceWorker('sw.js?v=18');
+  AB.registerServiceWorker && AB.registerServiceWorker('sw.js?v=20');
 
   const cacheToggle = document.getElementById('cacheToggle');
   const cachePopup = document.getElementById('cachePopup');
@@ -1171,6 +1230,11 @@ window.addEventListener('unhandledrejection', (e) => { console.error('Unhandled 
   })();
 
   let prefetching = false;
+  /* runId 必须跨标签页唯一：它是「每页面」自增计数器，而 SW 把 PREFETCH_DONE
+     广播给所有 client，两页各自都从 1 开始，同号时对面页面会把这轮的完成消息
+     当成自己的（提前收起暂停按钮、用尚未回填的 cachedCount 误报「已全部缓存」）。
+     加一段页面级随机前缀，各页互不撞号；SW 侧只做透传，类型无要求。 */
+  const RUN_TAG = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
   let currentRunId = 0;
   let cachedCount = 0;
   let audioSize = 0;
@@ -1187,13 +1251,21 @@ window.addEventListener('unhandledrejection', (e) => { console.error('Unhandled 
     return Math.round((bytes || 0) / 1024 / 1024) + 'MB';
   }
 
+  /* 缓存状态是否已从 SW 拿到（未拿到前不得谎报「在线/离线」与「0 / N 章」） */
+  let cacheStateKnown = false;
+  let cacheQueryTimedOut = false;
+  let cacheQueryTimer = 0;
+
   /* 渲染 UI（cachedCount/audioSize/audioLimit 由 SW 消息回调更新） */
   function renderCacheUI() {
     if (!cacheToggle) return;
     const total = CHAPTERS.length;
     const pct = total > 0 ? (cachedCount / total * 100) : 0;
     if (cacheProgressBar) cacheProgressBar.style.width = pct.toFixed(1) + '%';
-    if (cacheCountText) cacheCountText.textContent = cachedCount + ' / ' + total + ' 章';
+    if (cacheCountText) {
+      // 状态未知时不能显示「0 / 177 章」：那是在把「还没问到」说成「一个都没缓存」
+      cacheCountText.textContent = cacheStateKnown ? (cachedCount + ' / ' + total + ' 章') : '—';
+    }
     if (cacheBadge) {
       cacheBadge.textContent = cachedCount;
       cacheBadge.hidden = cachedCount === 0;
@@ -1201,8 +1273,19 @@ window.addEventListener('unhandledrejection', (e) => { console.error('Unhandled 
 
     const online = navigator.onLine;
     if (cacheStatusText) {
-      cacheStatusText.textContent = online ? '在线' : '离线';
-      cacheStatusText.className = 'cache-status ' + (online ? 'online' : 'offline');
+      if (cacheStateKnown) {
+        cacheStatusText.textContent = online ? '在线' : '离线';
+        cacheStatusText.className = 'cache-status ' + (online ? 'online' : 'offline');
+        cacheStatusText.title = '';
+      } else {
+        // 首次访问 / 旧 SW 交接窗口内消息可能收不到：超时后如实说「未就绪」，
+        // 而不是永远停在「检测中…」（用户会以为界面卡死）
+        cacheStatusText.textContent = cacheQueryTimedOut ? '未就绪' : '检测中…';
+        cacheStatusText.className = 'cache-status';
+        cacheStatusText.title = cacheQueryTimedOut
+          ? '缓存服务未响应：刷新一次即可（首次访问或刚更新版本时需要）'
+          : '';
+      }
     }
 
     let hint = '有网络时自动缓存后续章节，断网也能听';
@@ -1231,10 +1314,25 @@ window.addEventListener('unhandledrejection', (e) => { console.error('Unhandled 
     if (cacheIcon) cacheIcon.classList.toggle('prefetching', prefetching);
   }
 
-  /* 向 SW 查询已缓存列表与容量统计（异步回传后重渲染） */
+  /* 向 SW 查询已缓存列表与容量统计（异步回传后重渲染）。
+     带超时兜底：页面尚未被 SW 接管（首次访问、旧 SW 交接窗口）时 SW 的
+     `clients.matchAll()` 广播收不到，查询会石沉大海、面板永远停在「检测中…」；
+     超时后按「未就绪」渲染（见 renderCacheUI），并在拿到控制权时自动重查。 */
   function queryState() {
+    clearTimeout(cacheQueryTimer);
+    cacheQueryTimer = window.setTimeout(function () {
+      cacheQueryTimer = 0;
+      if (!cacheStateKnown) { cacheQueryTimedOut = true; renderCacheUI(); }
+    }, 3000);
     AB.sendToServiceWorker && AB.sendToServiceWorker({ type: 'QUERY_CACHED_AUDIO' });
     AB.sendToServiceWorker && AB.sendToServiceWorker({ type: 'GET_CACHE_INFO' });
+  }
+
+  /* 记录「已从 SW 拿到缓存状态」：清掉超时标记与待触发的兜底定时器 */
+  function markCacheStateKnown() {
+    cacheStateKnown = true;
+    cacheQueryTimedOut = false;
+    if (cacheQueryTimer) { clearTimeout(cacheQueryTimer); cacheQueryTimer = 0; }
   }
 
   /* 开始预取：当前章节之后优先，走到末尾后再从头补齐；由 SW 下载并写入音频缓存 */
@@ -1244,7 +1342,7 @@ window.addEventListener('unhandledrejection', (e) => { console.error('Unhandled 
     if (cachedCount >= CHAPTERS.length) { renderCacheUI(); return; }
 
     prefetching = true;
-    const runId = ++currentRunId;
+    const runId = RUN_TAG + '-' + (++currentRunId);
     renderCacheUI();
 
     const allUrls = getAllAudioUrls();
@@ -1288,10 +1386,12 @@ window.addEventListener('unhandledrejection', (e) => { console.error('Unhandled 
       if (d.type === 'CACHED_AUDIO_LIST') {
         const urls = new Set(getAllAudioUrls());
         cachedCount = (d.urls || []).filter((u) => urls.has(u)).length;
+        markCacheStateKnown();
         renderCacheUI();
       } else if (d.type === 'CACHE_INFO') {
         if (d.audioLimit) audioLimit = d.audioLimit;
         audioSize = d.audioSize || 0;
+        markCacheStateKnown();
         renderCacheUI();
       } else if (d.type === 'PREFETCH_DONE') {
         if (d.runId != null && d.runId !== currentRunId) return; // 过期轮次
@@ -1301,6 +1401,14 @@ window.addEventListener('unhandledrejection', (e) => { console.error('Unhandled 
       } else if (d.type === 'AUDIO_CACHE_CLEARED') {
         queryState();
       }
+    });
+
+    /* 页面刚获得 SW 控制权（首次访问 / 旧 SW 交接）时立刻重查一次：
+       此前的查询可能因「当时还没被控制」收不到广播，这次是确定能收到的那次。
+       比只依赖超时更准，也更快把面板从「检测中…」带到真实状态。 */
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      cacheQueryTimedOut = false;
+      queryState();
     });
   }
 

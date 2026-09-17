@@ -17,15 +17,19 @@
  */
 
 const SW_ID = 'landing';
-const VERSION = 2;
+const VERSION = 3;
 const CACHE_PREFIX = 'audiobook-hub-';
 
 const PAGE_CACHE = `page-${CACHE_PREFIX}${SW_ID}-v${VERSION}`;
 const STATIC_CACHE = `static-${CACHE_PREFIX}${SW_ID}-v${VERSION}`;
 
 const SHELL = {
-  page: ['./', './index.html'],
-  static: ['./manifest.json', './icon-192.png', './icon-512.png', './og-cover.png'],
+  // 404.html 也入外壳：GitHub Pages 对任意错误路径都返回它，离线时它是主要岔路口，
+  // 不预缓存就会在断网时直接白屏（v3 起新增）
+  page: ['./', './index.html', './404.html'],
+  // og-cover.png 不预缓存：外壳从不请求它（只有 OG 爬虫按绝对 URL 取，且不走 SW），
+  // 放进来只是让每次安装多下 ~79KB（v3 起移除）
+  static: ['./manifest.json', './icon-192.png', './icon-512.png'],
 };
 
 self.addEventListener('install', (event) => {
@@ -62,7 +66,7 @@ function isPage(pathname) {
   return /(\.html$|\/$)/i.test(pathname);
 }
 
-function networkFirst(cacheName, request) {
+function networkFirst(cacheName, request, offlineFallback = './index.html') {
   return fetch(request)
     .then((resp) => {
       if (resp && resp.status === 200) {
@@ -72,7 +76,7 @@ function networkFirst(cacheName, request) {
       return resp;
     })
     .catch(() =>
-      caches.match(request).then((cached) => cached || caches.match('./index.html').then((home) => home || Response.error()))
+      caches.match(request).then((cached) => cached || caches.match(offlineFallback).then((fb) => fb || Response.error()))
     );
 }
 
@@ -101,11 +105,19 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
   // 只接管站点根目录的着陆页资源；子目录（/zhixiao/ 等）交给各自的 SW
-  if (!/^\/(index\.html|manifest\.json|icon-.*\.png|og-cover\.png)?$/i.test(url.pathname)) return;
-
-  if (isPage(url.pathname) || url.pathname === '/') {
-    event.respondWith(networkFirst(PAGE_CACHE, req));
-  } else {
-    event.respondWith(staleWhileRevalidate(STATIC_CACHE, req));
+  if (/^\/(index\.html|manifest\.json|icon-.*\.png|og-cover\.png)?$/i.test(url.pathname)) {
+    if (isPage(url.pathname) || url.pathname === '/') {
+      event.respondWith(networkFirst(PAGE_CACHE, req));
+    } else {
+      event.respondWith(staleWhileRevalidate(STATIC_CACHE, req));
+    }
+    return;
+  }
+  // 根路径下的其它导航（GitHub Pages 对任意错误路径都返回 404 页）：离线时给缓存里的
+  // 404 页，而不是让浏览器抛「无网络」——404 页是本站的岔路口，断网时正是用户需要
+  // 导航能力的时刻。带斜杠的子目录路径（/zhixiao/…）不进这一支，它们归各自书的 SW。
+  if (req.mode === 'navigate' && !/^\/[^/]+\//.test(url.pathname)) {
+    // 离线兜底给 404 页而非首页：未知 URL 断网时既要有内容、也要让人看出这个地址是错的
+    event.respondWith(networkFirst(PAGE_CACHE, req, './404.html'));
   }
 });
